@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>kirillovec — скандально неизвестный</title>
-  <meta name="description" content="kirillovec — The scandalously unknown artist. Лирика дыма.">
+  <meta name="description" content="kirillovec — The scandalously unknown artist. Лирика дыма. Альбом «НИЗКО».">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
@@ -38,7 +38,6 @@
       overflow-x: hidden;
     }
 
-    /* Smoke / grain overlay */
     body::before {
       content: '';
       position: fixed;
@@ -58,7 +57,6 @@
       z-index: 1;
     }
 
-    /* Header */
     header {
       padding: 28px 0;
       display: flex;
@@ -93,7 +91,6 @@
       color: var(--accent);
     }
 
-    /* Hero */
     .hero {
       padding: 120px 0 100px;
       text-align: center;
@@ -167,7 +164,6 @@
       color: var(--accent);
     }
 
-    /* Sections */
     section {
       padding: 80px 0;
     }
@@ -180,7 +176,6 @@
       letter-spacing: -0.01em;
     }
 
-    /* About */
     .about-grid {
       display: grid;
       grid-template-columns: 1fr 1.4fr;
@@ -257,7 +252,6 @@
       letter-spacing: 0.08em;
     }
 
-    /* Music */
     .tracks {
       display: grid;
       gap: 12px;
@@ -321,9 +315,8 @@
       color: #0a0a0b;
     }
 
-    /* Album highlight */
     .album {
-      margin-top: 48px;
+      margin-bottom: 48px;
       background: linear-gradient(135deg, #141416 0%, #1a1814 100%);
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -361,7 +354,6 @@
       margin-bottom: 20px;
     }
 
-    /* Links */
     .links-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -407,7 +399,6 @@
       color: var(--text-muted);
     }
 
-    /* Footer */
     footer {
       padding: 60px 0 40px;
       border-top: 1px solid var(--border);
@@ -432,7 +423,6 @@
       opacity: 0.6;
     }
 
-    /* Responsive */
     @media (max-width: 768px) {
       nav {
         display: none;
@@ -460,7 +450,6 @@
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
     <header>
       <a href="#" class="logo">kirillovec</a>
       <nav>
@@ -470,7 +459,6 @@
       </nav>
     </header>
 
-    <!-- Hero -->
     <section class="hero">
       <div class="hero-tag">The scandalously unknown artist</div>
       <h1>kirillovec</h1>
@@ -483,7 +471,6 @@
       </div>
     </section>
 
-    <!-- About -->
     <section id="about">
       <h2 class="section-title">О себе</h2>
       <div class="about-grid">
@@ -518,7 +505,6 @@
       </div>
     </section>
 
-    <!-- Music -->
     <section id="music">
       <h2 class="section-title">Музыка</h2>
 
@@ -526,14 +512,14 @@
         <div class="album-cover">НИЗКО</div>
         <div class="album-info">
           <h3>Альбом «НИЗКО»</h3>
-          <p>Скандально неизвестный. 16 треков. Лирика дыма.</p>
+          <p>Скандально неизвестный. 16 треков. Лирика дыма. Полный альбом доступен на Suno.</p>
           <a href="https://suno.com/@kirillovec77" target="_blank" rel="noopener" class="btn btn-primary" style="padding: 10px 22px; font-size: 0.9rem;">
-            Слушать альбом
+            Слушать альбом на Suno
           </a>
         </div>
       </div>
 
-      <div class="tracks" style="margin-top: 32px;">
+      <div class="tracks">
         <a href="https://suno.com/song/2e589ffa-195c-4246-8f42-d745cf388c63" target="_blank" rel="noopener" class="track">
           <span class="track-num">01</span>
           <div class="track-info">
@@ -575,9 +561,12 @@
           <div class="track-play">▶</div>
         </a>
       </div>
+
+      <p style="margin-top: 24px; color: var(--text-muted); font-size: 0.9rem;">
+        Ещё 11 треков альбома «НИЗКО» — на <a href="https://suno.com/@kirillovec77" target="_blank" rel="noopener" style="color: var(--accent);">профиле Suno</a>.
+      </p>
     </section>
 
-    <!-- Links -->
     <section id="links">
       <h2 class="section-title">Где слушать</h2>
       <div class="links-grid">
@@ -585,7 +574,7 @@
           <div class="link-icon">☀</div>
           <div>
             <div class="link-text">Suno</div>
-            <div class="link-sub">Основной профиль</div>
+            <div class="link-sub">Основной профиль · альбом «НИЗКО»</div>
           </div>
         </a>
         <a href="#" class="link-card" onclick="alert('Добавь свою ссылку на SoundCloud'); return false;">
@@ -612,7 +601,6 @@
       </div>
     </section>
 
-    <!-- Footer -->
     <footer>
       <div class="footer-logo">kirillovec</div>
       <p class="footer-text">The scandalously unknown artist.<br>Лирика дыма.</p>
