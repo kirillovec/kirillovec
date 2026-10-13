@@ -354,9 +354,16 @@
       color: #0a0a0b;
     }
 
+    .platforms-title {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      font-weight: 400;
+    }
+
     .links-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
     }
 
@@ -386,8 +393,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       color: var(--accent);
+      flex-shrink: 0;
     }
 
     .link-text {
@@ -455,7 +463,7 @@
       <nav>
         <a href="#about">О себе</a>
         <a href="#music">Музыка</a>
-        <a href="#links">Ссылки</a>
+        <a href="#links">Слушать</a>
       </nav>
     </header>
 
@@ -464,7 +472,7 @@
       <h1>kirillovec</h1>
       <p class="hero-subtitle">Лирика дыма. Русский андеграунд. Город, ночь и слова, которые остаются.</p>
       <div class="hero-cta">
-        <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="btn btn-primary">
+        <a href="#links" class="btn btn-primary">
           Слушать «НИЗКО»
         </a>
         <a href="#music" class="btn btn-ghost">Альбом «НИЗКО»</a>
@@ -513,14 +521,14 @@
         <div class="album-info">
           <h3>Альбом «НИЗКО»</h3>
           <p>Скандально неизвестный. 16 треков. Лирика дыма.</p>
-          <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="btn btn-primary" style="padding: 10px 22px; font-size: 0.9rem;">
-            Слушать на всех платформах
+          <a href="#links" class="btn btn-primary" style="padding: 10px 22px; font-size: 0.9rem;">
+            Где слушать
           </a>
         </div>
       </div>
 
       <div class="tracks">
-        <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="track">
+        <a href="#links" class="track">
           <span class="track-num">01</span>
           <div class="track-info">
             <div class="track-title">НИЗКО</div>
@@ -533,32 +541,33 @@
 
     <section id="links">
       <h2 class="section-title">Где слушать</h2>
+      <p class="platforms-title">НИЗКО слушать на:</p>
       <div class="links-grid">
-        <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">
-          <div class="link-icon">▶</div>
-          <div>
-            <div class="link-text">Band.link</div>
-            <div class="link-sub">Все платформы · трек «НИЗКО»</div>
-          </div>
-        </a>
-        <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">
-          <div class="link-icon">▶</div>
+        <a href="https://music.yandex.ru/album/44176131" target="_blank" rel="noopener" class="link-card">
+          <div class="link-icon">Я</div>
           <div>
             <div class="link-text">Яндекс Музыка</div>
             <div class="link-sub">Слушать «НИЗКО»</div>
           </div>
         </a>
-        <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">
-          <div class="link-icon">◉</div>
+        <a href="https://music.mts.ru/album/44176131" target="_blank" rel="noopener" class="link-card">
+          <div class="link-icon">K</div>
+          <div>
+            <div class="link-text">KION Music</div>
+            <div class="link-sub">Слушать «НИЗКО»</div>
+          </div>
+        </a>
+        <a href="https://music.vk.com/link/UgGXp" target="_blank" rel="noopener" class="link-card">
+          <div class="link-icon">VK</div>
           <div>
             <div class="link-text">VK Музыка</div>
             <div class="link-sub">Слушать «НИЗКО»</div>
           </div>
         </a>
-        <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">
-          <div class="link-icon">◎</div>
+        <a href="https://zvuk.com/release/53157423" target="_blank" rel="noopener" class="link-card">
+          <div class="link-icon">Z</div>
           <div>
-            <div class="link-text">Spotify</div>
+            <div class="link-text">Звук</div>
             <div class="link-sub">Слушать «НИЗКО»</div>
           </div>
         </a>
@@ -566,14 +575,21 @@
           <div class="link-icon">♫</div>
           <div>
             <div class="link-text">Apple Music</div>
-            <div class="link-sub">Слушать «НИЗКО»</div>
+            <div class="link-sub">Pre-save · Band.link</div>
           </div>
         </a>
         <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">
-          <div class="link-icon">☁</div>
+          <div class="link-icon">◎</div>
           <div>
-            <div class="link-text">Другие платформы</div>
-            <div class="link-sub">Через Band.link</div>
+            <div class="link-text">Spotify</div>
+            <div class="link-sub">Pre-save · Band.link</div>
+          </div>
+        </a>
+        <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">
+          <div class="link-icon">▶</div>
+          <div>
+            <div class="link-text">Все платформы</div>
+            <div class="link-sub">Band.link</div>
           </div>
         </a>
       </div>
