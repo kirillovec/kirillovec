@@ -253,7 +253,7 @@
     }
 
     .album {
-      margin-bottom: 0;
+      margin-bottom: 32px;
       background: linear-gradient(135deg, #141416 0%, #1a1814 100%);
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -289,6 +289,69 @@
       color: var(--text-muted);
       font-size: 0.95rem;
       margin-bottom: 20px;
+    }
+
+    .tracks {
+      display: grid;
+      gap: 12px;
+    }
+
+    .track {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 18px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.25s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .track:hover {
+      border-color: rgba(196,167,125,0.35);
+      background: #161618;
+      transform: translateX(4px);
+    }
+
+    .track-num {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      width: 24px;
+      text-align: center;
+    }
+
+    .track-info {
+      flex: 1;
+    }
+
+    .track-title {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .track-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .track-play {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 0.9rem;
+      transition: all 0.25s;
+    }
+
+    .track:hover .track-play {
+      background: var(--accent);
+      color: #0a0a0b;
     }
 
     .links-grid {
@@ -454,6 +517,17 @@
             Где слушать
           </a>
         </div>
+      </div>
+
+      <div class="tracks">
+        <a href="#links" class="track">
+          <span class="track-num">01</span>
+          <div class="track-info">
+            <div class="track-title">НИЗКО</div>
+            <div class="track-meta">русский рэп · hip hop · lo-fi</div>
+          </div>
+          <div class="track-play">▶</div>
+        </a>
       </div>
     </section>
 
