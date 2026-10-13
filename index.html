@@ -252,71 +252,8 @@
       letter-spacing: 0.08em;
     }
 
-    .tracks {
-      display: grid;
-      gap: 12px;
-    }
-
-    .track {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      padding: 18px 24px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      transition: all 0.25s;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .track:hover {
-      border-color: rgba(196,167,125,0.35);
-      background: #161618;
-      transform: translateX(4px);
-    }
-
-    .track-num {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      width: 24px;
-      text-align: center;
-    }
-
-    .track-info {
-      flex: 1;
-    }
-
-    .track-title {
-      font-weight: 500;
-      margin-bottom: 2px;
-    }
-
-    .track-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .track-play {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--accent-soft);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--accent);
-      font-size: 0.9rem;
-      transition: all 0.25s;
-    }
-
-    .track:hover .track-play {
-      background: var(--accent);
-      color: #0a0a0b;
-    }
-
     .album {
-      margin-bottom: 48px;
+      margin-bottom: 0;
       background: linear-gradient(135deg, #141416 0%, #1a1814 100%);
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -464,10 +401,10 @@
       <h1>kirillovec</h1>
       <p class="hero-subtitle">Лирика дыма. Русский андеграунд. Город, ночь и слова, которые остаются.</p>
       <div class="hero-cta">
-        <a href="https://suno.com/@kirillovec77" target="_blank" rel="noopener" class="btn btn-primary">
-          Слушать на Suno
+        <a href="#links" class="btn btn-primary">
+          Слушать
         </a>
-        <a href="#music" class="btn btn-ghost">Треки</a>
+        <a href="#music" class="btn btn-ghost">Альбом «НИЗКО»</a>
       </div>
     </section>
 
@@ -512,87 +449,54 @@
         <div class="album-cover">НИЗКО</div>
         <div class="album-info">
           <h3>Альбом «НИЗКО»</h3>
-          <p>Скандально неизвестный. 16 треков. Лирика дыма. Полный альбом доступен на Suno.</p>
-          <a href="https://suno.com/@kirillovec77" target="_blank" rel="noopener" class="btn btn-primary" style="padding: 10px 22px; font-size: 0.9rem;">
-            Слушать альбом на Suno
+          <p>Скандально неизвестный. 16 треков. Лирика дыма.</p>
+          <a href="#links" class="btn btn-primary" style="padding: 10px 22px; font-size: 0.9rem;">
+            Где слушать
           </a>
         </div>
       </div>
-
-      <div class="tracks">
-        <a href="https://suno.com/song/2e589ffa-195c-4246-8f42-d745cf388c63" target="_blank" rel="noopener" class="track">
-          <span class="track-num">01</span>
-          <div class="track-info">
-            <div class="track-title">Устал от биографии</div>
-            <div class="track-meta">русский рэп · hip hop</div>
-          </div>
-          <div class="track-play">▶</div>
-        </a>
-        <a href="https://suno.com/song/465e9cfe-e46d-40b1-9da7-e2a65cba09a6" target="_blank" rel="noopener" class="track">
-          <span class="track-num">02</span>
-          <div class="track-info">
-            <div class="track-title">Останься хотя бы в снах</div>
-            <div class="track-meta">rap · cinematic</div>
-          </div>
-          <div class="track-play">▶</div>
-        </a>
-        <a href="https://suno.com/song/f7cb9294-2e24-46ce-bd6b-7df45e5ef4a3" target="_blank" rel="noopener" class="track">
-          <span class="track-num">03</span>
-          <div class="track-info">
-            <div class="track-title">путь домой</div>
-            <div class="track-meta">lo-fi · jazz rap</div>
-          </div>
-          <div class="track-play">▶</div>
-        </a>
-        <a href="https://suno.com/song/96358e3e-19e4-4e62-92ea-7a5fd056f8fd" target="_blank" rel="noopener" class="track">
-          <span class="track-num">04</span>
-          <div class="track-info">
-            <div class="track-title">мой наркотик</div>
-            <div class="track-meta">lo-fi · rap</div>
-          </div>
-          <div class="track-play">▶</div>
-        </a>
-        <a href="https://suno.com/song/24b58259-e721-4770-94a8-53475daaa84e" target="_blank" rel="noopener" class="track">
-          <span class="track-num">05</span>
-          <div class="track-info">
-            <div class="track-title">Космическая эра</div>
-            <div class="track-meta">Russian underground rap · dark boom bap</div>
-          </div>
-          <div class="track-play">▶</div>
-        </a>
-      </div>
-
-      <p style="margin-top: 24px; color: var(--text-muted); font-size: 0.9rem;">
-        Ещё 11 треков альбома «НИЗКО» — на <a href="https://suno.com/@kirillovec77" target="_blank" rel="noopener" style="color: var(--accent);">профиле Suno</a>.
-      </p>
     </section>
 
     <section id="links">
       <h2 class="section-title">Где слушать</h2>
       <div class="links-grid">
-        <a href="https://suno.com/@kirillovec77" target="_blank" rel="noopener" class="link-card">
-          <div class="link-icon">☀</div>
+        <a href="#" class="link-card" onclick="alert('Добавь ссылку на Яндекс Музыку'); return false;">
+          <div class="link-icon">▶</div>
           <div>
-            <div class="link-text">Suno</div>
+            <div class="link-text">Яндекс Музыка</div>
             <div class="link-sub">Основной профиль · альбом «НИЗКО»</div>
           </div>
         </a>
-        <a href="#" class="link-card" onclick="alert('Добавь свою ссылку на SoundCloud'); return false;">
-          <div class="link-icon">☁</div>
+        <a href="#" class="link-card" onclick="alert('Добавь ссылку на VK Музыку'); return false;">
+          <div class="link-icon">◉</div>
           <div>
-            <div class="link-text">SoundCloud</div>
+            <div class="link-text">VK Музыка</div>
             <div class="link-sub">Скоро</div>
           </div>
         </a>
-        <a href="#" class="link-card" onclick="alert('Добавь свою ссылку на Telegram / Instagram'); return false;">
+        <a href="#" class="link-card" onclick="alert('Добавь ссылку на Spotify'); return false;">
+          <div class="link-icon">◎</div>
+          <div>
+            <div class="link-text">Spotify</div>
+            <div class="link-sub">Скоро</div>
+          </div>
+        </a>
+        <a href="#" class="link-card" onclick="alert('Добавь ссылку на Apple Music'); return false;">
+          <div class="link-icon">♫</div>
+          <div>
+            <div class="link-text">Apple Music</div>
+            <div class="link-sub">Скоро</div>
+          </div>
+        </a>
+        <a href="#" class="link-card" onclick="alert('Добавь ссылку на Telegram'); return false;">
           <div class="link-icon">✈</div>
           <div>
             <div class="link-text">Telegram</div>
             <div class="link-sub">Скоро</div>
           </div>
         </a>
-        <a href="#" class="link-card" onclick="alert('Добавь свою ссылку на VK / Instagram'); return false;">
-          <div class="link-icon">◉</div>
+        <a href="#" class="link-card" onclick="alert('Добавь ссылку на соцсети'); return false;">
+          <div class="link-icon">☁</div>
           <div>
             <div class="link-text">Соцсети</div>
             <div class="link-sub">Скоро</div>
