@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>kirillovec — скандально неизвестный</title>
-  <meta name="description" content="kirillovec — The scandalously unknown artist. Лирика дыма. Альбом «НИЗКО».">
+  <meta name="description" content="kirillovec — The scandalously unknown artist. Лирика дыма. Сингл «НИЗКО». Альбом — в ноябре.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
@@ -252,6 +252,63 @@
       letter-spacing: 0.08em;
     }
 
+    /* Coming Soon banner */
+    .coming-soon {
+      margin-bottom: 40px;
+      background: linear-gradient(135deg, #1a1612 0%, #141210 50%, #1a1814 100%);
+      border: 1px solid rgba(196,167,125,0.25);
+      border-radius: 16px;
+      padding: 40px 36px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .coming-soon::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    .coming-soon-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 6px 16px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+    }
+
+    .coming-soon h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .coming-soon p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 420px;
+      margin: 0 auto 8px;
+      font-weight: 300;
+    }
+
+    .coming-soon .date {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--accent);
+      margin-top: 16px;
+    }
+
     .album {
       margin-bottom: 32px;
       background: linear-gradient(135deg, #141416 0%, #1a1814 100%);
@@ -458,6 +515,10 @@
       .stats {
         grid-template-columns: 1fr;
       }
+
+      .coming-soon {
+        padding: 32px 24px;
+      }
     }
   </style>
 </head>
@@ -480,7 +541,7 @@
         <a href="#links" class="btn btn-primary">
           Слушать «НИЗКО»
         </a>
-        <a href="#music" class="btn btn-ghost">Альбом «НИЗКО»</a>
+        <a href="#music" class="btn btn-ghost">Альбом скоро</a>
       </div>
     </section>
 
@@ -496,18 +557,18 @@
         </div>
         <div>
           <p class="about-text" style="margin-bottom: 0;">
-            Альбом <strong>«НИЗКО»</strong> — 16 треков. Более 130 песен. Хип-хоп, lo-fi, ambient, тёмный бум-бэп.
+            Сейчас доступен сингл <strong>«НИЗКО»</strong>. Полный альбом — 16 треков — выходит <strong>в ноябре</strong>.
             <br><br>
             Это не про хайп. Это про слова, которые остаются после того, как дым рассеялся.
           </p>
           <div class="stats">
             <div class="stat">
-              <div class="stat-num">130+</div>
-              <div class="stat-label">треков</div>
+              <div class="stat-num">1</div>
+              <div class="stat-label">сингл</div>
             </div>
             <div class="stat">
-              <div class="stat-num">1</div>
-              <div class="stat-label">альбом</div>
+              <div class="stat-num">16</div>
+              <div class="stat-label">треков в альбоме</div>
             </div>
             <div class="stat">
               <div class="stat-num">∞</div>
@@ -521,13 +582,23 @@
     <section id="music">
       <h2 class="section-title">Музыка</h2>
 
+      <!-- Coming Soon -->
+      <div class="coming-soon">
+        <div class="coming-soon-badge">Coming Soon</div>
+        <h3>Альбом «НИЗКО»</h3>
+        <p>kirillovec · 16 треков · лирика дыма</p>
+        <p>Полный альбом уже совсем скоро</p>
+        <div class="date">Ноябрь 2026</div>
+      </div>
+
+      <!-- Single now -->
       <div class="album">
         <div class="album-cover">НИЗКО</div>
         <div class="album-info">
-          <h3>Альбом «НИЗКО»</h3>
-          <p>Скандально неизвестный. 16 треков. Лирика дыма.</p>
+          <h3>Сингл «НИЗКО»</h3>
+          <p>Уже доступен на всех платформах. Первый трек из будущего альбома.</p>
           <a href="#links" class="btn btn-primary" style="padding: 10px 22px; font-size: 0.9rem;">
-            Где слушать
+            Слушать сейчас
           </a>
         </div>
       </div>
@@ -537,7 +608,7 @@
           <span class="track-num">01</span>
           <div class="track-info">
             <div class="track-title">НИЗКО</div>
-            <div class="track-meta">русский рэп · hip hop · lo-fi</div>
+            <div class="track-meta">русский рэп · hip hop · lo-fi · уже доступен</div>
           </div>
           <div class="track-play">▶</div>
         </a>
@@ -546,10 +617,9 @@
 
     <section id="links">
       <h2 class="section-title">Где слушать</h2>
-      <p class="platforms-title">НИЗКО слушать на:</p>
+      <p class="platforms-title">Сингл «НИЗКО» слушать на:</p>
       <div class="links-grid">
 
-        <!-- Яндекс Музыка -->
         <a href="https://music.yandex.ru/album/44176131" target="_blank" rel="noopener" class="link-card">
           <div class="link-icon">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
@@ -560,7 +630,6 @@
           </div>
         </a>
 
-        <!-- KION Music -->
         <a href="https://music.mts.ru/album/44176131" target="_blank" rel="noopener" class="link-card">
           <div class="link-icon">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
@@ -571,7 +640,6 @@
           </div>
         </a>
 
-        <!-- VK Музыка -->
         <a href="https://music.vk.com/link/UgGXp" target="_blank" rel="noopener" class="link-card">
           <div class="link-icon">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14c5.6 0 6.93-1.33 6.93-6.93V8.93C22 3.33 20.67 2 15.07 2zm3.06 14.27h-1.46c-.54 0-.71-.43-1.68-1.41-.85-.82-1.22-.93-1.43-.93-.29 0-.38.08-.38.48v1.29c0 .34-.11.54-1 .54-1.49 0-3.14-.9-4.3-2.58-1.75-2.44-2.23-4.27-2.23-4.64 0-.21.08-.4.48-.4h1.46c.36 0 .49.16.63.54.7 2.03 1.87 3.81 2.35 3.81.18 0 .26-.08.26-.54V9.9c-.06-.98-.57-1.06-.57-1.41 0-.17.14-.34.36-.34h2.29c.3 0 .41.16.41.54v2.9c0 .3.14.41.23.41.18 0 .33-.11.66-.44 1.02-1.14 1.75-2.91 1.75-2.91.1-.21.26-.4.62-.4h1.46c.43 0 .53.22.43.54-.18.84-1.94 3.33-1.94 3.33-.16.25-.22.37 0 .66.16.22.7.68 1.05 1.1.65.76 1.15 1.4 1.28 1.84.14.44-.08.66-.5.66z"/></svg>
@@ -582,7 +650,6 @@
           </div>
         </a>
 
-        <!-- Звук -->
         <a href="https://zvuk.com/release/53157423" target="_blank" rel="noopener" class="link-card">
           <div class="link-icon">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6zm-2 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
@@ -593,7 +660,6 @@
           </div>
         </a>
 
-        <!-- Apple Music -->
         <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">
           <div class="link-icon">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.997 6.124c0-.738-.065-1.47-.19-2.19-.494-2.83-2.46-4.798-5.29-5.29-1.66-.29-3.35-.29-5.01 0-2.83.492-4.796 2.46-5.29 5.29-.124.72-.19 1.452-.19 2.19v11.752c0 .738.066 1.47.19 2.19.494 2.83 2.46 4.797 5.29 5.29 1.66.29 3.35.29 5.01 0 2.83-.493 4.796-2.46 5.29-5.29.125-.72.19-1.452.19-2.19V6.124zM9.85 16.568c0 1.162-.943 2.105-2.105 2.105S5.64 17.73 5.64 16.568s.943-2.105 2.105-2.105 2.105.943 2.105 2.105zm8.42 0c0 1.162-.943 2.105-2.105 2.105s-2.105-.943-2.105-2.105.943-2.105 2.105-2.105 2.105.943 2.105 2.105zM9.85 9.85V4.21h8.42v5.64H9.85z"/></svg>
@@ -604,7 +670,6 @@
           </div>
         </a>
 
-        <!-- Spotify -->
         <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">
           <div class="link-icon">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
@@ -615,7 +680,6 @@
           </div>
         </a>
 
-        <!-- Band.link -->
         <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">
           <div class="link-icon">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
