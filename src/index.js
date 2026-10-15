@@ -1,6 +1,6 @@
 /**
  * kirillovec AI Studio API — Cloudflare Workers
- * Bindings: DB (D1), ASSETS (R2). See docs/AI-STUDIO-DEPLOYMENT.md.
+ * Required binding: DB (D1). Optional upload storage: ASSETS (R2). See docs/AI-STUDIO-DEPLOYMENT.md.
  */
 const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...extra}});
 const now=()=>new Date().toISOString();
@@ -31,11 +31,11 @@ async function handle(request,env){
  const url=new URL(request.url),path=url.pathname.replace(/\/$/,"")||"/";
  if(request.method==="OPTIONS")return new Response(null,{status:204,headers:corsHeaders(request,env)});
  if(path==="/health"&&request.method==="GET")return response(request,env,{ok:true,service:"kirillovec-ai-studio",time:now()});
- if(path==="/api/v1/capabilities"&&request.method==="GET")return response(request,env,{image:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.IMAGE_MODEL),model:env.IMAGE_MODEL||null,provider:"replicate"},video:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.VIDEO_MODEL),model:env.VIDEO_MODEL||null,provider:"replicate"},selfHosted:{enabled:Boolean(env.SELF_HOSTED_API_URL),provider:env.SELF_HOSTED_API_URL?"custom":null},upload:{enabled:Boolean(env.ASSETS_PUBLIC_BASE_URL),maxBytes:20*1024*1024}});
+ if(path==="/api/v1/capabilities"&&request.method==="GET")return response(request,env,{image:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.IMAGE_MODEL),model:env.IMAGE_MODEL||null,provider:"replicate"},video:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.VIDEO_MODEL),model:env.VIDEO_MODEL||null,provider:"replicate"},selfHosted:{enabled:Boolean(env.SELF_HOSTED_API_URL),provider:env.SELF_HOSTED_API_URL?"custom":null},upload:{enabled:Boolean(env.ASSETS&&env.ASSETS_PUBLIC_BASE_URL),maxBytes:20*1024*1024}});
  let identity;try{identity=await accessIdentity(request,env)}catch{return response(request,env,{error:"ACCESS_REQUIRED",message:"Требуется авторизованный доступ через Cloudflare Access."},401)}
- if(!env.DB||!env.ASSETS)return response(request,env,{error:"BACKEND_NOT_CONFIGURED",message:"Не настроены D1 или R2 bindings."},503);
+ if(!env.DB)return response(request,env,{error:"BACKEND_NOT_CONFIGURED",message:"Не настроена база D1."},503);
  if(path==="/api/v1/assets"&&request.method==="POST"){
-  if(!env.ASSETS_PUBLIC_BASE_URL)return response(request,env,{error:"UPLOAD_NOT_CONFIGURED",message:"Настрой ASSETS_PUBLIC_BASE_URL и HTTPS-домен R2."},503);
+  if(!env.ASSETS||!env.ASSETS_PUBLIC_BASE_URL)return response(request,env,{error:"UPLOAD_NOT_CONFIGURED",message:"Загрузка исходных файлов пока отключена, чтобы не требовать платное хранилище. Можно подключить R2 позже, по желанию."},503);
   if(!(await rateLimit(env,identity,"upload",30,3600)))return response(request,env,{error:"RATE_LIMIT",message:"Лимит загрузок исчерпан. Попробуй позже."},429);
   const form=await request.formData(),file=form.get("file");if(!(file instanceof File))return response(request,env,{error:"FILE_REQUIRED",message:"Передай файл в поле file."},400);
   const allowed=new Set(["image/jpeg","image/png","image/webp"]);if(!allowed.has(file.type))return response(request,env,{error:"UNSUPPORTED_FILE",message:"Поддерживаются JPG, PNG и WEBP."},415);
