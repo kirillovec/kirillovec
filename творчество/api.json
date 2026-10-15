@@ -3,7 +3,7 @@
   "title": "Творчество",
   "description": "Лирика дыма. Русский андеграунд. Город, ночь и слова, которые остаются.",
   "updated": "2026-10-15",
-  "api_version": "1.1",
+  "api_version": "1.2",
   "endpoint": "https://kirillovec.ru/творчество/api.json",
   "works": [
     {
@@ -39,18 +39,51 @@
   "tools": {
     "vmake_labs": {
       "name": "Vmake Labs API",
-      "description": "AI API для создания, улучшения и редактирования изображений и видео (watermark removal, quality enhancement, upscale и др.)",
+      "description": "AI API для создания, улучшения и редактирования изображений и видео",
       "developers": "https://vmake.ai/developers",
       "docs": "https://open.vmake.ai/",
       "website": "https://vmake.ai/",
-      "features": [
-        "image_watermark_removal",
-        "image_quality_enhancement",
-        "video_watermark_removal",
-        "video_quality_enhancement",
-        "video_upscaler",
-        "ai_video_generator"
-      ]
+      "features": ["image_watermark_removal", "image_quality_enhancement", "video_watermark_removal", "video_quality_enhancement", "video_upscaler", "ai_video_generator"]
+    },
+    "ai_video": {
+      "wan": {
+        "name": "Wan 2.7 / Wan 2.2 Spicy (Alibaba)",
+        "description": "Мощная китайская модель image-to-video, есть Spicy-версии",
+        "links": {
+          "pixaryai": "https://www.pixaryai.com/wan-2-7-video-generator",
+          "atlas_cloud": "https://www.atlascloud.ai",
+          "nsfwwan": "https://www.nsfwwan.video"
+        }
+      },
+      "hunyuan": {
+        "name": "Hunyuan Video (Tencent)",
+        "description": "Мощный open-source video model от Tencent",
+        "links": {
+          "note": "Ищи на Hugging Face или через хостинги PixaryAI / Atlas Cloud"
+        }
+      },
+      "pixverse": {
+        "name": "PixVerse (AIsphere)",
+        "description": "Китайская image-to-video модель",
+        "website": "https://pixverse.ai"
+      },
+      "hailuo_minimax": {
+        "name": "Hailuo / MiniMax",
+        "description": "Хорошо анимирует сложные сцены, есть uncensored хостинги",
+        "links": {
+          "atlas_cloud": "https://www.atlascloud.ai"
+        }
+      },
+      "kling": {
+        "name": "Kling AI (Kuaishou)",
+        "description": "Китайская video-модель"
+      },
+      "nsfw_hosts": {
+        "leakifyhub": "https://leakifyhub.fun",
+        "myimg": "https://www.myimg.ai/uncensored-image-to-video",
+        "hackaigc": "HackAIGC",
+        "nsfwwan": "https://www.nsfwwan.video"
+      }
     }
   },
   "referral_links": {
@@ -62,6 +95,12 @@
     "suno": "https://suno.com/@kirillovec77",
     "vmake_labs": "https://vmake.ai/",
     "vmake_affiliate": "https://vmake.ai/vmake-affiliate-program",
-    "vmake_developers": "https://vmake.ai/developers"
+    "vmake_developers": "https://vmake.ai/developers",
+    "pixaryai_wan": "https://www.pixaryai.com/wan-2-7-video-generator",
+    "atlas_cloud": "https://www.atlascloud.ai",
+    "pixverse": "https://pixverse.ai",
+    "leakifyhub": "https://leakifyhub.fun",
+    "myimg_uncensored": "https://www.myimg.ai/uncensored-image-to-video",
+    "nsfwwan": "https://www.nsfwwan.video"
   }
 }
