@@ -3,7 +3,7 @@
   "title": "Творчество",
   "description": "Лирика дыма. Русский андеграунд. Город, ночь и слова, которые остаются.",
   "updated": "2026-10-15",
-  "api_version": "1.0",
+  "api_version": "1.1",
   "endpoint": "https://kirillovec.ru/творчество/api.json",
   "works": [
     {
@@ -36,12 +36,32 @@
     "profile": "https://suno.com/@kirillovec77",
     "songs_count": 95
   },
+  "tools": {
+    "vmake_labs": {
+      "name": "Vmake Labs API",
+      "description": "AI API для создания, улучшения и редактирования изображений и видео (watermark removal, quality enhancement, upscale и др.)",
+      "developers": "https://vmake.ai/developers",
+      "docs": "https://open.vmake.ai/",
+      "website": "https://vmake.ai/",
+      "features": [
+        "image_watermark_removal",
+        "image_quality_enhancement",
+        "video_watermark_removal",
+        "video_quality_enhancement",
+        "video_upscaler",
+        "ai_video_generator"
+      ]
+    }
+  },
   "referral_links": {
     "yandex_music": "https://music.yandex.ru/album/44176131",
     "kion_music": "https://music.mts.ru/album/44176131",
     "vk_music": "https://music.vk.com/link/UgGXp",
     "zvuk": "https://zvuk.com/release/53157423",
     "bandlink": "https://band.link/y17UF",
-    "suno": "https://suno.com/@kirillovec77"
+    "suno": "https://suno.com/@kirillovec77",
+    "vmake_labs": "https://vmake.ai/",
+    "vmake_affiliate": "https://vmake.ai/vmake-affiliate-program",
+    "vmake_developers": "https://vmake.ai/developers"
   }
 }
