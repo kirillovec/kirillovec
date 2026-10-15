@@ -1,57 +1,41 @@
-# Deploying the AI Studio backend
+# Deploying the AI Studio backend — free-first configuration
 
-The public website stays on GitHub Pages. The API runs separately as a Cloudflare Worker. The deployment workflow is in GitHub Actions; it applies D1 migrations and deploys the Worker after the required GitHub repository secrets are configured.
+The site stays on GitHub Pages. The API runs as a Cloudflare Worker. This configuration deliberately does **not** require R2, a paid GPU, or an external paid generation API to deploy the basic backend. It uses Cloudflare Workers and D1, subject to Cloudflare's current free-plan quotas and terms. Always check the current plan and usage in your dashboard; no service can be promised free without checking your account.
 
-## One-time Cloudflare setup
+## Required one-time setup
 
-1. In the Cloudflare dashboard, open the account that manages `kirillovec.ru`.
-2. Create a **D1 database** named `kirillovec-ai-studio`.
-3. Create an **R2 bucket** named `kirillovec-ai-studio-assets`.
-4. Create a custom domain for the bucket or another HTTPS-accessible R2 public domain. Use this later as `ASSETS_PUBLIC_BASE_URL`. The generation provider must be able to fetch uploaded source images from this URL.
-5. In **Workers & Pages**, create/prepare the Worker named `kirillovec-ai-studio-api`. The GitHub workflow deploys the code to this Worker.
-6. Create a Cloudflare API token with only the permissions needed for Workers Scripts (edit), D1 (edit), and R2 (read/write) on this account. Do not share the token in chat.
-7. In GitHub, open **Settings → Secrets and variables → Actions → New repository secret** and add:
-   - `CLOUDFLARE_API_TOKEN`: the scoped Cloudflare API token.
-   - `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account ID.
-   - `D1_DATABASE_ID`: the ID of the D1 database created above.
-8. Open **Actions → Deploy AI Studio API** in the repository and choose **Run workflow**. The workflow applies `migrations/0001_initial.sql` to D1 and deploys the Worker. It must finish successfully before continuing.
-9. In the Worker settings, add the runtime variables and secret listed below. Bind the existing D1 database as `DB` and the R2 bucket as `ASSETS`; the checked-in `wrangler.toml` describes these bindings.
-10. Add a Worker custom domain such as `api.kirillovec.ru` in Cloudflare. Do not create a public `workers.dev` bypass.
-11. Configure Cloudflare Access for `api.kirillovec.ru`, then add the Access values to the Worker as described below.
+1. In Cloudflare, create a D1 database named `kirillovec-ai-studio` (check the current free allowance before use).
+2. In **Workers & Pages**, the deployment workflow will deploy the Worker `kirillovec-ai-studio-api`.
+3. Create a scoped Cloudflare API token with Workers Scripts edit and D1 edit permissions for this account. Do not share it in chat.
+4. In GitHub repository **Settings → Secrets and variables → Actions**, add:
+   - `CLOUDFLARE_API_TOKEN`
+   - `CLOUDFLARE_ACCOUNT_ID`
+   - `D1_DATABASE_ID`
+5. Open **Actions → Deploy AI Studio API → Run workflow**. The workflow applies the D1 migration and deploys the Worker.
+6. Add a custom domain such as `api.kirillovec.ru` to the Worker. Keep the site on GitHub Pages.
+7. Configure Cloudflare Access for the API hostname.
 
-## Worker variables and secrets
+## Worker variables
 
-Set these Worker variables:
 - `ACCESS_REQUIRED=true`
-- `ACCESS_TEAM_DOMAIN`: your Cloudflare Zero Trust team domain, without scheme (for example `your-team.cloudflareaccess.com`)
+- `ACCESS_TEAM_DOMAIN`: your Cloudflare Zero Trust team domain, without scheme
 - `ACCESS_AUD`: the Access application's AUD tag
-- `ALLOWED_ORIGINS=https://kirillovec.ru,https://www.kirillovec.ru` (remove `www` if it is not used)
-- `IMAGE_MODEL`: a currently available Replicate image model slug, for example `black-forest-labs/flux-schnell`
-- `VIDEO_MODEL`: a currently available Replicate video model slug
-- `ASSETS_PUBLIC_BASE_URL`: the public HTTPS base URL for the R2 bucket
+- `ALLOWED_ORIGINS=https://kirillovec.ru,https://www.kirillovec.ru` (remove `www` if unused)
 - `MAX_JOBS_PER_HOUR=10`
 
-Add `REPLICATE_API_TOKEN` as a Worker **secret**, never as a frontend variable or committed file. The Worker verifies the Cloudflare Access JWT signature, audience, issuer, and expiry for job, upload, and history endpoints. Health and capabilities do not expose credentials.
+The Worker has no provider configured by default. Image/video generation remains disabled until a provider is deliberately configured. External inference providers such as Replicate may charge per use; do not add a paid provider or token unless you have reviewed its pricing and chosen to enable it.
 
-Optional own-model adapter:
-- `SELF_HOSTED_API_URL`: HTTPS endpoint implementing `POST /jobs` and `GET /jobs/:id`
-- `SELF_HOSTED_API_TOKEN`: Worker secret for that endpoint
+## Free-first limitations
 
-The GPU inference service itself must be deployed separately.
-
-## Frontend
-
-After the API hostname is live and its health endpoint responds, set `apiBaseUrl` in `studio/config.js` to `https://api.kirillovec.ru`. This is public configuration, not a secret. Commit that change to `main`; the GitHub Pages workflow deploys the frontend.
+- **Image/video generation:** a Worker does not provide a free GPU. Real generation requires a model running on hardware you control or a provider with a currently available free allowance. Free allowances may be limited or change; check terms and usage before enabling.
+- **Uploads:** R2 is intentionally optional and not bound in the default setup. Upload endpoints remain disabled until you explicitly choose a storage provider. This avoids creating an R2 bucket or exposing storage costs.
+- **Own model:** set `SELF_HOSTED_API_URL` only if you already operate a compatible inference endpoint on hardware you control. A home PC/GPU can incur electricity and internet costs and must be secured.
+- **Spending safety:** keep provider tokens out of GitHub files and frontend code. Configure hard spending limits wherever available before testing.
 
 ## Smoke tests
 
-- `GET https://api.kirillovec.ru/health` returns `{"ok":true,...}`.
-- `GET https://api.kirillovec.ru/api/v1/capabilities` shows whether image and video providers are configured.
-- Open `https://kirillovec.ru/studio/`, authenticate through Access, submit a prompt, and follow the job status.
+- `GET https://api.kirillovec.ru/health` should return `{"ok":true,...}`.
+- `GET https://api.kirillovec.ru/api/v1/capabilities` should show image/video disabled until a provider is intentionally configured.
+- Open `https://kirillovec.ru/studio/` after the frontend API URL is configured.
 
-## Important
-
-- Model input schemas differ. The first adapter expects common Replicate fields `prompt`, `aspect_ratio`, `output_format`, optional `image`, and video `duration`. Select compatible model slugs and adapt input mapping if needed.
-- R2 source files are exposed at the configured HTTPS public domain so model providers can read them. Do not upload confidential media without reviewing access and retention. For private assets, implement short-lived signed URLs instead.
-- Rate limiting is per authenticated Access identity. Set provider spending limits and billing alerts before inviting other users.
-- The UI does not claim generation is active until the API reports it configured.
+The frontend API URL is public configuration, not a secret. Set `apiBaseUrl` in `studio/config.js` to `https://api.kirillovec.ru` only after the API hostname exists and passes its health check.
