@@ -1,0 +1,47 @@
+{
+  "artist": "kirillovec",
+  "title": "Творчество",
+  "description": "Лирика дыма. Русский андеграунд. Город, ночь и слова, которые остаются.",
+  "updated": "2026-10-15",
+  "api_version": "1.0",
+  "endpoint": "https://kirillovec.ru/творчество/api.json",
+  "works": [
+    {
+      "id": "nizko",
+      "title": "НИЗКО",
+      "type": "single",
+      "year": 2026,
+      "genre": ["русский рэп", "hip hop", "lo-fi"],
+      "status": "released",
+      "platforms": {
+        "yandex": "https://music.yandex.ru/album/44176131",
+        "kion": "https://music.mts.ru/album/44176131",
+        "vk": "https://music.vk.com/link/UgGXp",
+        "zvuk": "https://zvuk.com/release/53157423",
+        "bandlink": "https://band.link/y17UF"
+      }
+    },
+    {
+      "id": "album-nizko",
+      "title": "НИЗКО (альбом)",
+      "type": "album",
+      "tracks": 16,
+      "year": 2026,
+      "genre": ["русский рэп", "лирика дыма"],
+      "status": "coming_soon",
+      "release": "Ноябрь 2026"
+    }
+  ],
+  "suno": {
+    "profile": "https://suno.com/@kirillovec77",
+    "songs_count": 95
+  },
+  "referral_links": {
+    "yandex_music": "https://music.yandex.ru/album/44176131",
+    "kion_music": "https://music.mts.ru/album/44176131",
+    "vk_music": "https://music.vk.com/link/UgGXp",
+    "zvuk": "https://zvuk.com/release/53157423",
+    "bandlink": "https://band.link/y17UF",
+    "suno": "https://suno.com/@kirillovec77"
+  }
+}
