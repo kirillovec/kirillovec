@@ -14,7 +14,13 @@
     a.back:hover { color:var(--accent); }
     h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3rem); font-weight:400; margin:32px 0 12px; }
     p.desc { color:var(--text-muted); font-weight:300; margin-bottom:40px; }
-    .empty { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:48px; text-align:center; color:var(--text-muted); }
+    h2 { font-size:1.3rem; font-weight:400; margin:36px 0 16px; color:var(--text); }
+    table { width:100%; border-collapse:collapse; margin:16px 0 32px; font-size:0.95rem; }
+    th { text-align:left; padding:12px 14px; background:var(--bg-card); color:var(--text-muted); border-bottom:1px solid var(--border); }
+    td { padding:12px 14px; border-bottom:1px solid var(--border); }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .note { background:var(--bg-card); border-left:3px solid var(--accent); padding:16px 20px; margin:30px 0; border-radius:0 8px 8px 0; color:var(--text-muted); }
   </style>
 </head>
 <body>
@@ -22,7 +28,38 @@
     <a class="back" href="/творчество/">← Творчество</a>
     <h1>📁 Разное</h1>
     <p class="desc">Тексты, черновики, идеи, всё остальное</p>
-    <div class="empty">Пока пусто. Скоро здесь появятся работы.</div>
+
+    <h2>Похожие AI-помощники для создания сайтов</h2>
+    <p>Есть несколько похожих AI-помощников, которые тоже умеют делать сайты по описанию. Вот актуальные ссылки:</p>
+
+    <h2>Самые похожие (чат → готовый сайт)</h2>
+    <table>
+      <tr><th>Инструмент</th><th>Ссылка</th><th>Что умеет</th></tr>
+      <tr><td><strong>Lovable</strong></td><td><a href="https://lovable.dev" target="_blank">lovable.dev</a></td><td>Самый популярный. Пишешь текстом — получаешь полноценный сайт/приложение</td></tr>
+      <tr><td><strong>Bolt.new</strong></td><td><a href="https://bolt.new" target="_blank">bolt.new</a></td><td>Делает сайт прямо в браузере, можно сразу править код</td></tr>
+      <tr><td><strong>v0</strong> (Vercel)</td><td><a href="https://v0.dev" target="_blank">v0.dev</a></td><td>Отлично генерирует красивые интерфейсы на React/Next.js</td></tr>
+      <tr><td><strong>Framer AI</strong></td><td><a href="https://www.framer.com" target="_blank">framer.com</a></td><td>Очень сильный по дизайну</td></tr>
+    </table>
+
+    <h2>Классические AI-конструкторы</h2>
+    <table>
+      <tr><th>Инструмент</th><th>Ссылка</th><th>Для кого</th></tr>
+      <tr><td><strong>Wix AI</strong></td><td><a href="https://www.wix.com" target="_blank">wix.com</a></td><td>Самый простой для новичков</td></tr>
+      <tr><td><strong>Hostinger AI Builder</strong></td><td><a href="https://www.hostinger.com" target="_blank">hostinger.com</a></td><td>Самый дешёвый вариант</td></tr>
+      <tr><td><strong>Webflow AI</strong></td><td><a href="https://webflow.com" target="_blank">webflow.com</a></td><td>Для более сложных сайтов</td></tr>
+      <tr><td><strong>Durable</strong></td><td><a href="https://durable.co" target="_blank">durable.co</a></td><td>Быстро для малого бизнеса</td></tr>
+    </table>
+
+    <h2>Для тех, кто хочет код</h2>
+    <table>
+      <tr><th>Инструмент</th><th>Ссылка</th></tr>
+      <tr><td><strong>Cursor</strong></td><td><a href="https://cursor.com" target="_blank">cursor.com</a> — лучший AI-редактор кода</td></tr>
+      <tr><td><strong>Replit Agent</strong></td><td><a href="https://replit.com" target="_blank">replit.com</a></td></tr>
+    </table>
+
+    <div class="note">
+      <strong>Совет:</strong> Если хочешь максимально похожий опыт — начни с <strong>Lovable</strong> или <strong>Bolt.new</strong>.
+    </div>
   </div>
 </body>
 </html>

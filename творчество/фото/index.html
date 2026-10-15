@@ -9,12 +9,20 @@
     :root { --bg:#0a0a0b; --bg-card:#121214; --text:#e8e6e3; --text-muted:#8a8780; --accent:#c4a77d; --border:rgba(255,255,255,0.06); }
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-    .wrap { max-width:900px; margin:0 auto; padding:48px 24px 80px; }
+    .wrap { max-width:1100px; margin:0 auto; padding:48px 24px 80px; }
     a.back { color:var(--text-muted); text-decoration:none; font-size:0.9rem; }
     a.back:hover { color:var(--accent); }
     h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3rem); font-weight:400; margin:32px 0 12px; }
     p.desc { color:var(--text-muted); font-weight:300; margin-bottom:40px; }
-    .empty { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:48px; text-align:center; color:var(--text-muted); }
+    .gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
+    .card { background:var(--bg-card); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:transform 0.2s; cursor:pointer; }
+    .card:hover { transform:translateY(-6px); }
+    .card img { width:100%; height:280px; object-fit:cover; display:block; }
+    .card .caption { padding:12px 14px; font-size:0.85rem; color:var(--text-muted); text-align:center; }
+    .lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+    .lightbox.active { display:flex; flex-direction:column; }
+    .lightbox img { max-width:92vw; max-height:82vh; border-radius:8px; object-fit:contain; }
+    .lightbox .close { position:absolute; top:20px; right:24px; font-size:2.5rem; color:#fff; background:none; border:none; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -22,7 +30,40 @@
     <a class="back" href="/творчество/">← Творчество</a>
     <h1>📷 Фото</h1>
     <p class="desc">Снимки, коллажи, визуальные работы</p>
-    <div class="empty">Пока пусто. Скоро здесь появятся работы.</div>
+    <div class="gallery" id="gallery"></div>
   </div>
+  <div class="lightbox" id="lightbox">
+    <button class="close" onclick="closeLightbox()">×</button>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+  <script>
+    const photos = [
+      {src: '01_kirillovec_winter_candle.jpg', title: 'Зимнее окно'},
+      {src: '02_woman_green_top_kirillovec.jpg', title: 'Девушка в зелёном'},
+      {src: '03_red_square_window.jpg', title: 'Красная площадь'},
+      {src: '04_autumn_roses.jpg', title: 'Осенние розы'},
+      {src: '05_woman_forest_kirillovec.jpg', title: 'Девушка в лесу'},
+      {src: '06_woman_building_kirillovec.jpg', title: 'У здания'},
+      {src: '07_woman_blue_top_kirillovec.jpg', title: 'Девушка в синем'},
+      {src: '08_river_landscape_kirillovec.jpg', title: 'Река'},
+      {src: '09_night_window_roses.jpg', title: 'Ночное окно'},
+      {src: '10_sunset_courtyard.jpg', title: 'Закат во дворе'},
+      {src: '11_street_cafe_sunset.png', title: 'Уличное кафе'},
+      {src: '12_moon_trees.jpg', title: 'Луна и деревья'},
+      {src: '13_autumn_candle.jpg', title: 'Осенняя свеча'},
+      {src: '14_mushrooms_ufo.jpg', title: 'Грибы + НЛО'},
+      {src: '15_night_window_roses2.png', title: 'Ночное окно 2'}
+    ];
+    const gallery = document.getElementById('gallery');
+    photos.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<img src="${p.src}" alt="${p.title}" loading="lazy"><div class="caption">${p.title}</div>`;
+      card.onclick = () => { document.getElementById('lightbox-img').src = p.src; document.getElementById('lightbox').classList.add('active'); };
+      gallery.appendChild(card);
+    });
+    function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); }
+    document.getElementById('lightbox').onclick = e => { if (e.target.id === 'lightbox') closeLightbox(); };
+  </script>
 </body>
 </html>
