@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Видео — Творчество</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0a0a0b; --bg-card:#121214; --text:#e8e6e3; --text-muted:#8a8780; --accent:#c4a77d; --border:rgba(255,255,255,0.06); }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+    .wrap { max-width:900px; margin:0 auto; padding:48px 24px 80px; }
+    a.back { color:var(--text-muted); text-decoration:none; font-size:0.9rem; }
+    a.back:hover { color:var(--accent); }
+    h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3rem); font-weight:400; margin:32px 0 12px; }
+    p.desc { color:var(--text-muted); font-weight:300; margin-bottom:40px; }
+    .empty { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:48px; text-align:center; color:var(--text-muted); }
+    .links { display:grid; gap:12px; margin-top:24px; }
+    .links a { display:block; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:18px 22px; color:var(--text); text-decoration:none; transition:border-color 0.2s; }
+    .links a:hover { border-color:var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/творчество/">← Творчество</a>
+    <h1>🎬 Видео</h1>
+    <p class="desc">Клипы, визуалы, AI-видео, короткие формы</p>
+    <div class="empty">Пока пусто. Скоро здесь появятся работы.</div>
+    <div class="links">
+      <a href="https://vmake.ai/developers" target="_blank" rel="noopener">Vmake Labs API →</a>
+      <a href="https://www.pixaryai.com/wan-2-7-video-generator" target="_blank" rel="noopener">Wan 2.7 / PixaryAI →</a>
+      <a href="https://www.atlascloud.ai" target="_blank" rel="noopener">Atlas Cloud →</a>
+      <a href="https://pixverse.ai" target="_blank" rel="noopener">PixVerse →</a>
+    </div>
+  </div>
+</body>
+</html>
