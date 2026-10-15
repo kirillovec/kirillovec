@@ -4,6 +4,7 @@
  */
 const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...extra}});
 const now=()=>new Date().toISOString();
+function decodeB64Url(value){const base=value.replace(/-/g,"+").replace(/_/g,"/");return atob(base+"=".repeat((4-base.length%4)%4))}
 const id=()=>crypto.randomUUID();
 function corsHeaders(request,env){const origin=request.headers.get("Origin")||"";const allowed=(env.ALLOWED_ORIGINS||"").split(",").map(s=>s.trim()).filter(Boolean);const h={"Vary":"Origin","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type","Access-Control-Max-Age":"86400"};if(allowed.includes(origin)){h["Access-Control-Allow-Origin"]=origin;h["Access-Control-Allow-Credentials"]="true"}return h}
 function response(request,env,data,status=200){return json(data,status,corsHeaders(request,env))}
@@ -11,14 +12,14 @@ async function accessIdentity(request,env){
  if(env.ACCESS_REQUIRED!=="true")return{email:"development",subject:"development"};
  const assertion=request.headers.get("Cf-Access-Jwt-Assertion");if(!assertion||!env.ACCESS_TEAM_DOMAIN||!env.ACCESS_AUD)throw new Error("ACCESS_REQUIRED");
  const parts=assertion.split(".");if(parts.length!==3)throw new Error("ACCESS_REQUIRED");
- let header,payload;try{header=JSON.parse(atob(parts[0].replace(/-/g,"+").replace(/_/g,"/")));payload=JSON.parse(atob(parts[1].replace(/-/g,"+").replace(/_/g,"/")))}catch{throw new Error("ACCESS_REQUIRED")}
+ let header,payload;try{header=JSON.parse(decodeB64Url(parts[0]));payload=JSON.parse(decodeB64Url(parts[1]))}catch{throw new Error("ACCESS_REQUIRED")}
  if(!header.kid||!(payload.aud===env.ACCESS_AUD||(Array.isArray(payload.aud)&&payload.aud.includes(env.ACCESS_AUD))))throw new Error("ACCESS_REQUIRED");
  const domain=env.ACCESS_TEAM_DOMAIN.replace(/^https?:\/\//,"").replace(/\/$/,"");
  const jwksUrl="https://"+domain+"/cdn-cgi/access/certs";let jwks=await env.JWKS_CACHE?.get("cloudflare-access-jwks","json");
  if(!jwks){const r=await fetch(jwksUrl);if(!r.ok)throw new Error("ACCESS_REQUIRED");jwks=await r.json();await env.JWKS_CACHE?.put("cloudflare-access-jwks",JSON.stringify(jwks),{expirationTtl:3600})}
  const jwk=(jwks.keys||[]).find(k=>k.kid===header.kid);if(!jwk)throw new Error("ACCESS_REQUIRED");
  const key=await crypto.subtle.importKey("jwk",jwk,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
- const signed=new TextEncoder().encode(parts[0]+"."+parts[1]);const signature=Uint8Array.from(atob(parts[2].replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
+ const signed=new TextEncoder().encode(parts[0]+"."+parts[1]);const signature=Uint8Array.from(decodeB64Url(parts[2]),c=>c.charCodeAt(0));
  const valid=await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},key,signature,signed);const seconds=Math.floor(Date.now()/1000);
  if(!valid||!payload.exp||payload.exp<seconds||(payload.nbf&&payload.nbf>seconds)||!payload.iss?.includes(domain))throw new Error("ACCESS_REQUIRED");
  return{email:String(payload.email||payload.sub||""),subject:String(payload.sub||payload.email||"")};
@@ -49,6 +50,7 @@ async function handle(request,env){
   let body;try{body=await request.json()}catch{return response(request,env,{error:"INVALID_JSON",message:"Ожидается JSON."},400)}
   const mode=body.mode==="video"?"video":body.mode==="image"?"image":null,prompt=String(body.prompt||"").trim();
   if(!mode||!prompt||prompt.length>2000)return response(request,env,{error:"INVALID_INPUT",message:"Укажи mode=image/video и prompt длиной до 2000 символов."},400);
+  if(body.modelSource==="selfHosted"&&!env.SELF_HOSTED_API_URL)return response(request,env,{error:"SELF_HOSTED_NOT_CONFIGURED",message:"Собственная модель ещё не подключена. Выбери внешний API или настрой SELF_HOSTED_API_URL."},503);
   if(body.modelSource==="selfHosted"&&env.SELF_HOSTED_API_URL){
    const ownInput={mode,prompt,aspectRatio:body.aspectRatio,duration:body.duration};if(body.assetId){const a=await env.DB.prepare("SELECT id, public_url FROM assets WHERE id = ? AND owner = ?").bind(String(body.assetId),identity.subject).first();if(!a)return response(request,env,{error:"ASSET_NOT_FOUND",message:"Исходный файл не найден."},404);ownInput.imageUrl=a.public_url}
    const r=await fetch(env.SELF_HOSTED_API_URL.replace(/\/$/,"")+"/jobs",{method:"POST",headers:{"Content-Type":"application/json",...(env.SELF_HOSTED_API_TOKEN?{"Authorization":"Bearer "+env.SELF_HOSTED_API_TOKEN}:{})},body:JSON.stringify(ownInput)});if(!r.ok)return response(request,env,{error:"SELF_HOSTED_ERROR",message:"Собственная модель не приняла задачу."},502);
