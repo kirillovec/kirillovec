@@ -12,7 +12,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Творчество — kirillovec</title>
-  <meta name="description" content="Творчество kirillovec. Лирика дыма. Сингл «НИЗКО». Альбом. Suno. Vmake Labs API.">
+  <meta name="description" content="Творчество kirillovec. Лирика дыма. Сингл «НИЗКО». AI video tools. API.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
@@ -142,6 +142,7 @@
       padding: 4px 12px;
       border-radius: 999px;
       margin-right: 8px;
+      margin-bottom: 8px;
     }
     .links-grid {
       display: grid;
@@ -205,15 +206,6 @@
       background: #d4b78d;
       transform: translateY(-1px);
     }
-    .btn-ghost {
-      background: transparent;
-      color: var(--text);
-      border-color: var(--border);
-    }
-    .btn-ghost:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
     footer {
       padding: 50px 0 40px;
       border-top: 1px solid var(--border);
@@ -256,7 +248,7 @@
     <section class="hero">
       <div class="hero-tag">Творчество</div>
       <h1>Лирика дыма</h1>
-      <p class="hero-subtitle">Синглы, альбомы, треки. Всё, что остаётся после того, как дым рассеялся.</p>
+      <p class="hero-subtitle">Синглы, альбомы, треки. AI video tools. Всё, что остаётся после того, как дым рассеялся.</p>
     </section>
 
     <section>
@@ -296,9 +288,9 @@
     <section>
       <h2 class="section-title">API</h2>
       <div class="api-box">
-        <p>Публичный JSON API творчества. Можно использовать для интеграции, ботов, виджетов.</p>
+        <p>Публичный JSON API творчества.</p>
         <code>GET https://kirillovec.ru/творчество/api.json</code>
-        <p>Возвращает список работ, статусы, ссылки на платформы, инструменты и реферальные ссылки.</p>
+        <p>Список работ, инструменты, реферальные ссылки.</p>
         <a href="/творчество/api.json" class="btn btn-primary" style="margin-top: 12px;">Открыть API</a>
       </div>
 
@@ -306,12 +298,68 @@
         <span class="badge">AI Tools API</span>
         <h3 class="work-title">Vmake Labs API</h3>
         <p class="work-meta">Создание, улучшение и редактирование изображений и видео</p>
-        <p style="color: var(--text-muted); margin-bottom: 12px;">Watermark removal, quality enhancement, upscale, AI video generator и другие инструменты. Работает с Claude, ChatGPT и другими AI-моделями.</p>
         <div class="links-grid">
           <a href="https://vmake.ai/developers" target="_blank" rel="noopener" class="link-card">Developers / API</a>
           <a href="https://open.vmake.ai/" target="_blank" rel="noopener" class="link-card">Документация</a>
           <a href="https://vmake.ai/" target="_blank" rel="noopener" class="link-card">Vmake Labs</a>
-          <a href="https://vmake.ai/vmake-affiliate-program" target="_blank" rel="noopener" class="link-card">Affiliate-программа</a>
+          <a href="https://vmake.ai/vmake-affiliate-program" target="_blank" rel="noopener" class="link-card">Affiliate</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">AI Video Models</h2>
+
+      <div class="work-card">
+        <span class="badge">Alibaba</span>
+        <h3 class="work-title">Wan 2.7 / Wan 2.2 Spicy</h3>
+        <p class="work-meta">Мощная image-to-video модель, есть Spicy-версии</p>
+        <div class="links-grid">
+          <a href="https://www.pixaryai.com/wan-2-7-video-generator" target="_blank" rel="noopener" class="link-card">PixaryAI</a>
+          <a href="https://www.atlascloud.ai" target="_blank" rel="noopener" class="link-card">Atlas Cloud</a>
+          <a href="https://www.nsfwwan.video" target="_blank" rel="noopener" class="link-card">NSFW Wan</a>
+        </div>
+      </div>
+
+      <div class="work-card">
+        <span class="badge">Tencent</span>
+        <h3 class="work-title">Hunyuan Video</h3>
+        <p class="work-meta">Мощный open-source video model</p>
+        <p style="color: var(--text-muted);">Ищи на Hugging Face или через хостинги PixaryAI / Atlas Cloud.</p>
+      </div>
+
+      <div class="work-card">
+        <span class="badge">AIsphere</span>
+        <h3 class="work-title">PixVerse</h3>
+        <p class="work-meta">Китайская image-to-video модель</p>
+        <div class="links-grid">
+          <a href="https://pixverse.ai" target="_blank" rel="noopener" class="link-card">pixverse.ai</a>
+        </div>
+      </div>
+
+      <div class="work-card">
+        <span class="badge">MiniMax</span>
+        <h3 class="work-title">Hailuo / MiniMax</h3>
+        <p class="work-meta">Хорошо анимирует сложные сцены</p>
+        <div class="links-grid">
+          <a href="https://www.atlascloud.ai" target="_blank" rel="noopener" class="link-card">Atlas Cloud</a>
+        </div>
+      </div>
+
+      <div class="work-card">
+        <span class="badge">Kuaishou</span>
+        <h3 class="work-title">Kling AI</h3>
+        <p class="work-meta">Китайская video-модель</p>
+      </div>
+
+      <div class="work-card">
+        <span class="badge">Специализированные хостинги</span>
+        <h3 class="work-title">NSFW / Uncensored Image-to-Video</h3>
+        <p class="work-meta">LeakifyHub, MyIMG, HackAIGC, NSFW Wan</p>
+        <div class="links-grid">
+          <a href="https://leakifyhub.fun" target="_blank" rel="noopener" class="link-card">LeakifyHub</a>
+          <a href="https://www.myimg.ai/uncensored-image-to-video" target="_blank" rel="noopener" class="link-card">MyIMG Uncensored</a>
+          <a href="https://www.nsfwwan.video" target="_blank" rel="noopener" class="link-card">NSFW Wan</a>
         </div>
       </div>
     </section>
@@ -328,7 +376,12 @@
         <a href="https://suno.com/@kirillovec77" target="_blank" rel="noopener" class="link-card">Suno</a>
         <a href="https://vmake.ai/" target="_blank" rel="noopener" class="link-card">Vmake Labs</a>
         <a href="https://vmake.ai/vmake-affiliate-program" target="_blank" rel="noopener" class="link-card">Vmake Affiliate</a>
-        <a href="https://vmake.ai/developers" target="_blank" rel="noopener" class="link-card">Vmake Developers</a>
+        <a href="https://www.pixaryai.com/wan-2-7-video-generator" target="_blank" rel="noopener" class="link-card">PixaryAI Wan</a>
+        <a href="https://www.atlascloud.ai" target="_blank" rel="noopener" class="link-card">Atlas Cloud</a>
+        <a href="https://pixverse.ai" target="_blank" rel="noopener" class="link-card">PixVerse</a>
+        <a href="https://leakifyhub.fun" target="_blank" rel="noopener" class="link-card">LeakifyHub</a>
+        <a href="https://www.myimg.ai/uncensored-image-to-video" target="_blank" rel="noopener" class="link-card">MyIMG</a>
+        <a href="https://www.nsfwwan.video" target="_blank" rel="noopener" class="link-card">NSFW Wan</a>
       </div>
     </section>
 
