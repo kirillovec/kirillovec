@@ -1,0 +1,21 @@
+name = "kirillovec-ai-studio-api"
+main = "src/index.js"
+compatibility_date = "2026-10-15"
+workers_dev = false
+
+[vars]
+ACCESS_REQUIRED = "true"
+MAX_JOBS_PER_HOUR = "10"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kirillovec-ai-studio"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "kirillovec-ai-studio-assets"
+
+# Add a KV namespace binding named JWKS_CACHE to cache Access signing keys.
+# Configure secrets and variables in Cloudflare Worker settings. See docs/AI-STUDIO-DEPLOYMENT.md.
