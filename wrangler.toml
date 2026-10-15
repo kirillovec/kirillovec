@@ -13,9 +13,5 @@ database_name = "kirillovec-ai-studio"
 database_id = "REPLACE_WITH_D1_DATABASE_ID"
 migrations_dir = "migrations"
 
-[[r2_buckets]]
-binding = "ASSETS"
-bucket_name = "kirillovec-ai-studio-assets"
-
 # Add a KV namespace binding named JWKS_CACHE to cache Access signing keys.
 # Configure secrets and variables in Cloudflare Worker settings. See docs/AI-STUDIO-DEPLOYMENT.md.
