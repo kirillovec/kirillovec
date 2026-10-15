@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VBFKM9236E"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-VBFKM9236E');
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Творчество — kirillovec</title>
+  <meta name="description" content="Творчество kirillovec. Лирика дыма. Сингл «НИЗКО». Альбом. Suno. API.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --bg-card: #121214;
+      --text: #e8e6e3;
+      --text-muted: #8a8780;
+      --accent: #c4a77d;
+      --accent-soft: rgba(196, 167, 125, 0.15);
+      --border: rgba(255,255,255,0.06);
+      --smoke: rgba(180, 180, 190, 0.04);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse at 20% 0%, rgba(196,167,125,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(100,100,140,0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+    header {
+      padding: 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    nav { display: flex; gap: 32px; }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 400;
+      transition: color 0.25s;
+    }
+    nav a:hover, nav a.active { color: var(--accent); }
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+    .hero-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      opacity: 0.9;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 6vw, 3.8rem);
+      font-weight: 400;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto 32px;
+      font-weight: 300;
+    }
+    section { padding: 60px 0; }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      margin-bottom: 32px;
+      letter-spacing: -0.01em;
+    }
+    .work-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      transition: border-color 0.25s;
+    }
+    .work-card:hover { border-color: rgba(196,167,125,0.3); }
+    .work-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    .work-meta {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-right: 8px;
+    }
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .link-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      background: var(--smoke);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.25s;
+      font-size: 0.9rem;
+    }
+    .link-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .api-box {
+      background: linear-gradient(135deg, #141416 0%, #1a1814 100%);
+      border: 1px solid rgba(196,167,125,0.25);
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 20px;
+    }
+    .api-box code {
+      display: block;
+      background: #0a0a0b;
+      padding: 16px 20px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin: 16px 0;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+    .api-box p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 8px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.25s;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0a0b;
+    }
+    .btn-primary:hover {
+      background: #d4b78d;
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    footer {
+      padding: 50px 0 40px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+    }
+    .footer-text {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .footer-copy {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
+    @media (max-width: 768px) {
+      nav { display: none; }
+      .hero { padding: 60px 0 40px; }
+    }
+  </style>
+  <script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b1e37191d73345b4a06582801e815ca1"}'></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="logo">kirillovec</a>
+      <nav>
+        <a href="/#about">О себе</a>
+        <a href="/#music">Музыка</a>
+        <a href="/творчество/" class="active">Творчество</a>
+        <a href="/#links">Слушать</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-tag">Творчество</div>
+      <h1>Лирика дыма</h1>
+      <p class="hero-subtitle">Синглы, альбомы, треки. Всё, что остаётся после того, как дым рассеялся.</p>
+    </section>
+
+    <section>
+      <h2 class="section-title">Работы</h2>
+
+      <div class="work-card">
+        <span class="badge">Сингл · 2026</span>
+        <h3 class="work-title">НИЗКО</h3>
+        <p class="work-meta">русский рэп · hip hop · lo-fi · уже доступен</p>
+        <p style="color: var(--text-muted); margin-bottom: 12px;">Первый трек из будущего альбома. Уже на всех платформах.</p>
+        <div class="links-grid">
+          <a href="https://music.yandex.ru/album/44176131" target="_blank" rel="noopener" class="link-card">Яндекс Музыка</a>
+          <a href="https://music.mts.ru/album/44176131" target="_blank" rel="noopener" class="link-card">KION Music</a>
+          <a href="https://music.vk.com/link/UgGXp" target="_blank" rel="noopener" class="link-card">VK Музыка</a>
+          <a href="https://zvuk.com/release/53157423" target="_blank" rel="noopener" class="link-card">Звук</a>
+          <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">Band.link / Apple</a>
+        </div>
+      </div>
+
+      <div class="work-card">
+        <span class="badge">Альбом · Coming Soon</span>
+        <h3 class="work-title">НИЗКО (16 треков)</h3>
+        <p class="work-meta">лирика дыма · ноябрь 2026</p>
+        <p style="color: var(--text-muted);">Полный альбом уже совсем скоро.</p>
+      </div>
+
+      <div class="work-card">
+        <span class="badge">Suno</span>
+        <h3 class="work-title">@kirillovec77</h3>
+        <p class="work-meta">95+ треков · dark downtempo, Russian rap, lo-fi, ambient</p>
+        <div class="links-grid">
+          <a href="https://suno.com/@kirillovec77" target="_blank" rel="noopener" class="link-card">Открыть профиль Suno</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">API</h2>
+      <div class="api-box">
+        <p>Публичный JSON API творчества. Можно использовать для интеграции, ботов, виджетов.</p>
+        <code>GET https://kirillovec.ru/творчество/api.json</code>
+        <p>Возвращает список работ, статусы, ссылки на платформы и реферальные ссылки.</p>
+        <a href="/творчество/api.json" class="btn btn-primary" style="margin-top: 12px;">Открыть API</a>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Реферальные ссылки</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">Прямые ссылки на платформы для распространения:</p>
+      <div class="links-grid">
+        <a href="https://music.yandex.ru/album/44176131" target="_blank" rel="noopener" class="link-card">Яндекс Музыка</a>
+        <a href="https://music.mts.ru/album/44176131" target="_blank" rel="noopener" class="link-card">KION Music</a>
+        <a href="https://music.vk.com/link/UgGXp" target="_blank" rel="noopener" class="link-card">VK Музыка</a>
+        <a href="https://zvuk.com/release/53157423" target="_blank" rel="noopener" class="link-card">Звук</a>
+        <a href="https://band.link/y17UF" target="_blank" rel="noopener" class="link-card">Band.link</a>
+        <a href="https://suno.com/@kirillovec77" target="_blank" rel="noopener" class="link-card">Suno</a>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-logo">kirillovec</div>
+      <p class="footer-text">The scandalously unknown artist.<br>Лирика дыма.</p>
+      <p class="footer-copy">© 2026 kirillovec</p>
+    </footer>
+  </div>
+</body>
+</html>
