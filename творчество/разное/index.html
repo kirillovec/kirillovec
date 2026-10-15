@@ -15,8 +15,8 @@
     h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3rem); font-weight:400; margin:32px 0 12px; }
     p.desc { color:var(--text-muted); font-weight:300; margin-bottom:40px; }
     .empty { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:48px; text-align:center; color:var(--text-muted); }
-    .links { margin-top:32px; }
-    .links a { display:inline-block; margin:8px 12px 8px 0; padding:10px 18px; background:var(--bg-card); border:1px solid var(--border); border-radius:10px; color:var(--text); text-decoration:none; font-size:0.95rem; }
+    .links { margin-top:32px; display:flex; flex-wrap:wrap; gap:12px; }
+    .links a { display:inline-block; padding:10px 18px; background:var(--bg-card); border:1px solid var(--border); border-radius:10px; color:var(--text); text-decoration:none; font-size:0.95rem; }
     .links a:hover { border-color:var(--accent); color:var(--accent); }
   </style>
 </head>
@@ -27,7 +27,8 @@
     <p class="desc">Тексты, черновики, идеи, всё остальное</p>
     <div class="empty">Пока пусто. Скоро здесь появятся работы.</div>
     <div class="links">
-      <a href="/творчество/разное/сайт/">→ Сайт (AI-помощники)</a>
+      <a href="/творчество/разное/сайт/">→ Сайт (AI-конструкторы)</a>
+      <a href="/творчество/разное/github/">→ GitHub-агенты</a>
     </div>
   </div>
 </body>

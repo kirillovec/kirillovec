@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub-агенты — Разное</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0a0a0b; --bg-card:#121214; --text:#e8e6e3; --text-muted:#8a8780; --accent:#c4a77d; --border:rgba(255,255,255,0.06); }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+    .wrap { max-width:900px; margin:0 auto; padding:48px 24px 80px; }
+    a.back { color:var(--text-muted); text-decoration:none; font-size:0.9rem; }
+    a.back:hover { color:var(--accent); }
+    h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3rem); font-weight:400; margin:32px 0 12px; }
+    p.desc { color:var(--text-muted); font-weight:300; margin-bottom:40px; }
+    h2 { font-size:1.3rem; font-weight:400; margin:36px 0 16px; color:var(--text); }
+    table { width:100%; border-collapse:collapse; margin:16px 0 32px; font-size:0.95rem; }
+    th { text-align:left; padding:12px 14px; background:var(--bg-card); color:var(--text-muted); border-bottom:1px solid var(--border); }
+    td { padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .note { background:var(--bg-card); border-left:3px solid var(--accent); padding:16px 20px; margin:30px 0; border-radius:0 8px 8px 0; color:var(--text-muted); }
+    ul { margin:12px 0 20px 20px; color:var(--text-muted); }
+    li { margin-bottom:6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/творчество/разное/">← Разное</a>
+    <h1>GitHub-агенты</h1>
+    <p class="desc">Кто может управлять репозиторием и сайтом на GitHub примерно так же, как Grok</p>
+
+    <h2>Самые близкие по возможностям</h2>
+    <table>
+      <tr><th>Инструмент</th><th>Ссылка</th><th>Как работает</th><th>Насколько похож</th></tr>
+      <tr>
+        <td><strong>Cursor</strong></td>
+        <td><a href="https://cursor.com" target="_blank">cursor.com</a></td>
+        <td>AI-редактор (форк VS Code). Может править много файлов, коммитить, создавать PR</td>
+        <td>Очень похож — сильный в работе с кодом и структурой сайта</td>
+      </tr>
+      <tr>
+        <td><strong>Claude Code</strong></td>
+        <td>Входит в Claude Pro</td>
+        <td>Терминальный агент. Хорошо понимает весь репозиторий, делает сложные правки и PR</td>
+        <td>Один из самых сильных по качеству изменений</td>
+      </tr>
+      <tr>
+        <td><strong>GitHub Copilot Coding Agent</strong></td>
+        <td><a href="https://github.com/features/copilot" target="_blank">github.com/features/copilot</a></td>
+        <td>Нативный агент GitHub. Берёт Issue → пишет код → открывает Pull Request</td>
+        <td>Самый удобный, если весь сайт уже на GitHub</td>
+      </tr>
+      <tr>
+        <td><strong>Devin</strong></td>
+        <td><a href="https://devin.ai" target="_blank">devin.ai</a></td>
+        <td>Полностью автономный агент. Даёшь задачу — он сам работает в облаке и приносит готовый PR</td>
+        <td>Максимальная автономность</td>
+      </tr>
+      <tr>
+        <td><strong>OpenAI Codex</strong></td>
+        <td>Через ChatGPT / Codex CLI</td>
+        <td>Может работать как с локальным кодом, так и открывать PR в GitHub</td>
+        <td>Хороший уровень, особенно в связке с ChatGPT</td>
+      </tr>
+    </table>
+
+    <h2>Другие сильные варианты</h2>
+    <ul>
+      <li><strong>Replit Agent</strong> — <a href="https://replit.com" target="_blank">replit.com</a> — удобно, если хочешь и код, и хостинг в одном месте</li>
+      <li><strong>Cline</strong> (open-source) — можно подключить любые модели</li>
+      <li><strong>OpenHands</strong> — открытый агент, который умеет работать с репозиториями</li>
+    </ul>
+
+    <div class="note">
+      <strong>Краткий совет:</strong><br>
+      • Хочешь максимальный контроль и качество правок → <strong>Cursor</strong> или <strong>Claude Code</strong><br>
+      • Хочешь, чтобы агент сам брал задачи из Issues и открывал PR → <strong>GitHub Copilot Agent</strong> или <strong>Devin</strong><br>
+      • Нужно быстро сделать/поправить сайт с деплоем → <strong>Replit Agent</strong> или <strong>Cursor</strong>
+    </div>
+  </div>
+</body>
+</html>
