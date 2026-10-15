@@ -1,0 +1,67 @@
+name: Deploy AI Studio API
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "migrations/**"
+      - "wrangler.toml"
+      - ".github/workflows/deploy-ai-studio-api.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-studio-api-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate required configuration
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || (echo "::error::Add repository secret CLOUDFLARE_API_TOKEN" && exit 1)
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || (echo "::error::Add repository secret CLOUDFLARE_ACCOUNT_ID" && exit 1)
+          test -n "$D1_DATABASE_ID" || (echo "::error::Add repository secret D1_DATABASE_ID" && exit 1)
+          node --check src/index.js
+          node --check studio/config.js
+
+      - name: Install Wrangler
+        run: npm install --global wrangler@4
+
+      - name: Apply D1 migrations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 d1 migrations apply kirillovec-ai-studio --remote
+
+      - name: Deploy Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          path = Path("wrangler.toml")
+          content = path.read_text()
+          database_id = os.environ["D1_DATABASE_ID"].strip()
+          if not database_id or database_id == "REPLACE_WITH_D1_DATABASE_ID":
+              raise SystemExit("D1_DATABASE_ID secret is missing or invalid")
+          path.write_text(content.replace("REPLACE_WITH_D1_DATABASE_ID", database_id))
+          PY
+          npx --yes wrangler@4 deploy --config wrangler.toml
