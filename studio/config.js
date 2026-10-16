@@ -1,5 +1,5 @@
 // Public frontend configuration. Never put API keys or private tokens here.
 window.AI_STUDIO_CONFIG = Object.freeze({
-  apiBaseUrl: "",
+apiBaseUrl: "https://api.kirillovec.ru",
   pollIntervalMs: 4000
 });
