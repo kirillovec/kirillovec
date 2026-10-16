@@ -188,5 +188,28 @@
       <p class="footer-copy">© 2026 kirillovec</p>
     </footer>
   </div>
+
+  <style>
+    .alice-launcher {
+      position: fixed; right: 18px; bottom: 18px; z-index: 1000;
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 12px 18px; border-radius: 999px;
+      background: var(--accent); color: #0a0a0b; text-decoration: none;
+      font: 600 14px/1.2 system-ui, sans-serif;
+      box-shadow: 0 8px 28px rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .alice-launcher:hover { background: #d4b78d; transform: translateY(-1px); }
+    .alice-launcher:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+    .alice-launcher svg { width: 20px; height: 20px; flex: 0 0 auto; }
+    @media (max-width: 480px) {
+      .alice-launcher { right: 12px; bottom: 12px; padding: 11px 14px; }
+    }
+  </style>
+  <a class="alice-launcher" href="https://alice.yandex.ru/" target="_blank" rel="noopener noreferrer" aria-label="Открыть официальный сервис Алиса AI в новой вкладке">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><path d="M12 3a4 4 0 0 0-4 4v4a4 4 0 0 0 8 0V7a4 4 0 0 0-4-4Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-4 0h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    Открыть Алису
+  </a>
+
 </body>
 </html>
