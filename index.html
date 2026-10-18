@@ -61,6 +61,19 @@
     .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
     section { padding: 80px 0; }
     .section-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 400; margin-bottom: 40px; letter-spacing: -0.01em; }
+    .hero { padding: clamp(64px, 10vw, 112px) 0 72px; text-align: center; }
+    .hero h1 span { color: var(--accent); }
+    .portal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 820px; margin: 0 auto; text-align: left; }
+    .portal-card { position: relative; display: flex; flex-direction: column; align-items: flex-start; min-height: 220px; padding: 28px; border: 1px solid rgba(255,255,255,.1); border-radius: 18px; background: linear-gradient(145deg, #171719, #101012); color: var(--text); text-decoration: none; transition: border-color .2s, transform .2s, background .2s; }
+    .portal-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+    .portal-primary { background: linear-gradient(145deg, #292117, #151311 75%); border-color: rgba(196,167,125,.42); }
+    .portal-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 13px; margin-bottom: 22px; background: var(--accent-soft); color: var(--accent); font-size: 1.7rem; }
+    .portal-card-title { font-size: 1.35rem; font-weight: 650; margin-bottom: 8px; }
+    .portal-card-copy { max-width: 280px; color: var(--text-muted); font-size: .95rem; }
+    .portal-arrow { position: absolute; right: 24px; top: 24px; color: var(--accent); font-size: 1.25rem; }
+    .secondary-link { display: inline-block; margin-top: 30px; color: var(--text-muted); text-decoration: none; font-size: .9rem; }
+    .secondary-link:hover { color: var(--accent); }
+    @media (max-width: 560px) { .portal-grid { grid-template-columns: 1fr; gap: 12px; } .portal-card { min-height: 185px; padding: 22px; } .portal-icon { margin-bottom: 16px; } }
     .about-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 60px; align-items: start; }
     .about-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; position: relative; overflow: hidden; }
     .about-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0.4; }
@@ -111,20 +124,38 @@
     <header>
       <a href="/" class="logo">kirillovec</a>
       <nav>
-        <a href="#about">О себе</a>
-        <a href="#music">Музыка</a>
+        <a href="/studio/">AI Studio</a>
+        <a href="https://alice.yandex.ru/" target="_blank" rel="noopener noreferrer">Яндекс Алиса</a>
         <a href="/творчество/">Творчество</a>
-        <a href="#links">Слушать</a>
+        <a href="#music">Музыка</a>
       </nav>
-      <a class="mobile-work-link" href="/творчество/">Творчество</a>
+      <a class="mobile-work-link" href="/studio/">AI Studio</a>
     </header>
     <section class="hero">
-      <div class="hero-tag">The scandalously unknown artist</div>
-      <h1>kirillovec</h1>
-      <p class="hero-subtitle">Лирика дыма. Русский андеграунд. Город, ночь и слова, которые остаются.</p>
-      <div class="hero-cta">
-        <a href="#links" class="btn btn-primary">Слушать «НИЗКО»</a>
-        <a href="#music" class="btn btn-ghost">Альбом скоро</a>
+      <div class="hero-tag">ТВОРЧЕСКАЯ ПЛАТФОРМА · AI STUDIO</div>
+      <h1>Создавай <span>без границ</span></h1>
+      <p class="hero-subtitle">Изображения, видео и творческие эксперименты — в одном месте. Начни с AI Studio или открой Алису.</p>
+      <div class="portal-grid">
+        <a class="portal-card portal-primary" href="/studio/">
+          <span class="portal-icon" aria-hidden="true">✦</span>
+          <span class="portal-card-title">AI Studio</span>
+          <span class="portal-card-copy">Перейти к инструментам создания изображений и видео</span>
+          <span class="portal-arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="portal-card" href="https://alice.yandex.ru/" target="_blank" rel="noopener noreferrer">
+          <span class="portal-icon" aria-hidden="true">◉</span>
+          <span class="portal-card-title">Яндекс Алиса</span>
+          <span class="portal-card-copy">Открыть AI-помощника в новой вкладке</span>
+          <span class="portal-arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+      <a class="secondary-link" href="#projects">И другие проекты ниже <span aria-hidden="true">↓</span></a>
+    </section>
+    <section id="projects">
+      <h2 class="section-title">Другие проекты</h2>
+      <div class="links-grid">
+        <a class="link-card" href="/творчество/"><div class="link-icon"><span aria-hidden="true">▧</span></div><div><div class="link-text">Творчество</div><div class="link-sub">Работы и коллекции</div></div></a>
+        <a class="link-card" href="#music"><div class="link-icon"><span aria-hidden="true">♫</span></div><div><div class="link-text">Музыка</div><div class="link-sub">Сингл «НИЗКО» и релизы</div></div></a>
       </div>
     </section>
     <section id="about">
