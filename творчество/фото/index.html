@@ -30,7 +30,7 @@ footer{margin-top:44px;border-top:1px solid var(--border);padding-top:24px}foote
 <div class="gallery">
 <a class="card" href="./0.jpg" target="_blank" rel="noopener"><img src="./0.jpg" alt="Фото 01" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Фото 01</div></a>
 <a class="card" href="./11.jpeg" target="_blank" rel="noopener"><img src="./11.jpeg" alt="Фото 02" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Фото 02</div></a>
-<a class="card" id="link2" href="./2.jpg" target="_blank" rel="noopener"><img id="img2" src="./2.jpg" alt="Фото 03" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Фото 03</div></a>
+<a class="card" href="./2.jpg" target="_blank" rel="noopener"><img src="./2.jpg" alt="Фото 03" width="400" height="280" loading="lazy" decoding="async" onerror="this.src='./2.png';this.parentElement.href='./2.png'"><div class="caption">Фото 03</div></a>
 <a class="card" href="./54321.jpg" target="_blank" rel="noopener"><img src="./54321.jpg" alt="Фото 04" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Фото 04</div></a>
 <a class="card" href="./Take%20Me%20Back%20Kirillovec%20rmx%20SPRING.jpeg" target="_blank" rel="noopener"><img src="./Take%20Me%20Back%20Kirillovec%20rmx%20SPRING.jpeg" alt="Take Me Back — Spring" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Take Me Back — Spring</div></a>
 <a class="card" href="./Take%20Me%20Back%20%E2%80%94%20Kirillovec%20rmx%20AUTUMN.jpeg" target="_blank" rel="noopener"><img src="./Take%20Me%20Back%20%E2%80%94%20Kirillovec%20rmx%20AUTUMN.jpeg" alt="Take Me Back — Autumn" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Take Me Back — Autumn</div></a>
@@ -39,12 +39,5 @@ footer{margin-top:44px;border-top:1px solid var(--border);padding-top:24px}foote
 </div>
 <footer><a href="/">← На главную</a></footer>
 </main>
-<script src="./photo2.js" defer></script>
-<script>
-document.addEventListener("DOMContentLoaded",function(){
-  if(window.__PHOTO2){var i=document.getElementById("img2"),a=document.getElementById("link2");
-  if(i)i.src=window.__PHOTO2;if(a)a.href=window.__PHOTO2;}
-});
-</script>
 </body>
 </html>
