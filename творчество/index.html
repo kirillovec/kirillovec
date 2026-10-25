@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Творчество</title>
+  <title>Творчество — kirillovec</title>
   <link rel="canonical" href="https://kirillovec.ru/%D1%82%D0%B2%D0%BE%D1%80%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="kirillovec">
   <meta property="og:title" content="Творчество — kirillovec">
-  <meta property="og:description" content="Фото, музыка, видео и визуальные работы артиста kirillovec.">
+  <meta property="og:description" content="Фото, музыка, видео, AI Studio и визуальные работы артиста kirillovec.">
   <meta property="og:url" content="https://kirillovec.ru/%D1%82%D0%B2%D0%BE%D1%80%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE/">
-  <meta name="description" content="Творчество — фото, аудио, видео, разное">
+  <meta name="description" content="Творчество — фото, аудио, видео, AI Studio, разное">
   <style>
     :root {
       --bg: #0a0a0b;
@@ -20,6 +21,7 @@
       --accent: #c4a77d;
       --accent-soft: rgba(196, 167, 125, 0.15);
       --border: rgba(255,255,255,0.06);
+      --studio: #c9a7ff;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -47,9 +49,7 @@
       position: relative;
       z-index: 1;
     }
-    header {
-      margin-bottom: 56px;
-    }
+    header { margin-bottom: 56px; }
     header h1 {
       font-family: Georgia, 'Times New Roman', serif;
       font-size: clamp(2.4rem, 6vw, 3.6rem);
@@ -57,19 +57,13 @@
       letter-spacing: -0.02em;
       margin-bottom: 12px;
     }
-    header p {
-      color: var(--text-muted);
-      font-size: 1.05rem;
-      font-weight: 300;
-    }
+    header p { color: var(--text-muted); font-size: 1.05rem; font-weight: 300; }
     .folders {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 24px;
     }
-    @media (max-width: 640px) {
-      .folders { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 640px) { .folders { grid-template-columns: 1fr; } }
     .folder {
       display: block;
       background: var(--bg-card);
@@ -98,14 +92,19 @@
       box-shadow: 0 12px 40px rgba(0,0,0,0.35);
     }
     .folder:hover::before { opacity: 0.6; }
-    .folder-icon {
-      font-size: 2.8rem;
-      margin-bottom: 20px;
-      opacity: 0.9;
-      line-height: 1;
+    .folder-studio {
+      border-color: rgba(201,167,255,0.25);
+      background: linear-gradient(145deg, #16121c, #121214);
     }
+    .folder-studio::before {
+      background: linear-gradient(90deg, transparent, var(--studio), transparent);
+    }
+    .folder-studio:hover {
+      border-color: rgba(201,167,255,0.5);
+    }
+    .folder-icon { font-size: 2.8rem; margin-bottom: 20px; opacity: 0.9; line-height: 1; }
     .folder-title {
-      font-family: 'Playfair Display', serif;
+      font-family: Georgia, 'Times New Roman', serif;
       font-size: 1.8rem;
       font-weight: 400;
       margin-bottom: 10px;
@@ -127,6 +126,7 @@
       color: var(--accent);
       opacity: 0.7;
     }
+    .folder-studio .folder-count { color: var(--studio); }
     footer {
       margin-top: 64px;
       padding-top: 32px;
@@ -146,10 +146,17 @@
   <div class="wrap">
     <header>
       <h1>Творчество</h1>
-      <p>Фото · Аудио · Видео · Разное</p>
+      <p>Фото · Аудио · Видео · AI Studio · Разное</p>
     </header>
 
     <div class="folders">
+      <a href="/studio/" class="folder folder-studio">
+        <span class="folder-count">инструмент</span>
+        <div class="folder-icon">✦</div>
+        <div class="folder-title">AI Studio</div>
+        <div class="folder-desc">Генерация изображений и видео, промпты, пресеты, история задач</div>
+      </a>
+
       <a href="./фото/" class="folder">
         <span class="folder-count">папка</span>
         <div class="folder-icon">📷</div>
