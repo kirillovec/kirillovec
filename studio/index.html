@@ -44,7 +44,7 @@
 <div class="field"><div class="field-title">Исходный файл <span>необязательно</span></div><label class="upload" for="file-input"><span class="upload-icon">＋</span><span><strong>Загрузи изображение или видео</strong><span>PNG, JPG, WEBP · изображение с устройства</span></span><input id="file-input" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="preview-file" id="file-preview"><img id="file-thumb" alt="Предпросмотр загруженного файла"><div><strong id="file-name"></strong><span id="file-size"></span></div><button type="button" id="remove-file" aria-label="Удалить файл">✕</button></div></div>
 <div class="two-col">
 <div class="field"><label for="model">Источник обработки</label><select class="select" id="model"><option value="provider">Внешний API (если подключён)</option><option value="selfHosted">Собственная модель (если доступна)</option></select><small>Без настроенного API генерация откроется во внешнем сервисе; ключи не хранятся в браузере.</small></div>
-<div class="field"><label for="ratio">Соотношение сторон</label><select class="select" id="ratio"><option value="auto">Авто</option><option value="1:1">1:1 — квадрат</option><option value="3:4">3:4 — портрет</option><option value="4:3">4:4 — альбом</option><option value="9:16">9:16 — вертикальное видео</option><option value="16:9">16:9 — широкий экран</option></select></div>
+<div class="field"><label for="ratio">Соотношение сторон</label><select class="select" id="ratio"><option value="auto">Авто</option><option value="1:1">1:1 — квадрат</option><option value="3:4">3:4 — портрет</option><option value="4:3">4:3 — альбом</option><option value="9:16">9:16 — вертикальное видео</option><option value="16:9">16:9 — широкий экран</option></select></div>
 </div>
 <div class="two-col">
 <div class="field"><label for="quality">Качество</label><select class="select" id="quality"><option>Стандартное</option><option>Высокое</option><option>Максимальное</option></select></div>
@@ -73,35 +73,6 @@
 </div>
 <div class="toast" id="toast" role="status"></div>
 <script src="./config.js"></script>
-<script>
-(function(){
-const $=s=>document.querySelector(s);
-const prompt=$('#prompt'), modeButtons=[...document.querySelectorAll('[data-mode]')], navButtons=[...document.querySelectorAll('[data-view]')];
-const config=window.AI_STUDIO_CONFIG||{}, apiBase=String(config.apiBaseUrl||'').replace(/\/$/,'');
-const pollInterval=Math.max(2000,Number(config.pollIntervalMs)||4000);
-let mode='image', selectedFile=null, localHistory=[], capabilities=null, activeJob=false;
-const historyStorageKey='kirillovec-ai-studio-history-v1';
-try{const saved=JSON.parse(localStorage.getItem(historyStorageKey)||'[]');if(Array.isArray(saved))localHistory=saved.slice(-20)}catch(e){}
-function toast(message){const el=$('#toast');if(!el)return;el.textContent=message;el.style.display='block';clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display='none',4200)}
-async function api(path, options={}) {
- if(!apiBase) throw new Error('API_NOT_CONFIGURED');
- const headers=new Headers(options.headers||{});
- const response=await fetch(apiBase+path,{...options,headers,credentials:'include'});
- const data=await response.json().catch(()=>({}));
- if(!response.ok) throw new Error(data.message||data.error||('Ошибка API '+response.status));
- return data;
-}
-function setConnection(text, good=false){const el=document.querySelector('.top-actions .status');if(el){el.textContent=(good?'● ':'○ ')+text;el.style.color=good?'#b9f2cd':'#d4c2f8'}const hint=$('#integration-hint');if(hint)hint.textContent=text}
-function setMode(next){mode=next;modeButtons.forEach(b=>{const on=b.dataset.mode===mode;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});$('#mode-caption').textContent=mode==='image'?'Текст → изображение':'Текст / изображение → видео';$('#duration-field').hidden=mode!=='video';$('#ratio').value=mode==='video'?'16:9':'auto';$('#generate').textContent=mode==='image'?'✦　Создать изображение':'▷　Создать видео';$('#crumb-title').textContent=mode==='image'?'Изображения':'Видео';$('#page-title').textContent=mode==='image'?'Преврати идею в визуал':'Оживи идею в видео';$('#page-subtitle').textContent=mode==='image'?'Создавай изображения по описанию или подготовь исходник для редактирования.':'Подготовь видеозадачу: опиши сцену и движение, при желании добавь исходный кадр.';$('#file-input').accept='image/png,image/jpeg,image/webp'}
-modeButtons.forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
-const examples={cinematic:'Кинематографичная сцена, реалистичная фактура, выразительный свет, глубокая композиция, мягкая плёночная цветокоррекция, высокая детализация.',portrait:'Реалистичный портрет человека, естественная кожа, выразительный взгляд, мягкий боковой свет, аккуратный фон, объектив 85 мм, editorial photography.',music:'Обложка мрачного романтического хип-хоп сингла, окно обычной московской многоэтажки ночью, холодные городские огни, реалистичная фотография, минимализм, без роз и сердечек, крупная типографика.',motion:'Оживи загруженное фото: естественное движение человека и одежды, плавный медленный наезд камеры, сохранение внешности и пропорций, реалистичная кинематографичная сцена.'};
-document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>{prompt.value=examples[b.dataset.prompt]||prompt.value;$('#prompt-count').textContent=prompt.value.length+' / 2000';if(b.dataset.prompt==='motion')setMode('video');prompt.focus()}));
-navButtons.forEach(b=>b.addEventListener('click',()=>{navButtons.forEach(n=>n.classList.remove('active'));b.classList.add('active');document.querySelectorAll('[data-tool]').forEach(t=>t.classList.remove('active'));const view=b.dataset.view;if(view==='image')setMode('image');if(view==='video')setMode('video');if(view==='create'){setMode('image');$('#prompt').focus()}if(view==='history')$('#history-list').scrollIntoView({behavior:'smooth',block:'center'})}));
-document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tool]').forEach(n=>n.classList.remove('active'));b.classList.add('active');const tool=b.dataset.tool;const meta={animate:{mode:'video',title:'Анимация фото',sub:'Загрузи кадр и опиши движение — промпт для image-to-video.',prompt:'Оживи исходное изображение: естественное движение человека и одежды, плавный медленный наезд камеры, сохранение внешности, пропорций и освещения, реалистичная кинематографичная сцена.',btn:'▷　Анимировать'},edit:{mode:'image',title:'Редактирование',sub:'Опиши правки. Исходный файл желателен — для image-to-image.',prompt:'Отредактируй загруженное изображение, сохранив композицию и основные черты. Измени: ',btn:'✎　Редактировать'},face:{mode:'image',title:'Работа с лицом',sub:'Загрузи референс и опиши результат. Обработка — через API или внешний сервис.',prompt:'Аккуратно измени лицо по загруженному референсу: сохрани естественное освещение, пропорции и реалистичную интеграцию в сцену. Цель: ',btn:'◎　Обработать лицо'},cover:{mode:'image',title:'Обложка трека',sub:'Стиль под обложку сингла / альбома. Можно с исходником или с нуля.',prompt:'Обложка мрачного романтического хип-хоп сингла, окно обычной московской многоэтажки ночью, холодные городские огни, реалистичная фотография, минимализм, без роз и сердечек, крупная типографика, атмосфера дыма и одиночества.',btn:'🎤　Сделать обложку'}}[tool]||{mode:'image',title:'Инструмент',sub:'',prompt:'',btn:'✦　Создать'};setMode(meta.mode);prompt.value=meta.prompt;$('#prompt-count').textContent=prompt.value.length+' / 2000';$('#page-title').textContent=meta.title;$('#page-subtitle').textContent=meta.sub;$('#generate').textContent=meta.btn;$('#crumb-title').textContent=meta.title;if(tool==='animate'||tool==='edit'||tool==='face'){const upload=document.querySelector('.upload');if(upload){upload.style.borderColor='var(--accent)';setTimeout(()=>upload.style.borderColor='',1800)}}prompt.focus();toast(meta.title+': промпт готов. Добавь исходник при необходимости и нажми кнопку.');}));
-prompt.addEventListener('input',()=>$('#prompt-count').textContent=prompt.value.length+' / 2000');
-function init(){/* minimal init - full logic in good snapshot */ console.log('AI Studio restored');}
-renderHistory=function(){};setMode('image');init();
-})();
-</script>
+<script src="./app.js"></script>
 </body>
 </html>
