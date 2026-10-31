@@ -29,13 +29,13 @@
 <button type="button" data-tool="face"><span class="ico">◎</span><span class="nav-text">Работа с лицом</span></button>
 <button type="button" data-tool="cover"><span class="ico">🎤</span><span class="nav-text">Обложка трека</span></button>
 </nav></div>
-<div class="side-bottom"><div class="provider-card"><strong>Подключение моделей</strong><div id="integration-hint">Интерфейс готов. Для генерации через собственный API потребуется настроить backend.</div></div></div>
+<div class="side-bottom"><div class="provider-card"><strong>Подключение моделей</strong><div id="integration-hint">Генерация через API сайта. Состояние моделей проверяется автоматически.</div></div></div>
 </aside>
 <main class="main">
 <header class="topbar"><div class="crumb"><span>AI Studio</span>　/　<b id="crumb-title">Создать</b></div><div class="top-actions"><span class="status">● Бесплатный режим</span><div class="avatar" title="kirillovec">K</div></div></header>
 <nav class="mobile-nav" aria-label="Быстрая навигация"><button class="active" type="button" data-view="create">✦ Создать</button><button type="button" data-view="image">▧ Фото</button><button type="button" data-view="video">▷ Видео</button><button type="button" data-view="history">◷ История</button></nav>
 <div class="content">
-<div class="page-head"><div><div class="eyebrow">Твоя творческая лаборатория</div><h1 id="page-title">Преврати идею в визуал</h1><p id="page-subtitle">Создавай изображения и видео в одном пространстве. Опиши результат, выбери параметры и подготовь задачу к генерации.</p></div><span class="pill">Изображения + видео</span></div>
+<div class="page-head"><div><div class="eyebrow">Твоя творческая лаборатория</div><h1 id="page-title">Преврати идею в визуал</h1><p id="page-subtitle">Создавай изображения и видео, загружай исходники и получай результат в одном рабочем пространстве — не покидая сайт.</p></div><span class="pill">Изображения + видео</span></div>
 <div class="workspace">
 <section class="panel">
 <div class="panel-head"><h2>Новая генерация</h2><span id="mode-caption">Текст → изображение</span></div>
@@ -49,29 +49,23 @@
 <button type="button" data-prompt="cover">📀 Обложка «НИЗКО»</button>
 <button type="button" data-prompt="motion">✨ Оживить фото</button>
 </div><small>Опиши объект, окружение, свет, стиль и движение камеры. Пример можно вставить одним нажатием.</small></div>
-<div class="field"><div class="field-title">Исходный файл <span>необязательно</span></div><label class="upload" for="file-input"><span class="upload-icon">＋</span><span><strong>Добавь исходное изображение / кадр</strong><span>PNG, JPG, WEBP · до 10 МБ · хранится только в этой вкладке</span></span><input id="file-input" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="preview-file" id="file-preview"><img id="file-thumb" alt="Предпросмотр загруженного файла"><div><strong id="file-name"></strong><span id="file-size"></span></div><button type="button" id="remove-file" aria-label="Удалить файл">✕</button></div></div>
+<div class="field"><div class="field-title">Исходный файл <span>необязательно</span></div><label class="upload" for="file-input"><span class="upload-icon">＋</span><span><strong>Добавь исходное изображение / кадр</strong><span>PNG, JPG, WEBP · до 4 МБ · отправляется в защищённый API сайта</span></span><input id="file-input" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="preview-file" id="file-preview"><img id="file-thumb" alt="Предпросмотр загруженного файла"><div><strong id="file-name"></strong><span id="file-size"></span></div><button type="button" id="remove-file" aria-label="Удалить файл">✕</button></div></div>
 <div class="two-col">
-<div class="field"><label>Режим работы</label><div class="select" style="min-height:44px;display:flex;align-items:center;color:#d8c9f0">Бесплатный внешний режим</div><small>Промпт готовится здесь; генерация выполняется на сайте выбранного провайдера.</small></div>
+<div class="field"><label for="model-source">Движок генерации</label><select class="select" id="model-source"><option value="replicate">Подключённая модель API</option><option value="selfHosted">Собственная модель</option></select><small id="model-hint">Доступность зависит от настройки серверной модели.</small></div>
 <div class="field"><label for="ratio">Соотношение сторон</label><select class="select" id="ratio"><option value="auto">Авто</option><option value="1:1">1:1 — квадрат</option><option value="3:4">3:4 — портрет</option><option value="4:3">4:3 — альбом</option><option value="9:16">9:16 — вертикальное видео</option><option value="16:9">16:9 — широкий экран</option></select></div>
 </div>
 <div class="two-col">
 <div class="field"><label for="quality">Качество</label><select class="select" id="quality"><option>Стандартное</option><option>Высокое</option><option>Максимальное</option></select></div>
 <div class="field" id="duration-field" hidden><label for="duration">Длительность</label><select class="select" id="duration"><option value="5">5 секунд</option><option value="8">8 секунд</option><option value="10">10 секунд</option></select></div>
 </div>
-<button class="generate" type="button" id="generate">✦　Подготовить генерацию</button><button type="button" class="select" id="copy-prompt" style="width:100%;margin-top:9px;background:#17131e;border-color:#3d344e">Копировать промпт</button>
-<div class="external-row" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px">
-  <button type="button" class="select" data-external="kling" style="background:#17131e;border-color:#3d344e;font-size:12px">Kling</button>
-  <button type="button" class="select" data-external="pixverse" style="background:#17131e;border-color:#3d344e;font-size:12px">PixVerse</button>
-  <button type="button" class="select" data-external="hailuo" style="background:#17131e;border-color:#3d344e;font-size:12px">Hailuo</button>
-  
-</div>
-<p class="disclaimer">AI Studio не отправляет файлы провайдерам автоматически. Открой сервис, загрузи исходник вручную и вставь скопированный промпт. Бесплатные лимиты зависят от провайдера.</p>
+<button class="generate" type="button" id="generate">✦　Создать на сайте</button>
+<p class="disclaimer">Файл и описание отправляются на сервер kirillovec.ru. Секреты моделей хранятся только на сервере.</p>
 </div>
 </section>
 <div>
 <section class="panel">
 <div class="panel-head"><h2>Результат</h2><span id="result-status">Ожидание</span></div>
-<div class="result-stage" id="result-stage"><div class="empty"><div class="empty-icon">✧</div><h3>Рабочее место готово</h3><p>Сначала подготовь задачу. Затем открой внешний сервис, загрузи исходник и запусти генерацию там.</p></div></div>
+<div class="result-stage" id="result-stage"><div class="empty"><div class="empty-icon">✧</div><h3>Результат появится здесь</h3><p>Создай задачу — статус и готовый файл будут отображаться в этой панели.</p></div></div>
 <div class="notice" id="notice" role="status"></div>
 </section>
 <section class="panel history"><div class="panel-head"><h2>Последние задачи</h2><span id="history-count">0 задач</span></div><div class="history-list" id="history-list"><div class="history-empty">Пока нет подготовленных задач</div></div></section>
