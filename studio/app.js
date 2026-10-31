@@ -422,8 +422,6 @@
       kling: "https://kling.ai/",
       pixverse: "https://pixverse.ai/",
       hailuo: "https://hailuoai.video/",
-      flux: "https://fal.ai/models/fal-ai/flux/dev",
-      midjourney: "https://www.midjourney.com/",
     };
     const url = urls[service];
     if (url) {
