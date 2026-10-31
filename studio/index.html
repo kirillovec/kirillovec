@@ -49,9 +49,9 @@
 <button type="button" data-prompt="cover">📀 Обложка «НИЗКО»</button>
 <button type="button" data-prompt="motion">✨ Оживить фото</button>
 </div><small>Опиши объект, окружение, свет, стиль и движение камеры. Пример можно вставить одним нажатием.</small></div>
-<div class="field"><div class="field-title">Исходный файл <span>необязательно</span></div><label class="upload" for="file-input"><span class="upload-icon">＋</span><span><strong>Загрузи изображение или видео</strong><span>PNG, JPG, WEBP · изображение с устройства</span></span><input id="file-input" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="preview-file" id="file-preview"><img id="file-thumb" alt="Предпросмотр загруженного файла"><div><strong id="file-name"></strong><span id="file-size"></span></div><button type="button" id="remove-file" aria-label="Удалить файл">✕</button></div></div>
+<div class="field"><div class="field-title">Исходный файл <span>необязательно</span></div><label class="upload" for="file-input"><span class="upload-icon">＋</span><span><strong>Добавь исходное изображение / кадр</strong><span>PNG, JPG, WEBP · до 10 МБ · хранится только в этой вкладке</span></span><input id="file-input" type="file" accept="image/png,image/jpeg,image/webp"></label><div class="preview-file" id="file-preview"><img id="file-thumb" alt="Предпросмотр загруженного файла"><div><strong id="file-name"></strong><span id="file-size"></span></div><button type="button" id="remove-file" aria-label="Удалить файл">✕</button></div></div>
 <div class="two-col">
-<div class="field"><label for="model">Источник обработки</label><select class="select" id="model"><option value="provider">Внешний API (если подключён)</option><option value="selfHosted">Собственная модель (если доступна)</option></select><small>Без настроенного API генерация откроется во внешнем сервисе; ключи не хранятся в браузере.</small></div>
+<div class="field"><label>Режим работы</label><div class="select" style="min-height:44px;display:flex;align-items:center;color:#d8c9f0">Бесплатный внешний режим</div><small>Промпт готовится здесь; генерация выполняется на сайте выбранного провайдера.</small></div>
 <div class="field"><label for="ratio">Соотношение сторон</label><select class="select" id="ratio"><option value="auto">Авто</option><option value="1:1">1:1 — квадрат</option><option value="3:4">3:4 — портрет</option><option value="4:3">4:3 — альбом</option><option value="9:16">9:16 — вертикальное видео</option><option value="16:9">16:9 — широкий экран</option></select></div>
 </div>
 <div class="two-col">
@@ -65,13 +65,13 @@
   <button type="button" class="select" data-external="hailuo" style="background:#17131e;border-color:#3d344e;font-size:12px">Hailuo</button>
   <button type="button" class="select" data-external="flux" style="background:#17131e;border-color:#3d344e;font-size:12px">Flux / fal</button>
 </div>
-<p class="disclaimer">Без настроенного backend можно скопировать промпт и продолжить в сервисе с доступными бесплатными кредитами. Условия внешних сервисов могут меняться.</p>
+<p class="disclaimer">AI Studio не отправляет файлы провайдерам автоматически. Открой сервис, загрузи исходник вручную и вставь скопированный промпт. Бесплатные лимиты зависят от провайдера.</p>
 </div>
 </section>
 <div>
 <section class="panel">
 <div class="panel-head"><h2>Результат</h2><span id="result-status">Ожидание</span></div>
-<div class="result-stage" id="result-stage"><div class="empty"><div class="empty-icon">✧</div><h3>Здесь появится твоя работа</h3><p>Результат генерации будет показан в этой области после подключения модели.</p></div></div>
+<div class="result-stage" id="result-stage"><div class="empty"><div class="empty-icon">✧</div><h3>Рабочее место готово</h3><p>Сначала подготовь задачу. Затем открой внешний сервис, загрузи исходник и запусти генерацию там.</p></div></div>
 <div class="notice" id="notice" role="status"></div>
 </section>
 <section class="panel history"><div class="panel-head"><h2>Последние задачи</h2><span id="history-count">0 задач</span></div><div class="history-list" id="history-list"><div class="history-empty">Пока нет подготовленных задач</div></div></section>
@@ -82,7 +82,7 @@
 <div class="feature"><div class="feature-icon">▷</div><strong>Изображение → видео</strong><span>Загрузи кадр и опиши движение.</span></div>
 <div class="feature"><div class="feature-icon">◉</div><strong>Редактирование и анимация</strong><span>Основа для инструментов image-to-image и image-to-video.</span></div>
 </div>
-<p class="footnote">Платформа спроектирована с разделением интерфейса и AI-бэкенда. Ключи провайдеров нельзя хранить в HTML или браузерном JavaScript. Подробности — в docs/AI-STUDIO-ARCHITECTURE.md.</p>
+<p class="footnote">История задач хранится локально в браузере. Исходные файлы не загружаются на kirillovec.ru и не сохраняются после закрытия вкладки. Результат создаётся на стороне внешнего сервиса.</p>
 </div>
 </main>
 </div>
