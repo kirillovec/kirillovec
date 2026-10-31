@@ -3,16 +3,9 @@
   const prompt = $("#prompt");
   const modeButtons = [...document.querySelectorAll("[data-mode]")];
   const navButtons = [...document.querySelectorAll("[data-view]")];
-  const config = window.AI_STUDIO_CONFIG || {};
-  const apiBase = String(config.apiBaseUrl || "").replace(/\/$/, "");
-  const pollInterval = Math.max(2000, Number(config.pollIntervalMs) || 4000);
-
   let mode = "image";
   let selectedFile = null;
   let localHistory = [];
-  let capabilities = null;
-  let activeJob = false;
-
   const historyStorageKey = "kirillovec-ai-studio-history-v1";
 
   try {
@@ -27,30 +20,6 @@
     el.style.display = "block";
     clearTimeout(toast.timer);
     toast.timer = setTimeout(() => (el.style.display = "none"), 4200);
-  }
-
-  async function api(path, options = {}) {
-    if (!apiBase) throw new Error("API_NOT_CONFIGURED");
-    const headers = new Headers(options.headers || {});
-    const response = await fetch(apiBase + path, {
-      ...options,
-      headers,
-      credentials: "include",
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok)
-      throw new Error(data.message || data.error || "Ошибка API " + response.status);
-    return data;
-  }
-
-  function setConnection(text, good = false) {
-    const el = document.querySelector(".top-actions .status");
-    if (el) {
-      el.textContent = (good ? "● " : "○ ") + text;
-      el.style.color = good ? "#b9f2cd" : "#d4c2f8";
-    }
-    const hint = $("#integration-hint");
-    if (hint) hint.textContent = text;
   }
 
   function setMode(next) {
@@ -362,8 +331,8 @@
   // Generate button
   $("#generate")?.addEventListener("click", async () => {
     const text = prompt.value.trim();
-    if (!text && !selectedFile) {
-      toast("Нужен промпт или исходный файл");
+    if (!text) {
+      toast("Сначала введи промпт. Исходное фото можно прикрепить дополнительно.");
       return;
     }
 
@@ -392,20 +361,13 @@
         : "Задача сохранена в историю"
     );
 
-    // Если API реально умеет генерировать — здесь будет вызов jobs
-    const canGenerate =
-      capabilities &&
-      ((mode === "image" && capabilities.image?.enabled) ||
-        (mode === "video" && capabilities.video?.enabled));
-
-    if (canGenerate) {
-      // placeholder for real job submission
-      toast("API готов — генерация скоро будет подключена");
-    } else if (!apiBase) {
-      try {
-        await navigator.clipboard.writeText(text);
-        toast("Промпт скопирован в буфер");
-      } catch (e) {}
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(selectedFile
+        ? "Промпт скопирован. Загрузи выбранное фото во внешний сервис вручную."
+        : "Промпт скопирован. Теперь выбери внешний сервис.");
+    } catch (e) {
+      toast("Задача сохранена. Не удалось скопировать автоматически — нажми «Копировать промпт».");
     }
   });
 
@@ -414,29 +376,8 @@
     btn.addEventListener("click", () => openExternal(btn.dataset.external));
   });
 
-  async function init() {
-    setConnection("● Бесплатный режим");
-    if (!apiBase) {
-      setConnection("○ Внешний режим (API не настроен)");
-      return;
-    }
-    try {
-      const caps = await api("/api/v1/capabilities");
-      capabilities = caps;
-      const imageOn = caps.image?.enabled;
-      const videoOn = caps.video?.enabled;
-      if (imageOn || videoOn) {
-        setConnection("● API подключён · генерация доступна", true);
-      } else {
-        setConnection("○ API доступен · генерация пока выключена");
-      }
-    } catch (e) {
-      setConnection("○ API недоступен — внешний режим");
-      console.warn("API недоступен; включён режим внешних сервисов", e);
-    }
-  }
-
   renderHistory();
   setMode("image");
-  init();
+  const hint = $("#integration-hint");
+  if (hint) hint.textContent = "Бесплатный внешний режим: промпт копируется здесь, исходник загружается вручную в выбранный сервис.";
 })();
