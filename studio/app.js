@@ -10,7 +10,19 @@
 
   try {
     const saved = JSON.parse(localStorage.getItem(historyStorageKey) || "[]");
-    if (Array.isArray(saved)) localHistory = saved.slice(-20);
+    if (Array.isArray(saved)) {
+      localHistory = saved
+        .filter((item) => item && typeof item === "object" && typeof item.prompt === "string")
+        .slice(-20)
+        .map((item) => ({
+          prompt: item.prompt.slice(0, 2000),
+          mode: item.mode === "video" ? "video" : "image",
+          hasFile: Boolean(item.hasFile),
+          ts: Number(item.ts) || Date.now(),
+          ratio: typeof item.ratio === "string" ? item.ratio : "auto",
+          quality: typeof item.quality === "string" ? item.quality : "Стандартное",
+        }));
+    }
   } catch (e) {}
 
   function toast(message) {
@@ -245,42 +257,61 @@
     const list = $("#history-list");
     const count = $("#history-count");
     if (!list) return;
+    list.replaceChildren();
     if (!localHistory.length) {
-      list.innerHTML =
-        '<div class="history-empty">Пока нет подготовленных задач</div>';
+      const empty = document.createElement("div");
+      empty.className = "history-empty";
+      empty.textContent = "Пока нет подготовленных задач";
+      list.appendChild(empty);
       if (count) count.textContent = "0 задач";
       return;
     }
-    list.innerHTML = localHistory
-      .slice()
-      .reverse()
-      .map(
-        (item, idx) =>
-          `<div class="history-item" data-history-idx="${localHistory.length - 1 - idx}" role="button" tabindex="0" title="Нажми, чтобы восстановить">
-            <div class="history-thumb">${item.mode === "video" ? "▷" : "▧"}</div>
-            <div>
-              <strong>${(item.prompt || "Без промпта").slice(0, 60)}${item.prompt && item.prompt.length > 60 ? "…" : ""}</strong>
-              <span>${item.mode || "image"}${item.hasFile ? " · с файлом" : ""} · ${new Date(item.ts || Date.now()).toLocaleString("ru-RU")}</span>
-            </div>
-          </div>`
-      )
-      .join("");
-    if (count) count.textContent = localHistory.length + " задач";
 
-    list.querySelectorAll("[data-history-idx]").forEach((el) => {
-      el.addEventListener("click", () => {
-        const i = Number(el.dataset.historyIdx);
-        const item = localHistory[i];
-        if (!item) return;
-        prompt.value = item.prompt || "";
+    localHistory.slice().reverse().forEach((item, idx) => {
+      const historyIndex = localHistory.length - 1 - idx;
+      const row = document.createElement("div");
+      row.className = "history-item";
+      row.dataset.historyIdx = String(historyIndex);
+      row.setAttribute("role", "button");
+      row.tabIndex = 0;
+      row.title = "Нажми, чтобы восстановить промпт";
+
+      const thumb = document.createElement("div");
+      thumb.className = "history-thumb";
+      thumb.textContent = item.mode === "video" ? "▷" : "▧";
+
+      const details = document.createElement("div");
+      const title = document.createElement("strong");
+      title.textContent = (item.prompt || "Без промпта").slice(0, 60) +
+        (item.prompt && item.prompt.length > 60 ? "…" : "");
+      const meta = document.createElement("span");
+      meta.textContent = (item.mode || "image") +
+        (item.hasFile ? " · исходник был прикреплён (не сохранён)" : "") +
+        " · " + new Date(item.ts || Date.now()).toLocaleString("ru-RU");
+      details.append(title, meta);
+      row.append(thumb, details);
+
+      const restore = () => {
+        const entry = localHistory[historyIndex];
+        if (!entry) return;
+        prompt.value = entry.prompt || "";
         $("#prompt-count").textContent = prompt.value.length + " / 2000";
-        setMode(item.mode || "image");
-        if (item.ratio && $("#ratio")) $("#ratio").value = item.ratio;
-        if (item.quality && $("#quality")) $("#quality").value = item.quality;
-        toast("Задача восстановлена из истории");
+        setMode(entry.mode || "image");
+        if (entry.ratio && $("#ratio")) $("#ratio").value = entry.ratio;
+        if (entry.quality && $("#quality")) $("#quality").value = entry.quality;
+        toast("Промпт восстановлен. Если нужен исходник, прикрепи его повторно.");
         prompt.focus();
+      };
+      row.addEventListener("click", restore);
+      row.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          restore();
+        }
       });
+      list.appendChild(row);
     });
+    if (count) count.textContent = localHistory.length + " задач";
   }
 
   function saveHistory(entry) {
@@ -292,6 +323,80 @@
     renderHistory();
   }
 
+  async function copyText(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) {}
+    const field = document.createElement("textarea");
+    field.value = text;
+    field.setAttribute("readonly", "");
+    field.style.position = "fixed";
+    field.style.opacity = "0";
+    document.body.appendChild(field);
+    field.select();
+    let copied = false;
+    try { copied = document.execCommand("copy"); } catch (e) {}
+    field.remove();
+    return copied;
+  }
+
+  function showPreparedTask(entry) {
+    const stage = $("#result-stage");
+    if (!stage) return;
+    stage.replaceChildren();
+    stage.style.display = "block";
+
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "width:100%;max-width:620px;margin:auto;display:grid;gap:14px";
+    const heading = document.createElement("div");
+    const title = document.createElement("h3");
+    title.textContent = entry.mode === "video" ? "Видеозадача подготовлена" : "Задача на изображение подготовлена";
+    title.style.cssText = "margin:0 0 5px;font-size:17px";
+    const subtitle = document.createElement("p");
+    subtitle.textContent = "Следующий шаг — открыть внешний сервис и запустить генерацию там.";
+    subtitle.style.cssText = "margin:0;color:var(--muted);font-size:12px";
+    heading.append(title, subtitle);
+    wrap.appendChild(heading);
+
+    if (selectedFile) {
+      const fileRow = document.createElement("div");
+      fileRow.style.cssText = "display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;background:#0d0d11";
+      const thumb = $("#file-thumb");
+      if (thumb && thumb.src) {
+        const image = document.createElement("img");
+        image.src = thumb.src;
+        image.alt = "Исходное изображение";
+        image.style.cssText = "width:64px;height:64px;object-fit:cover;border-radius:8px";
+        fileRow.appendChild(image);
+      }
+      const fileText = document.createElement("span");
+      fileText.textContent = selectedFile.name + " · " + (selectedFile.size / 1024 / 1024).toFixed(2) + " МБ. Файл пока находится только в этой вкладке.";
+      fileText.style.cssText = "font-size:12px;color:var(--muted)";
+      fileRow.appendChild(fileText);
+      wrap.appendChild(fileRow);
+    }
+
+    const promptBox = document.createElement("pre");
+    promptBox.textContent = entry.prompt;
+    promptBox.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere;max-height:190px;overflow:auto;margin:0;padding:13px;border:1px solid var(--line);border-radius:10px;background:#0b0b0e;color:#e8e3f0;font:12px/1.55 system-ui";
+    wrap.appendChild(promptBox);
+
+    const steps = document.createElement("p");
+    steps.textContent = selectedFile
+      ? "1. Скопируй промпт. 2. В открывшемся сервисе загрузи этот файл вручную. 3. Вставь промпт и запусти задачу."
+      : "1. Скопируй промпт. 2. Открой сервис. 3. Вставь промпт и запусти задачу.";
+    steps.style.cssText = "margin:0;color:#d5c8e7;font-size:12px";
+    wrap.appendChild(steps);
+    const choose = document.createElement("p");
+    choose.textContent = "Сервис выбирается кнопками Kling, PixVerse, Hailuo или Flux под формой.";
+    choose.style.cssText = "margin:0;color:var(--muted);font-size:11px";
+    wrap.appendChild(choose);
+    stage.appendChild(wrap);
+  }
+
   $("#copy-prompt")?.addEventListener("click", async () => {
     const text = prompt.value.trim();
     if (!text) {
@@ -299,8 +404,8 @@
       return;
     }
     try {
-      await navigator.clipboard.writeText(text);
-      toast("Промпт скопирован");
+      const copied = await copyText(text);
+      toast(copied ? "Промпт скопирован" : "Автокопирование недоступно — выдели промпт вручную");
     } catch (e) {
       toast("Не удалось скопировать — выдели текст вручную");
     }
@@ -313,7 +418,6 @@
       toast("Сначала введи промпт");
       return;
     }
-    navigator.clipboard.writeText(text).catch(() => {});
     const urls = {
       kling: "https://kling.ai/",
       pixverse: "https://pixverse.ai/",
@@ -323,8 +427,11 @@
     };
     const url = urls[service];
     if (url) {
-      window.open(url, "_blank", "noopener");
-      toast("Промпт скопирован. Вставь его в " + service);
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      copyText(text).then((copied) => {
+        const message = copied ? "Промпт скопирован." : "Скопируй промпт кнопкой под полем.";
+        toast((opened ? "Сервис открыт. " : "Браузер заблокировал новое окно. Разреши всплывающие окна. ") + message + " Загрузи исходник вручную.");
+      });
     }
   }
 
@@ -345,14 +452,15 @@
       quality: $("#quality")?.value,
     };
     saveHistory(entry);
-    $("#result-status").textContent = "Подготовлено";
+    $("#result-status").textContent = "Промпт готов";
+    showPreparedTask(entry);
 
     const notice = $("#notice");
     if (notice) {
       notice.style.display = "block";
       notice.textContent = selectedFile
-        ? `Файл «${selectedFile.name}» и промпт готовы. Скопируй промпт и открой внешний сервис, либо дождись подключения API.`
-        : "Промпт готов. Можно скопировать и продолжить во внешнем сервисе.";
+        ? `Исходник «${selectedFile.name}» выбран локально. Он не отправлен на сервер — загрузи его вручную в открывшемся сервисе.`
+        : "Промпт готов и сохранён в локальной истории. Выбери внешний сервис ниже.";
     }
 
     toast(
@@ -362,12 +470,12 @@
     );
 
     try {
-      await navigator.clipboard.writeText(text);
-      toast(selectedFile
-        ? "Промпт скопирован. Загрузи выбранное фото во внешний сервис вручную."
-        : "Промпт скопирован. Теперь выбери внешний сервис.");
+      const copied = await copyText(text);
+      toast(copied
+        ? (selectedFile ? "Промпт скопирован. Прикрепи исходник вручную во внешнем сервисе." : "Промпт скопирован. Теперь выбери внешний сервис.")
+        : "Задача сохранена. Скопируй промпт вручную кнопкой под полем.");
     } catch (e) {
-      toast("Задача сохранена. Не удалось скопировать автоматически — нажми «Копировать промпт».");
+      toast("Задача сохранена. Скопируй промпт вручную кнопкой под полем.");
     }
   });
 
