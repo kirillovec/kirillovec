@@ -6,6 +6,7 @@ workers_dev = true
 [vars]
 ACCESS_REQUIRED = "true"
 MAX_JOBS_PER_HOUR = "10"
+ALLOWED_ORIGINS = "https://kirillovec.ru,https://www.kirillovec.ru"
 
 [[d1_databases]]
 binding = "DB"
