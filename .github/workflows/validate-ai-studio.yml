@@ -18,10 +18,12 @@ jobs:
         run: |
           node --check src/index.js
           node --check studio/config.js
+          node --check studio/app.js
       - name: Verify required files
         run: |
           test -s studio/index.html
           test -s studio/config.js
+          test -s studio/app.js
           test -s migrations/0001_initial.sql
           test -s wrangler.toml
           test -s docs/AI-STUDIO-DEPLOYMENT.md
