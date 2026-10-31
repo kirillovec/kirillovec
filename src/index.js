@@ -31,7 +31,7 @@ async function handle(request,env){
  const url=new URL(request.url),path=url.pathname.replace(/\/$/,"")||"/";
  if(request.method==="OPTIONS")return new Response(null,{status:204,headers:corsHeaders(request,env)});
  if(path==="/health"&&request.method==="GET")return response(request,env,{ok:true,service:"kirillovec-ai-studio",time:now()});
- if(path==="/api/v1/capabilities"&&request.method==="GET")return response(request,env,{image:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.IMAGE_MODEL),model:env.IMAGE_MODEL||null,provider:"replicate"},video:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.VIDEO_MODEL),model:env.VIDEO_MODEL||null,provider:"replicate"},selfHosted:{enabled:Boolean(env.SELF_HOSTED_API_URL),provider:env.SELF_HOSTED_API_URL?"custom":null},upload:{enabled:Boolean(env.ASSETS&&env.ASSETS_PUBLIC_BASE_URL),maxBytes:20*1024*1024}});
+ if(path==="/api/v1/capabilities"&&request.method==="GET")return response(request,env,{image:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.IMAGE_MODEL),model:env.IMAGE_MODEL||null,provider:"replicate"},video:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.VIDEO_MODEL),model:env.VIDEO_MODEL||null,provider:"replicate"},selfHosted:{enabled:Boolean(env.SELF_HOSTED_API_URL),provider:env.SELF_HOSTED_API_URL?"custom":null},upload:{enabled:true,storage:"request-inline",maxBytes:4*1024*1024}});
  let identity;try{identity=await accessIdentity(request,env)}catch{return response(request,env,{error:"ACCESS_REQUIRED",message:"Требуется авторизованный доступ через Cloudflare Access."},401)}
  if(!env.DB)return response(request,env,{error:"BACKEND_NOT_CONFIGURED",message:"Не настроена база D1."},503);
  if(path==="/api/v1/assets"&&request.method==="POST"){
@@ -58,8 +58,9 @@ async function handle(request,env){
   }
   const model=mode==="video"?env.VIDEO_MODEL:env.IMAGE_MODEL;if(!env.REPLICATE_API_TOKEN||!model)return response(request,env,{error:"PROVIDER_NOT_CONFIGURED",message:"Провайдер не подключён: настрой REPLICATE_API_TOKEN и IMAGE_MODEL / VIDEO_MODEL."},503);
   const input={prompt},ratio=["1:1","3:4","4:3","9:16","16:9"].includes(body.aspectRatio)?body.aspectRatio:(mode==="video"?"16:9":"1:1");
+  if(body.imageDataUrl!==undefined){const match=String(body.imageDataUrl).match(/^data:(image\\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);if(!match||match[2].length>5600000)return response(request,env,{error:"INVALID_IMAGE",message:"Исходник должен быть JPG, PNG или WEBP размером до 4 МБ."},400);input.image=body.imageDataUrl;}
   if(mode==="image"){input.aspect_ratio=ratio;input.output_format="webp"}else{input.duration=[5,8,10].includes(Number(body.duration))?Number(body.duration):5;input.aspect_ratio=ratio}
-  if(body.assetId){const a=await env.DB.prepare("SELECT id, public_url, content_type FROM assets WHERE id = ? AND owner = ?").bind(String(body.assetId),identity.subject).first();if(!a)return response(request,env,{error:"ASSET_NOT_FOUND",message:"Исходный файл не найден или принадлежит другому пользователю."},404);if(mode==="video")input.image=a.public_url;else input.image=a.public_url}
+  if(body.assetId){return response(request,env,{error:"ASSET_STORAGE_DISABLED",message:"Загрузка по assetId не включена. Передай исходник через imageDataUrl."},400)}
   const prediction=await replicate(env,"/models/"+model+"/predictions",{method:"POST",headers:{"Prefer":"wait=1"},body:JSON.stringify({input})});
   const jobId=id();await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,mode,"replicate",prediction.id,prediction.status||"starting",prompt,now(),now()).run();
   return response(request,env,{id:jobId,status:prediction.status||"starting",provider:"replicate",result:prediction.output||null},202)
