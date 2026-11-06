@@ -1,6 +1,7 @@
 /**
  * kirillovec AI Studio API — Cloudflare Workers
- * Required binding: DB (D1). Optional upload storage: ASSETS (R2). See docs/AI-STUDIO-DEPLOYMENT.md.
+ * Required binding: DB (D1). Optional: AI (Workers AI), ASSETS (R2).
+ * Image generation prefers Cloudflare Workers AI (free tier) over Replicate.
  */
 const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...extra}});
 const now=()=>new Date().toISOString();
@@ -27,13 +28,63 @@ async function accessIdentity(request,env){
 function safeName(name){return String(name||"upload").replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100)||"upload"}
 async function rateLimit(env,identity,bucket,max,windowSeconds){const key=identity.subject||identity.email||"unknown";const cutoff=new Date(Date.now()-windowSeconds*1000).toISOString();await env.DB.prepare("DELETE FROM rate_limits WHERE created_at < ?").bind(cutoff).run();const row=await env.DB.prepare("SELECT COUNT(*) AS count FROM rate_limits WHERE identity = ? AND bucket = ? AND created_at >= ?").bind(key,bucket,cutoff).first();if((row?.count||0)>=max)return false;await env.DB.prepare("INSERT INTO rate_limits (identity, bucket, created_at) VALUES (?, ?, ?)").bind(key,bucket,now()).run();return true}
 async function replicate(env,path,init={}){if(!env.REPLICATE_API_TOKEN)throw new Error("PROVIDER_NOT_CONFIGURED");const r=await fetch("https://api.replicate.com/v1"+path,{...init,headers:{"Authorization":"Bearer "+env.REPLICATE_API_TOKEN,"Content-Type":"application/json",...(init.headers||{})}});const body=await r.json().catch(()=>({}));if(!r.ok){const e=new Error("PROVIDER_ERROR");e.status=r.status===429?429:502;e.detail=body.detail||body.title||"Провайдер не смог выполнить запрос.";throw e}return body}
+
+function arrayBufferToBase64(buffer){
+  const bytes=new Uint8Array(buffer);
+  let binary="";
+  for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+async function generateWithWorkersAI(env,prompt,aspectRatio){
+  if(!env.AI)throw new Error("WORKERS_AI_NOT_CONFIGURED");
+  const model="@cf/black-forest-labs/flux-1-schnell";
+  // Flux Schnell on Workers AI accepts prompt; steps default low for speed/cost
+  const result=await env.AI.run(model,{
+    prompt:prompt,
+    // optional: num_steps: 4
+  });
+  // Workers AI Flux returns { image: base64 string } or similar
+  let b64=null;
+  if(typeof result==="string")b64=result;
+  else if(result?.image)b64=typeof result.image==="string"?result.image:arrayBufferToBase64(result.image);
+  else if(result instanceof ArrayBuffer)b64=arrayBufferToBase64(result);
+  else if(result?.data)b64=typeof result.data==="string"?result.data:arrayBufferToBase64(result.data);
+  if(!b64)throw new Error("WORKERS_AI_EMPTY_RESULT");
+  // ensure no data: prefix double
+  if(b64.startsWith("data:"))return b64;
+  return "data:image/png;base64,"+b64;
+}
+
 async function handle(request,env){
  const url=new URL(request.url),path=url.pathname.replace(/\/$/,"")||"/";
  if(request.method==="OPTIONS")return new Response(null,{status:204,headers:corsHeaders(request,env)});
  if(path==="/health"&&request.method==="GET")return response(request,env,{ok:true,service:"kirillovec-ai-studio",time:now()});
- if(path==="/api/v1/capabilities"&&request.method==="GET")return response(request,env,{image:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.IMAGE_MODEL),model:env.IMAGE_MODEL||null,provider:"replicate"},video:{enabled:Boolean(env.REPLICATE_API_TOKEN&&env.VIDEO_MODEL),model:env.VIDEO_MODEL||null,provider:"replicate"},selfHosted:{enabled:Boolean(env.SELF_HOSTED_API_URL),provider:env.SELF_HOSTED_API_URL?"custom":null},upload:{enabled:true,storage:"request-inline",maxBytes:4*1024*1024}});
+
+ // Capabilities: prefer Workers AI for images (free), Replicate as fallback
+ if(path==="/api/v1/capabilities"&&request.method==="GET"){
+  const workersAI=Boolean(env.AI);
+  const replicateImg=Boolean(env.REPLICATE_API_TOKEN&&env.IMAGE_MODEL);
+  const replicateVid=Boolean(env.REPLICATE_API_TOKEN&&env.VIDEO_MODEL);
+  return response(request,env,{
+   image:{
+    enabled:workersAI||replicateImg,
+    model:workersAI?"@cf/black-forest-labs/flux-1-schnell":(env.IMAGE_MODEL||null),
+    provider:workersAI?"workers-ai":(replicateImg?"replicate":null)
+   },
+   video:{
+    enabled:replicateVid,
+    model:env.VIDEO_MODEL||null,
+    provider:replicateVid?"replicate":null
+   },
+   selfHosted:{enabled:Boolean(env.SELF_HOSTED_API_URL),provider:env.SELF_HOSTED_API_URL?"custom":null},
+   upload:{enabled:true,storage:"request-inline",maxBytes:4*1024*1024}
+  });
+ }
+
  let identity;try{identity=await accessIdentity(request,env)}catch{return response(request,env,{error:"ACCESS_REQUIRED",message:"Требуется авторизованный доступ через Cloudflare Access."},401)}
  if(!env.DB)return response(request,env,{error:"BACKEND_NOT_CONFIGURED",message:"Не настроена база D1."},503);
+
  if(path==="/api/v1/assets"&&request.method==="POST"){
   if(!env.ASSETS||!env.ASSETS_PUBLIC_BASE_URL)return response(request,env,{error:"UPLOAD_NOT_CONFIGURED",message:"Загрузка исходных файлов пока отключена, чтобы не требовать платное хранилище. Можно подключить R2 позже, по желанию."},503);
   if(!(await rateLimit(env,identity,"upload",30,3600)))return response(request,env,{error:"RATE_LIMIT",message:"Лимит загрузок исчерпан. Попробуй позже."},429);
@@ -45,34 +96,90 @@ async function handle(request,env){
   await env.DB.prepare("INSERT INTO assets (id, owner, object_key, public_url, content_type, size_bytes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(assetId,identity.subject,key,assetUrl,file.type,file.size,now()).run();
   return response(request,env,{id:assetId,url:assetUrl,contentType:file.type,size:file.size},201)
  }
+
  if(path==="/api/v1/jobs"&&request.method==="POST"){
   if(!(await rateLimit(env,identity,"job",Number(env.MAX_JOBS_PER_HOUR||10),3600)))return response(request,env,{error:"RATE_LIMIT",message:"Достигнут лимит генераций на час."},429);
   let body;try{body=await request.json()}catch{return response(request,env,{error:"INVALID_JSON",message:"Ожидается JSON."},400)}
   const mode=body.mode==="video"?"video":body.mode==="image"?"image":null,prompt=String(body.prompt||"").trim();
   if(!mode||!prompt||prompt.length>2000)return response(request,env,{error:"INVALID_INPUT",message:"Укажи mode=image/video и prompt длиной до 2000 символов."},400);
-  if(body.modelSource==="selfHosted"&&!env.SELF_HOSTED_API_URL)return response(request,env,{error:"SELF_HOSTED_NOT_CONFIGURED",message:"Собственная модель ещё не подключена. Выбери внешний API или настрой SELF_HOSTED_API_URL."},503);
+
+  // Self-hosted path
+  if(body.modelSource==="selfHosted"&&!env.SELF_HOSTED_API_URL)return response(request,env,{error:"SELF_HOSTED_NOT_CONFIGURED",message:"Собственная модель ещё не подключена."},503);
   if(body.modelSource==="selfHosted"&&env.SELF_HOSTED_API_URL){
-   const ownInput={mode,prompt,aspectRatio:body.aspectRatio,duration:body.duration,imageDataUrl:body.imageDataUrl||null};if(body.assetId){const a=await env.DB.prepare("SELECT id, public_url FROM assets WHERE id = ? AND owner = ?").bind(String(body.assetId),identity.subject).first();if(!a)return response(request,env,{error:"ASSET_NOT_FOUND",message:"Исходный файл не найден."},404);ownInput.imageUrl=a.public_url}
-   const r=await fetch(env.SELF_HOSTED_API_URL.replace(/\/$/,"")+"/jobs",{method:"POST",headers:{"Content-Type":"application/json",...(env.SELF_HOSTED_API_TOKEN?{"Authorization":"Bearer "+env.SELF_HOSTED_API_TOKEN}:{})},body:JSON.stringify(ownInput)});if(!r.ok)return response(request,env,{error:"SELF_HOSTED_ERROR",message:"Собственная модель не приняла задачу."},502);
-   const own=await r.json(),jobId=id();await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,mode,"self-hosted",String(own.id),own.status||"starting",prompt,now(),now()).run();return response(request,env,{id:jobId,status:own.status||"starting",provider:"self-hosted"},202)
+   const ownInput={mode,prompt,aspectRatio:body.aspectRatio,duration:body.duration,imageDataUrl:body.imageDataUrl||null};
+   if(body.assetId){const a=await env.DB.prepare("SELECT id, public_url FROM assets WHERE id = ? AND owner = ?").bind(String(body.assetId),identity.subject).first();if(!a)return response(request,env,{error:"ASSET_NOT_FOUND",message:"Исходный файл не найден."},404);ownInput.imageUrl=a.public_url}
+   const r=await fetch(env.SELF_HOSTED_API_URL.replace(/\/$/,"")+"/jobs",{method:"POST",headers:{"Content-Type":"application/json",...(env.SELF_HOSTED_API_TOKEN?{"Authorization":"Bearer "+env.SELF_HOSTED_API_TOKEN}:{})},body:JSON.stringify(ownInput)});
+   if(!r.ok)return response(request,env,{error:"SELF_HOSTED_ERROR",message:"Собственная модель не приняла задачу."},502);
+   const own=await r.json(),jobId=id();
+   await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,mode,"self-hosted",String(own.id),own.status||"starting",prompt,now(),now()).run();
+   return response(request,env,{id:jobId,status:own.status||"starting",provider:"self-hosted"},202)
   }
-  const model=mode==="video"?env.VIDEO_MODEL:env.IMAGE_MODEL;if(!env.REPLICATE_API_TOKEN||!model)return response(request,env,{error:"PROVIDER_NOT_CONFIGURED",message:"Провайдер не подключён: настрой REPLICATE_API_TOKEN и IMAGE_MODEL / VIDEO_MODEL."},503);
+
+  // === IMAGE via Cloudflare Workers AI (preferred, free) ===
+  if(mode==="image"&&env.AI){
+   try{
+    const resultUrl=await generateWithWorkersAI(env,prompt,body.aspectRatio);
+    const jobId=id();
+    await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, result_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,"image","workers-ai",jobId,"succeeded",prompt,resultUrl,now(),now()).run();
+    return response(request,env,{id:jobId,status:"succeeded",provider:"workers-ai",resultUrl},200);
+   }catch(e){
+    const msg=e.message||"Workers AI error";
+    if(msg.includes("quota")||msg.includes("limit")||msg.includes("Neurons")){
+     return response(request,env,{error:"QUOTA_EXCEEDED",message:"Дневной бесплатный лимит Cloudflare Workers AI исчерпан. Попробуй завтра или подключи Replicate."},429);
+    }
+    return response(request,env,{error:"WORKERS_AI_ERROR",message:"Ошибка генерации через Workers AI: "+msg},502);
+   }
+  }
+
+  // === Fallback: Replicate ===
+  const model=mode==="video"?env.VIDEO_MODEL:env.IMAGE_MODEL;
+  if(!env.REPLICATE_API_TOKEN||!model){
+   return response(request,env,{error:"PROVIDER_NOT_CONFIGURED",message:mode==="image"?"Нет доступного провайдера изображений (Workers AI или Replicate).":"Провайдер видео не подключён."},503);
+  }
   const input={prompt},ratio=["1:1","3:4","4:3","9:16","16:9"].includes(body.aspectRatio)?body.aspectRatio:(mode==="video"?"16:9":"1:1");
   if(body.imageDataUrl!==undefined){const dataUrl=String(body.imageDataUrl);const validType=["data:image/jpeg;base64,","data:image/png;base64,","data:image/webp;base64,"].some(prefix=>dataUrl.startsWith(prefix));const payload=dataUrl.split(",")[1]||"";if(!validType||!/^[A-Za-z0-9+/=]+$/.test(payload)||payload.length>5600000)return response(request,env,{error:"INVALID_IMAGE",message:"Исходник должен быть JPG, PNG или WEBP размером до 4 МБ."},400);input.image=dataUrl;}
   if(mode==="image"){input.aspect_ratio=ratio;input.output_format="webp"}else{input.duration=[5,8,10].includes(Number(body.duration))?Number(body.duration):5;input.aspect_ratio=ratio}
   if(body.assetId){return response(request,env,{error:"ASSET_STORAGE_DISABLED",message:"Загрузка по assetId не включена. Передай исходник через imageDataUrl."},400)}
   const prediction=await replicate(env,"/models/"+model+"/predictions",{method:"POST",headers:{"Prefer":"wait=1"},body:JSON.stringify({input})});
-  const jobId=id();await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,mode,"replicate",prediction.id,prediction.status||"starting",prompt,now(),now()).run();
+  const jobId=id();
+  await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,mode,"replicate",prediction.id,prediction.status||"starting",prompt,now(),now()).run();
   return response(request,env,{id:jobId,status:prediction.status||"starting",provider:"replicate",result:prediction.output||null},202)
  }
+
  const match=path.match(/^\/api\/v1\/jobs\/([0-9a-f-]+)$/i);
  if(match&&request.method==="GET"){
-  const job=await env.DB.prepare("SELECT id, owner, mode, provider, provider_job_id, status, prompt, result_url, error_message, created_at, updated_at FROM jobs WHERE id = ? AND owner = ?").bind(match[1],identity.subject).first();if(!job)return response(request,env,{error:"JOB_NOT_FOUND",message:"Задача не найдена."},404);
-  let remote=null;try{if(job.provider==="replicate")remote=await replicate(env,"/predictions/"+encodeURIComponent(job.provider_job_id),{method:"GET"});else if(job.provider==="self-hosted"&&env.SELF_HOSTED_API_URL){const r=await fetch(env.SELF_HOSTED_API_URL.replace(/\/$/,"")+"/jobs/"+encodeURIComponent(job.provider_job_id),{headers:env.SELF_HOSTED_API_TOKEN?{"Authorization":"Bearer "+env.SELF_HOSTED_API_TOKEN}:{}});if(r.ok)remote=await r.json()}}catch(e){if(e.message==="PROVIDER_NOT_CONFIGURED")return response(request,env,{error:e.message},503)}
-  if(remote){const status=remote.status||job.status,outputs=remote.output==null?remote.result??null:remote.output,resultUrl=Array.isArray(outputs)?outputs[0]:typeof outputs==="string"?outputs:outputs?.url||outputs?.video||outputs?.image||null;await env.DB.prepare("UPDATE jobs SET status = ?, result_url = ?, error_message = ?, updated_at = ? WHERE id = ?").bind(status,resultUrl,remote.error?String(remote.error).slice(0,500):null,now(),job.id).run();return response(request,env,{id:job.id,mode:job.mode,status,result:outputs,resultUrl,error:remote.error||null,createdAt:job.created_at,updatedAt:now()})}
+  const job=await env.DB.prepare("SELECT id, owner, mode, provider, provider_job_id, status, prompt, result_url, error_message, created_at, updated_at FROM jobs WHERE id = ? AND owner = ?").bind(match[1],identity.subject).first();
+  if(!job)return response(request,env,{error:"JOB_NOT_FOUND",message:"Задача не найдена."},404);
+
+  // Already finished (Workers AI jobs are synchronous)
+  if(job.status==="succeeded"||job.status==="failed"){
+   return response(request,env,{id:job.id,mode:job.mode,status:job.status,resultUrl:job.result_url,error:job.error_message,createdAt:job.created_at,updatedAt:job.updated_at});
+  }
+
+  let remote=null;
+  try{
+   if(job.provider==="replicate")remote=await replicate(env,"/predictions/"+encodeURIComponent(job.provider_job_id),{method:"GET"});
+   else if(job.provider==="self-hosted"&&env.SELF_HOSTED_API_URL){
+    const r=await fetch(env.SELF_HOSTED_API_URL.replace(/\/$/,"")+"/jobs/"+encodeURIComponent(job.provider_job_id),{headers:env.SELF_HOSTED_API_TOKEN?{"Authorization":"Bearer "+env.SELF_HOSTED_API_TOKEN}:{}});
+    if(r.ok)remote=await r.json();
+   }
+  }catch(e){if(e.message==="PROVIDER_NOT_CONFIGURED")return response(request,env,{error:e.message},503)}
+
+  if(remote){
+   const status=remote.status||job.status;
+   const outputs=remote.output==null?remote.result??null:remote.output;
+   const resultUrl=Array.isArray(outputs)?outputs[0]:typeof outputs==="string"?outputs:outputs?.url||outputs?.video||outputs?.image||null;
+   await env.DB.prepare("UPDATE jobs SET status = ?, result_url = ?, error_message = ?, updated_at = ? WHERE id = ?").bind(status,resultUrl,remote.error?String(remote.error).slice(0,500):null,now(),job.id).run();
+   return response(request,env,{id:job.id,mode:job.mode,status,result:outputs,resultUrl,error:remote.error||null,createdAt:job.created_at,updatedAt:now()});
+  }
   return response(request,env,{id:job.id,mode:job.mode,status:job.status,resultUrl:job.result_url,error:job.error_message,createdAt:job.created_at,updatedAt:job.updated_at})
  }
- if(path==="/api/v1/jobs"&&request.method==="GET"){const result=await env.DB.prepare("SELECT id, mode, provider, status, prompt, result_url, error_message, created_at, updated_at FROM jobs WHERE owner = ? ORDER BY created_at DESC LIMIT 50").bind(identity.subject).all();return response(request,env,{jobs:result.results||[]})}
+
+ if(path==="/api/v1/jobs"&&request.method==="GET"){
+  const result=await env.DB.prepare("SELECT id, mode, provider, status, prompt, result_url, error_message, created_at, updated_at FROM jobs WHERE owner = ? ORDER BY created_at DESC LIMIT 50").bind(identity.subject).all();
+  return response(request,env,{jobs:result.results||[]})
+ }
  return response(request,env,{error:"NOT_FOUND",message:"Маршрут не найден."},404)
 }
+
 export default {async fetch(request,env){try{return await handle(request,env)}catch(error){if(error.message==="PROVIDER_NOT_CONFIGURED")return response(request,env,{error:error.message,message:"Не настроен токен или модель провайдера."},503);if(error.message==="ACCESS_REQUIRED")return response(request,env,{error:error.message,message:"Не удалось проверить Cloudflare Access."},401);return response(request,env,{error:"INTERNAL_ERROR",message:error.status===429?"Лимит провайдера превышен.":error.status?error.detail:"Внутренняя ошибка API."},error.status||500)}}};
