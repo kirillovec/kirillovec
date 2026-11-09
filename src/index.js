@@ -120,7 +120,9 @@ async function handle(request,env){
    try{
     const resultUrl=await generateWithWorkersAI(env,prompt,body.aspectRatio);
     const jobId=id();
-    await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, result_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,"image","workers-ai",jobId,"succeeded",prompt,resultUrl,now(),now()).run();
+    // Keep image bytes in the immediate response, not D1: base64 images can exceed
+    // D1 row/query limits. The browser displays the returned data URL directly.
+    await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, result_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,"image","workers-ai",jobId,"succeeded",prompt,null,now(),now()).run();
     return response(request,env,{id:jobId,status:"succeeded",provider:"workers-ai",resultUrl},200);
    }catch(e){
     const msg=e.message||"Workers AI error";
