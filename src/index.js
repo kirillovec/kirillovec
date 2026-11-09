@@ -116,7 +116,9 @@ async function handle(request,env){
   }
 
   // === IMAGE via Cloudflare Workers AI (preferred, free) ===
-  if(mode==="image"&&env.AI){
+  // Workers AI Flux Schnell is text-to-image only. When a source image is
+  // attached, route to an image-capable provider instead of silently ignoring it.
+  if(mode==="image"&&env.AI&&!body.imageDataUrl){
    try{
     const resultUrl=await generateWithWorkersAI(env,prompt,body.aspectRatio);
     const jobId=id();
@@ -136,7 +138,10 @@ async function handle(request,env){
   // === Fallback: Replicate ===
   const model=mode==="video"?env.VIDEO_MODEL:env.IMAGE_MODEL;
   if(!env.REPLICATE_API_TOKEN||!model){
-   return response(request,env,{error:"PROVIDER_NOT_CONFIGURED",message:mode==="image"?"Нет доступного провайдера изображений (Workers AI или Replicate).":"Провайдер видео не подключён."},503);
+   const message=body.imageDataUrl&&mode==="image"
+    ?"Исходное изображение получено, но сейчас подключена только модель Workers AI для создания по тексту. Для редактирования исходника нужна image-to-image модель; она пока не подключена."
+    :mode==="image"?"Нет доступного провайдера изображений (Workers AI или Replicate).":"Провайдер видео не подключён.";
+   return response(request,env,{error:body.imageDataUrl&&mode==="image"?"IMAGE_EDIT_NOT_CONFIGURED":"PROVIDER_NOT_CONFIGURED",message},503);
   }
   const input={prompt},ratio=["1:1","3:4","4:3","9:16","16:9"].includes(body.aspectRatio)?body.aspectRatio:(mode==="video"?"16:9":"1:1");
   if(body.imageDataUrl!==undefined){const dataUrl=String(body.imageDataUrl);const validType=["data:image/jpeg;base64,","data:image/png;base64,","data:image/webp;base64,"].some(prefix=>dataUrl.startsWith(prefix));const payload=dataUrl.split(",")[1]||"";if(!validType||!/^[A-Za-z0-9+/=]+$/.test(payload)||payload.length>5600000)return response(request,env,{error:"INVALID_IMAGE",message:"Исходник должен быть JPG, PNG или WEBP размером до 4 МБ."},400);input.image=dataUrl;}
