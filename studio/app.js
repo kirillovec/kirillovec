@@ -25,7 +25,24 @@
   function renderHistory(){const list=$("#history-list");list.replaceChildren();if(!localHistory.length){list.innerHTML='<div class="history-empty">История появится после запуска задач</div>';$("#history-count").textContent="0 задач";return;}localHistory.slice().reverse().forEach(item=>{const row=document.createElement("div");row.className="history-item";const thumb=document.createElement("div");thumb.className="history-thumb";thumb.textContent=item.mode==="video"?"▷":"▧";const detail=document.createElement("div");const title=document.createElement("strong");title.textContent=(item.prompt||"Задача").slice(0,65);const meta=document.createElement("span");meta.textContent=(labels[item.status]||item.status||"Подготовлено")+" · "+new Date(item.ts).toLocaleString("ru-RU");detail.append(title,meta);row.append(thumb,detail);row.addEventListener("click",()=>{prompt.value=item.prompt||"";setMode(item.mode||"image");$("#prompt-count").textContent=prompt.value.length+" / 2000";if(item.resultUrl)showResult(item.resultUrl,item.mode);});list.append(row);});$("#history-count").textContent=localHistory.length+" задач";}
   function showResult(url,taskMode){const stage=$("#result-stage");stage.replaceChildren();const media=document.createElement(taskMode==="video"?"video":"img");media.src=url;media.controls=taskMode==="video";media.autoplay=false;media.alt="Результат генерации";stage.append(media);}
   async function fileAsDataUrl(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error("Не удалось прочитать файл."));reader.readAsDataURL(file);});}
-  async function api(path,options={}){if(!apiBase)throw new Error("API сайта не настроен.");let response;try{response=await fetch(apiBase+path,{...options,credentials:"include",headers:{...(options.headers||{})}});}catch{throw new Error("Не удалось связаться с API. Проверь адрес API, Cloudflare Access и CORS.");}const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||data.error||("Ошибка API: "+response.status));return data;}
+  async function api(path,options={}){
+    if(!apiBase)throw new Error("API сайта не настроен.");
+    let response;
+    try{
+      response=await fetch(apiBase+path,{
+        ...options,
+        mode:"cors",
+        credentials:"omit",
+        headers:{...(options.headers||{})}
+      });
+    }catch(err){
+      const detail=err&&err.message?String(err.message):"network";
+      throw new Error("Не удалось связаться с API ("+apiBase+"). "+detail+". Открой https://api.kirillovec.ru/api/v1/capabilities в новой вкладке и проверь, открывается ли JSON.");
+    }
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.message||data.error||("Ошибка API: "+response.status));
+    return data;
+  }
   async function refreshCapabilities(){try{const data=await api("/api/v1/capabilities");capabilities=data;const image=data.image?.enabled,video=data.video?.enabled,own=data.selfHosted?.enabled;$("#integration-hint").textContent="API доступен. Изображения: "+(image?"подключено":"не подключено")+"; видео: "+(video?"подключено":"не подключено")+(own?"; собственная модель доступна.":"");updateAvailability();return data;}catch(e){capabilities=null;$("#integration-hint").textContent="API пока недоступен: "+e.message;updateAvailability();$("#model-hint").textContent=e.message;return null;}}
   async function pollJob(jobId,taskMode){clearInterval(pollTimer);let attempts=0;const check=async()=>{try{const data=await api("/api/v1/jobs/"+encodeURIComponent(jobId));setStatus(labels[data.status]||data.status||"Выполняется");if(data.resultUrl){clearInterval(pollTimer);showResult(data.resultUrl,taskMode);setStatus("Готово");setNotice("Генерация завершена. Результат получен через API сайта.");const item=localHistory.find(x=>x.id===jobId);if(item){item.status="succeeded";item.resultUrl=data.resultUrl;saveHistory(item);}return;}if(["failed","canceled"].includes(data.status)){clearInterval(pollTimer);setNotice(data.error||"Провайдер завершил задачу с ошибкой.","error");return;}if(++attempts>180){clearInterval(pollTimer);setNotice("Ожидание остановлено по тайм-ауту. Задача могла продолжить работу на сервере.","error");}}catch(e){clearInterval(pollTimer);setNotice(e.message,"error");}};await check();pollTimer=setInterval(check,Math.max(4000,Number(config.pollIntervalMs)||5000));}
   $("#model-source").addEventListener("change",updateAvailability);
