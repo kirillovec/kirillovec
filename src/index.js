@@ -36,24 +36,31 @@ function arrayBufferToBase64(buffer){
   return btoa(binary);
 }
 
+function detectImageMime(b64){
+  // JPEG magic: /9j/
+  if(b64.startsWith("/9j/"))return "image/jpeg";
+  // PNG magic: iVBOR
+  if(b64.startsWith("iVBOR"))return "image/png";
+  // WEBP: UklGR
+  if(b64.startsWith("UklGR"))return "image/webp";
+  return "image/jpeg";
+}
+
 async function generateWithWorkersAI(env,prompt,aspectRatio){
   if(!env.AI)throw new Error("WORKERS_AI_NOT_CONFIGURED");
   const model="@cf/black-forest-labs/flux-1-schnell";
-  // Flux Schnell on Workers AI accepts prompt; steps default low for speed/cost
   const result=await env.AI.run(model,{
-    prompt:prompt,
-    // optional: num_steps: 4
+    prompt:prompt
   });
-  // Workers AI Flux returns { image: base64 string } or similar
   let b64=null;
   if(typeof result==="string")b64=result;
   else if(result?.image)b64=typeof result.image==="string"?result.image:arrayBufferToBase64(result.image);
   else if(result instanceof ArrayBuffer)b64=arrayBufferToBase64(result);
   else if(result?.data)b64=typeof result.data==="string"?result.data:arrayBufferToBase64(result.data);
   if(!b64)throw new Error("WORKERS_AI_EMPTY_RESULT");
-  // ensure no data: prefix double
   if(b64.startsWith("data:"))return b64;
-  return "data:image/png;base64,"+b64;
+  const mime=detectImageMime(b64);
+  return "data:"+mime+";base64,"+b64;
 }
 
 async function handle(request,env){
@@ -61,7 +68,6 @@ async function handle(request,env){
  if(request.method==="OPTIONS")return new Response(null,{status:204,headers:corsHeaders(request,env)});
  if(path==="/health"&&request.method==="GET")return response(request,env,{ok:true,service:"kirillovec-ai-studio",time:now()});
 
- // Capabilities: prefer Workers AI for images (free), Replicate as fallback
  if(path==="/api/v1/capabilities"&&request.method==="GET"){
   const workersAI=Boolean(env.AI);
   const replicateImg=Boolean(env.REPLICATE_API_TOKEN&&env.IMAGE_MODEL);
@@ -86,7 +92,7 @@ async function handle(request,env){
  if(!env.DB)return response(request,env,{error:"BACKEND_NOT_CONFIGURED",message:"Не настроена база D1."},503);
 
  if(path==="/api/v1/assets"&&request.method==="POST"){
-  if(!env.ASSETS||!env.ASSETS_PUBLIC_BASE_URL)return response(request,env,{error:"UPLOAD_NOT_CONFIGURED",message:"Загрузка исходных файлов пока отключена, чтобы не требовать платное хранилище. Можно подключить R2 позже, по желанию."},503);
+  if(!env.ASSETS||!env.ASSETS_PUBLIC_BASE_URL)return response(request,env,{error:"UPLOAD_NOT_CONFIGURED",message:"Загрузка исходных файлов пока отключена."},503);
   if(!(await rateLimit(env,identity,"upload",30,3600)))return response(request,env,{error:"RATE_LIMIT",message:"Лимит загрузок исчерпан. Попробуй позже."},429);
   const form=await request.formData(),file=form.get("file");if(!(file instanceof File))return response(request,env,{error:"FILE_REQUIRED",message:"Передай файл в поле file."},400);
   const allowed=new Set(["image/jpeg","image/png","image/webp"]);if(!allowed.has(file.type))return response(request,env,{error:"UNSUPPORTED_FILE",message:"Поддерживаются JPG, PNG и WEBP."},415);
@@ -103,7 +109,6 @@ async function handle(request,env){
   const mode=body.mode==="video"?"video":body.mode==="image"?"image":null,prompt=String(body.prompt||"").trim();
   if(!mode||!prompt||prompt.length>2000)return response(request,env,{error:"INVALID_INPUT",message:"Укажи mode=image/video и prompt длиной до 2000 символов."},400);
 
-  // Self-hosted path
   if(body.modelSource==="selfHosted"&&!env.SELF_HOSTED_API_URL)return response(request,env,{error:"SELF_HOSTED_NOT_CONFIGURED",message:"Собственная модель ещё не подключена."},503);
   if(body.modelSource==="selfHosted"&&env.SELF_HOSTED_API_URL){
    const ownInput={mode,prompt,aspectRatio:body.aspectRatio,duration:body.duration,imageDataUrl:body.imageDataUrl||null};
@@ -115,15 +120,11 @@ async function handle(request,env){
    return response(request,env,{id:jobId,status:own.status||"starting",provider:"self-hosted"},202)
   }
 
-  // === IMAGE via Cloudflare Workers AI (preferred, free) ===
-  // Workers AI Flux Schnell is text-to-image only. When a source image is
-  // attached, route to an image-capable provider instead of silently ignoring it.
+  // IMAGE via Cloudflare Workers AI (text-to-image only)
   if(mode==="image"&&env.AI&&!body.imageDataUrl){
    try{
     const resultUrl=await generateWithWorkersAI(env,prompt,body.aspectRatio);
     const jobId=id();
-    // Keep image bytes in the immediate response, not D1: base64 images can exceed
-    // D1 row/query limits. The browser displays the returned data URL directly.
     await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, result_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,"image","workers-ai",jobId,"succeeded",prompt,null,now(),now()).run();
     return response(request,env,{id:jobId,status:"succeeded",provider:"workers-ai",resultUrl},200);
    }catch(e){
@@ -135,7 +136,7 @@ async function handle(request,env){
    }
   }
 
-  // === Fallback: Replicate ===
+  // Fallback: Replicate
   const model=mode==="video"?env.VIDEO_MODEL:env.IMAGE_MODEL;
   if(!env.REPLICATE_API_TOKEN||!model){
    const message=body.imageDataUrl&&mode==="image"
@@ -158,7 +159,6 @@ async function handle(request,env){
   const job=await env.DB.prepare("SELECT id, owner, mode, provider, provider_job_id, status, prompt, result_url, error_message, created_at, updated_at FROM jobs WHERE id = ? AND owner = ?").bind(match[1],identity.subject).first();
   if(!job)return response(request,env,{error:"JOB_NOT_FOUND",message:"Задача не найдена."},404);
 
-  // Already finished (Workers AI jobs are synchronous)
   if(job.status==="succeeded"||job.status==="failed"){
    return response(request,env,{id:job.id,mode:job.mode,status:job.status,resultUrl:job.result_url,error:job.error_message,createdAt:job.created_at,updatedAt:job.updated_at});
   }
