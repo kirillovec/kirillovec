@@ -1,7 +1,7 @@
 /**
  * kirillovec AI Studio API — Cloudflare Workers
  * Required binding: DB (D1). Optional: AI (Workers AI), ASSETS (R2).
- * Image generation prefers Cloudflare Workers AI (free tier) over Replicate.
+ * Text→image: Flux Schnell. Image→image: SD 1.5 img2img.
  */
 const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...extra}});
 const now=()=>new Date().toISOString();
@@ -37,30 +37,56 @@ function arrayBufferToBase64(buffer){
 }
 
 function detectImageMime(b64){
-  // JPEG magic: /9j/
   if(b64.startsWith("/9j/"))return "image/jpeg";
-  // PNG magic: iVBOR
   if(b64.startsWith("iVBOR"))return "image/png";
-  // WEBP: UklGR
   if(b64.startsWith("UklGR"))return "image/webp";
-  return "image/jpeg";
+  return "image/png";
 }
 
-async function generateWithWorkersAI(env,prompt,aspectRatio){
-  if(!env.AI)throw new Error("WORKERS_AI_NOT_CONFIGURED");
-  const model="@cf/black-forest-labs/flux-1-schnell";
-  const result=await env.AI.run(model,{
-    prompt:prompt
-  });
+function resultToDataUrl(result){
   let b64=null;
-  if(typeof result==="string")b64=result;
-  else if(result?.image)b64=typeof result.image==="string"?result.image:arrayBufferToBase64(result.image);
-  else if(result instanceof ArrayBuffer)b64=arrayBufferToBase64(result);
-  else if(result?.data)b64=typeof result.data==="string"?result.data:arrayBufferToBase64(result.data);
+  if(typeof result==="string"){
+    if(result.startsWith("data:"))return result;
+    b64=result;
+  }else if(result instanceof ArrayBuffer){
+    b64=arrayBufferToBase64(result);
+  }else if(result instanceof Uint8Array){
+    b64=arrayBufferToBase64(result.buffer);
+  }else if(result?.image){
+    b64=typeof result.image==="string"?result.image:arrayBufferToBase64(result.image);
+  }else if(result?.data){
+    b64=typeof result.data==="string"?result.data:arrayBufferToBase64(result.data);
+  }
   if(!b64)throw new Error("WORKERS_AI_EMPTY_RESULT");
   if(b64.startsWith("data:"))return b64;
-  const mime=detectImageMime(b64);
-  return "data:"+mime+";base64,"+b64;
+  return "data:"+detectImageMime(b64)+";base64,"+b64;
+}
+
+function stripDataUrl(dataUrl){
+  const s=String(dataUrl||"");
+  const i=s.indexOf(",");
+  return i>=0?s.slice(i+1):s;
+}
+
+async function generateTextToImage(env,prompt){
+  if(!env.AI)throw new Error("WORKERS_AI_NOT_CONFIGURED");
+  const result=await env.AI.run("@cf/black-forest-labs/flux-1-schnell",{prompt});
+  return resultToDataUrl(result);
+}
+
+async function generateImageToImage(env,prompt,imageDataUrl){
+  if(!env.AI)throw new Error("WORKERS_AI_NOT_CONFIGURED");
+  const image_b64=stripDataUrl(imageDataUrl);
+  if(!image_b64||image_b64.length<100)throw new Error("INVALID_IMAGE");
+  // SD 1.5 img2img on Workers AI — planned deprecation 2026-11-20, still the clearest free img2img path
+  const result=await env.AI.run("@cf/runwayml/stable-diffusion-v1-5-img2img",{
+    prompt,
+    image_b64,
+    strength:0.65,
+    num_steps:20,
+    guidance:7.5
+  });
+  return resultToDataUrl(result);
 }
 
 async function handle(request,env){
@@ -76,7 +102,8 @@ async function handle(request,env){
    image:{
     enabled:workersAI||replicateImg,
     model:workersAI?"@cf/black-forest-labs/flux-1-schnell":(env.IMAGE_MODEL||null),
-    provider:workersAI?"workers-ai":(replicateImg?"replicate":null)
+    provider:workersAI?"workers-ai":(replicateImg?"replicate":null),
+    imageToImage:workersAI
    },
    video:{
     enabled:replicateVid,
@@ -120,17 +147,33 @@ async function handle(request,env){
    return response(request,env,{id:jobId,status:own.status||"starting",provider:"self-hosted"},202)
   }
 
-  // IMAGE via Cloudflare Workers AI (text-to-image only)
-  if(mode==="image"&&env.AI&&!body.imageDataUrl){
+  // IMAGE via Cloudflare Workers AI
+  if(mode==="image"&&env.AI){
    try{
-    const resultUrl=await generateWithWorkersAI(env,prompt,body.aspectRatio);
+    let resultUrl;
+    let providerLabel="workers-ai";
+    if(body.imageDataUrl){
+      const dataUrl=String(body.imageDataUrl);
+      const validType=["data:image/jpeg;base64,","data:image/png;base64,","data:image/webp;base64,"].some(prefix=>dataUrl.startsWith(prefix));
+      const payload=dataUrl.split(",")[1]||"";
+      if(!validType||!/^[A-Za-z0-9+/=]+$/.test(payload)||payload.length>5600000){
+        return response(request,env,{error:"INVALID_IMAGE",message:"Исходник должен быть JPG, PNG или WEBP размером до 4 МБ."},400);
+      }
+      resultUrl=await generateImageToImage(env,prompt,dataUrl);
+      providerLabel="workers-ai-img2img";
+    }else{
+      resultUrl=await generateTextToImage(env,prompt);
+    }
     const jobId=id();
-    await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, result_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,"image","workers-ai",jobId,"succeeded",prompt,null,now(),now()).run();
-    return response(request,env,{id:jobId,status:"succeeded",provider:"workers-ai",resultUrl},200);
+    await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, result_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,"image",providerLabel,jobId,"succeeded",prompt,null,now(),now()).run();
+    return response(request,env,{id:jobId,status:"succeeded",provider:providerLabel,resultUrl},200);
    }catch(e){
     const msg=e.message||"Workers AI error";
-    if(msg.includes("quota")||msg.includes("limit")||msg.includes("Neurons")){
-     return response(request,env,{error:"QUOTA_EXCEEDED",message:"Дневной бесплатный лимит Cloudflare Workers AI исчерпан. Попробуй завтра или подключи Replicate."},429);
+    if(msg.includes("quota")||msg.includes("limit")||msg.includes("Neurons")||msg.includes("3007")){
+     return response(request,env,{error:"QUOTA_EXCEEDED",message:"Дневной бесплатный лимит Cloudflare Workers AI исчерпан. Попробуй завтра."},429);
+    }
+    if(msg.includes("410")||msg.includes("deprecated")||msg.includes("5028")){
+     return response(request,env,{error:"MODEL_DEPRECATED",message:"Модель image-to-image на Cloudflare снята. Нужно обновить на новую."},503);
     }
     return response(request,env,{error:"WORKERS_AI_ERROR",message:"Ошибка генерации через Workers AI: "+msg},502);
    }
@@ -139,10 +182,7 @@ async function handle(request,env){
   // Fallback: Replicate
   const model=mode==="video"?env.VIDEO_MODEL:env.IMAGE_MODEL;
   if(!env.REPLICATE_API_TOKEN||!model){
-   const message=body.imageDataUrl&&mode==="image"
-    ?"Исходное изображение получено, но сейчас подключена только модель Workers AI для создания по тексту. Для редактирования исходника нужна image-to-image модель; она пока не подключена."
-    :mode==="image"?"Нет доступного провайдера изображений (Workers AI или Replicate).":"Провайдер видео не подключён.";
-   return response(request,env,{error:body.imageDataUrl&&mode==="image"?"IMAGE_EDIT_NOT_CONFIGURED":"PROVIDER_NOT_CONFIGURED",message},503);
+   return response(request,env,{error:"PROVIDER_NOT_CONFIGURED",message:mode==="image"?"Нет доступного провайдера изображений.":"Провайдер видео не подключён."},503);
   }
   const input={prompt},ratio=["1:1","3:4","4:3","9:16","16:9"].includes(body.aspectRatio)?body.aspectRatio:(mode==="video"?"16:9":"1:1");
   if(body.imageDataUrl!==undefined){const dataUrl=String(body.imageDataUrl);const validType=["data:image/jpeg;base64,","data:image/png;base64,","data:image/webp;base64,"].some(prefix=>dataUrl.startsWith(prefix));const payload=dataUrl.split(",")[1]||"";if(!validType||!/^[A-Za-z0-9+/=]+$/.test(payload)||payload.length>5600000)return response(request,env,{error:"INVALID_IMAGE",message:"Исходник должен быть JPG, PNG или WEBP размером до 4 МБ."},400);input.image=dataUrl;}
