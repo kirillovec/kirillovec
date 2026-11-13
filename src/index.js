@@ -77,14 +77,21 @@ async function generateTextToImage(env,prompt){
 async function generateImageToImage(env,prompt,imageDataUrl){
   if(!env.AI)throw new Error("WORKERS_AI_NOT_CONFIGURED");
   const image_b64=stripDataUrl(imageDataUrl);
-  if(!image_b64||image_b64.length<100)throw new Error("INVALID_IMAGE");
-  // Workers AI Stable Diffusion 1.5 img2img accepts the source as base64 image_b64.
-  const result=await env.AI.run("@cf/runwayml/stable-diffusion-v1-5-img2img",{
-    prompt,
-    image_b64,
-    strength:0.65,
-    num_steps:20,
-    guidance:7.5
+  const match=String(imageDataUrl||"").match(/^data:(image\\/(?:jpeg|png|webp));base64,/);
+  if(!match||!image_b64||image_b64.length<100)throw new Error("INVALID_IMAGE");
+  const bytes=Uint8Array.from(atob(image_b64),c=>c.charCodeAt(0));
+  const imageBlob=new Blob([bytes],{type:match[1]});
+  const form=new FormData();
+  form.append("prompt",prompt);
+  form.append("input_image_0",imageBlob,"reference");
+  form.append("width","1024");
+  form.append("height","1024");
+  const multipart=new Response(form);
+  const result=await env.AI.run("@cf/black-forest-labs/flux-2-klein-4b",{
+    multipart:{
+      body:multipart.body,
+      contentType:multipart.headers.get("content-type")
+    }
   });
   return resultToDataUrl(result);
 }
@@ -103,7 +110,7 @@ async function handle(request,env){
     enabled:workersAI||replicateImg,
     model:workersAI?"@cf/black-forest-labs/flux-1-schnell":(env.IMAGE_MODEL||null),
     provider:workersAI?"workers-ai":(replicateImg?"replicate":null),
-    imageToImage:workersAI
+    imageToImage:workersAI,\n    imageToImageModel:workersAI?"@cf/black-forest-labs/flux-2-klein-4b":null
    },
    video:{
     enabled:replicateVid,
@@ -173,7 +180,7 @@ async function handle(request,env){
      return response(request,env,{error:"QUOTA_EXCEEDED",message:"Дневной бесплатный лимит Cloudflare Workers AI исчерпан. Попробуй завтра."},429);
     }
     if(msg.includes("410")||msg.includes("deprecated")||msg.includes("5028")){
-     return response(request,env,{error:"MODEL_DEPRECATED",message:"Модель image-to-image на Cloudflare снята. Нужно обновить на новую."},503);
+     return response(request,env,{error:"MODEL_DEPRECATED",message:"Модель редактирования изображений сейчас недоступна в Workers AI. Попробуй позже."},503);
     }
     return response(request,env,{error:"WORKERS_AI_ERROR",message:"Ошибка генерации через Workers AI: "+msg},502);
    }
