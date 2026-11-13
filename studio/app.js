@@ -10,20 +10,20 @@
   function setStatus(text){const el=$("#result-status");if(el)el.textContent=text;}
   function setNotice(text,kind){const el=$("#notice");if(!el)return;el.textContent=text;el.style.display="block";el.style.borderColor=kind==="error"?"#754044":"#55432d";}
   function updateAvailability(){
-    const enabled = Boolean(capabilities?.image?.enabled);
+    const enabled = mode === "video" || Boolean(capabilities?.image?.enabled);
     const btn = $("#generate");
     btn.disabled = !enabled;
-    btn.textContent = enabled ? "✦　Создать изображение" : "Модель не подключена";
-    $("#model-hint").textContent = enabled
-      ? "Модель доступна. Задание будет выполнено через API сайта."
-      : "Для генерации изображений ещё не подключена модель.";
+    btn.textContent = mode === "video" ? "▶　Скопировать промпт для видео" : (enabled ? "✦　Создать изображение" : "Модель не подключена");
+    $("#model-hint").textContent = mode === "video" ? "Видео готовится через внешнюю площадку: скопируй промпт и загрузи исходник там вручную." : (enabled ? "Модель доступна. Задание будет выполнено через API сайта." : "Для генерации изображений ещё не подключена модель.");
+    $("#video-providers").style.display = mode === "video" ? "block" : "none";
   }
   function setMode(next){
-    mode = "image";
-    $("#mode-caption").textContent = "Текст → изображение";
-    $("#crumb-title").textContent = "Изображения";
-    $("#page-title").textContent = "Преврати идею в визуал";
-    $("#page-subtitle").textContent = "Создавай изображения по описанию или редактируй исходный кадр.";
+    mode = next === "video" ? "video" : "image";
+    document.querySelectorAll("[data-mode]").forEach(b => { const active = b.dataset.mode === mode; b.classList.toggle("active", active); b.setAttribute("aria-pressed", String(active)); });
+    $("#mode-caption").textContent = mode === "video" ? "Фото → видео · внешний сервис" : "Текст → изображение";
+    $("#crumb-title").textContent = mode === "video" ? "Видео" : "Изображения";
+    $("#page-title").textContent = mode === "video" ? "Оживи исходное фото" : "Преврати идею в визуал";
+    $("#page-subtitle").textContent = mode === "video" ? "Опиши движение и сцену. Скопируй промпт и передай фото выбранному видеосервису." : "Создавай изображения по описанию или редактируй исходный кадр.";
     if ($("#file-input")) $("#file-input").accept = "image/png,image/jpeg,image/webp";
     updateAvailability();
   }
@@ -39,6 +39,7 @@
     $("#prompt-count").textContent = prompt.value.length + " / 2000";
     prompt.focus();
   }));
+  document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
   document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => {
     document.querySelectorAll("[data-view]").forEach(n => n.classList.toggle("active", n === b));
     const v = b.dataset.view;
@@ -63,8 +64,8 @@
   prompt.addEventListener("input", () => $("#prompt-count").textContent = prompt.value.length + " / 2000");
   function attachFile(file){
     if (!file) return;
-    if (!["image/jpeg","image/png","image/webp"].includes(file.type)) { toast("Поддерживаются JPG, PNG и WEBP."); return; }
-    if (file.size > 4*1024*1024) { toast("Максимальный размер файла — 4 МБ для бесплатной передачи через API."); return; }
+    if (!["image/jpeg","image/png","image/webp"].includes(file.type)) { toast("Поддерживаются JPG, PNG и WEBP. HEIC сначала преобразуй в JPG."); $("#file-input").value = ""; return; }
+    if (file.size > 4*1024*1024) { toast("Максимальный размер файла — 4 МБ. Уменьши изображение или сохрани его в WEBP."); $("#file-input").value = ""; return; }
     selectedFile = file;
     const old = $("#file-thumb");
     if (old?.dataset.url) URL.revokeObjectURL(old.dataset.url);
@@ -82,6 +83,7 @@
   ["dragenter","dragover"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = "var(--accent)"; }));
   ["dragleave","drop"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = ""; }));
   upload.addEventListener("drop", e => attachFile(e.dataTransfer.files?.[0]));
+  upload.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file-input").click(); } });
   $("#remove-file").addEventListener("click", () => {
     selectedFile = null;
     $("#file-input").value = "";
@@ -149,7 +151,7 @@
       response = await fetch(apiBase + path, {
         ...options,
         mode: "cors",
-        credentials: "omit",
+        credentials: "include",
         headers: { ...(options.headers || {}) }
       });
     } catch (err) {
@@ -212,6 +214,20 @@
   $("#model-source").addEventListener("change", updateAvailability);
   $("#generate").addEventListener("click", async () => {
     const text = prompt.value.trim();
+    if (mode === "video") {
+      if (!text) { toast("Сначала опиши движение и сцену."); prompt.focus(); return; }
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus("Промпт скопирован");
+        setNotice("Промпт скопирован. Открой Kling, PixVerse или Hailuo ниже и загрузи исходное фото вручную.");
+        toast("Промпт для видео скопирован");
+      } catch {
+        prompt.focus(); prompt.select();
+        setStatus("Выделен для копирования");
+        setNotice("Автокопирование недоступно. Нажми Ctrl+C, затем открой выбранный видеосервис и загрузи фото.");
+      }
+      return;
+    }
     if (!text) { toast("Сначала опиши, что нужно создать."); prompt.focus(); return; }
     const btn = $("#generate");
     btn.disabled = true;
