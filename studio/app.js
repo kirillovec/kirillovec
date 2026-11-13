@@ -178,7 +178,7 @@
     }
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.toLowerCase().includes("application/json")) {
-      if (response.redirected || /cloudflareaccess|cdn-cgi\\/access/i.test(response.url)) {
+      if (response.redirected || /cloudflareaccess|cdn-cgi\/access/i.test(response.url)) {
         throw new Error("Cloudflare Access перенаправил запрос на страницу входа. Сначала авторизуйся на https://api.kirillovec.ru, затем обнови AI Studio.");
       }
       throw new Error("API вернул не JSON. Проверь адрес сервера и настройки Cloudflare Access.");
