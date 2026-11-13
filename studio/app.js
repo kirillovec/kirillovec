@@ -74,7 +74,7 @@
     img.id = "file-thumb"; img.alt = "Предпросмотр"; img.src = url; img.dataset.url = url;
     old?.replaceWith(img);
     $("#file-name").textContent = file.name;
-    $("#file-size").textContent = (file.size/1048576).toFixed(2) + " МБ · будет передан в API сайта";
+    $("#file-size").textContent = (file.size/1048576).toFixed(2) + " МБ · перед отправкой будет уменьшено до 510 px для редактирования";
     $("#file-preview").style.display = "flex";
     toast("Исходник прикреплён");
   }
@@ -137,12 +137,30 @@
     stage.append(media);
   }
   async function fileAsDataUrl(file){
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error("Не удалось прочитать файл."));
-      reader.readAsDataURL(file);
-    });
+    let bitmap;
+    try {
+      bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 510 / bitmap.width, 510 / bitmap.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("Не удалось подготовить изображение.");
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob(value => value ? resolve(value) : reject(new Error("Не удалось сжать исходное изображение.")), "image/webp", 0.9);
+      });
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Не удалось прочитать подготовленное изображение."));
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      throw new Error(error?.message || "Не удалось подготовить фото. Попробуй JPG или PNG.");
+    } finally {
+      bitmap?.close?.();
+    }
   }
   async function api(path, options = {}){
     if (!apiBase) throw new Error("API сайта не настроен.");
