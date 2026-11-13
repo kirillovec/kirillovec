@@ -78,7 +78,7 @@ async function generateImageToImage(env,prompt,imageDataUrl){
   if(!env.AI)throw new Error("WORKERS_AI_NOT_CONFIGURED");
   const image_b64=stripDataUrl(imageDataUrl);
   if(!image_b64||image_b64.length<100)throw new Error("INVALID_IMAGE");
-  // SD 1.5 img2img on Workers AI — planned deprecation 2026-11-20, still the clearest free img2img path
+  // Workers AI Stable Diffusion 1.5 img2img accepts the source as base64 image_b64.
   const result=await env.AI.run("@cf/runwayml/stable-diffusion-v1-5-img2img",{
     prompt,
     image_b64,
