@@ -158,6 +158,13 @@
       const detail = err && err.message ? String(err.message) : "network";
       throw new Error("Не удалось связаться с API (" + apiBase + "). " + detail + ". Открой https://api.kirillovec.ru/api/v1/capabilities в новой вкладке и проверь, открывается ли JSON.");
     }
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      if (response.redirected || /cloudflareaccess|cdn-cgi\\/access/i.test(response.url)) {
+        throw new Error("Cloudflare Access перенаправил запрос на страницу входа. Сначала авторизуйся на https://api.kirillovec.ru, затем обнови AI Studio.");
+      }
+      throw new Error("API вернул не JSON. Проверь адрес сервера и настройки Cloudflare Access.");
+    }
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.message || data.error || ("Ошибка API: " + response.status));
     return data;
