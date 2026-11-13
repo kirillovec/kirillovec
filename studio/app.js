@@ -189,7 +189,14 @@
   }
   async function refreshCapabilities(){
     try {
-      const data = await api("/api/v1/capabilities");
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 7000);
+      let data;
+      try {
+        data = await api("/api/v1/capabilities", { signal: controller.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
       capabilities = data;
       const image = data.image?.enabled;
       $("#integration-hint").textContent = "API доступен. Изображения: " + (image ? "подключено" : "не подключено") + ".";
