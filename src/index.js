@@ -77,7 +77,7 @@ async function generateTextToImage(env,prompt){
 async function generateImageToImage(env,prompt,imageDataUrl){
   if(!env.AI)throw new Error("WORKERS_AI_NOT_CONFIGURED");
   const image_b64=stripDataUrl(imageDataUrl);
-  const match=String(imageDataUrl||"").match(/^data:(image[/]/(?:jpeg|png|webp));base64,/);
+  const match=String(imageDataUrl||"").match(/^data:(image[/](?:jpeg|png|webp));base64,/);
   if(!match||!image_b64||image_b64.length<100)throw new Error("INVALID_IMAGE");
   const bytes=Uint8Array.from(atob(image_b64),c=>c.charCodeAt(0));
   const imageBlob=new Blob([bytes],{type:match[1]});
