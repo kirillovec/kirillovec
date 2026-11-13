@@ -110,7 +110,8 @@ async function handle(request,env){
     enabled:workersAI||replicateImg,
     model:workersAI?"@cf/black-forest-labs/flux-1-schnell":(env.IMAGE_MODEL||null),
     provider:workersAI?"workers-ai":(replicateImg?"replicate":null),
-    imageToImage:workersAI,\n    imageToImageModel:workersAI?"@cf/black-forest-labs/flux-2-klein-4b":null
+    imageToImage:workersAI,
+    imageToImageModel:workersAI?"@cf/black-forest-labs/flux-2-klein-4b":null
    },
    video:{
     enabled:replicateVid,
