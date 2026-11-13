@@ -1,41 +1,59 @@
-# Deploying the AI Studio backend — free-first configuration
+# AI Studio deployment — free-first configuration
 
-The site stays on GitHub Pages. The API runs as a Cloudflare Worker. This configuration deliberately does **not** require R2, a paid GPU, or an external paid generation API to deploy the basic backend. It uses Cloudflare Workers and D1, subject to Cloudflare's current free-plan quotas and terms. Always check the current plan and usage in your dashboard; no service can be promised free without checking your account.
+## Current architecture
 
-## Required one-time setup
+- The static site is published from GitHub Pages.
+- The backend API runs in the Cloudflare Worker `kirillovec-ai-studio-api`.
+- D1 database `kirillovec-ai-studio` stores jobs and rate-limit records.
+- The Worker has a Workers AI binding named `AI`.
+- Text-to-image uses `@cf/black-forest-labs/flux-1-schnell`.
+- Uploaded-photo editing uses `@cf/black-forest-labs/flux-2-klein-4b`.
+- Video mode currently prepares and copies a prompt for an external provider. It does not generate video inside this Worker.
+- R2 is not required and no R2 bucket should be created for the current inline image workflow.
 
-1. In Cloudflare, create a D1 database named `kirillovec-ai-studio` (check the current free allowance before use).
-2. In **Workers & Pages**, the deployment workflow will deploy the Worker `kirillovec-ai-studio-api`.
-3. Create a scoped Cloudflare API token with Workers Scripts edit and D1 edit permissions for this account. Do not share it in chat.
-4. In GitHub repository **Settings → Secrets and variables → Actions**, add:
-   - `CLOUDFLARE_API_TOKEN`
-   - `CLOUDFLARE_ACCOUNT_ID`
-   - `D1_DATABASE_ID`
-5. Open **Actions → Deploy AI Studio API → Run workflow**. The workflow applies the D1 migration and deploys the Worker.
-6. Add a custom domain such as `api.kirillovec.ru` to the Worker. Keep the site on GitHub Pages.
-7. Configure Cloudflare Access for the API hostname.
+Cloudflare Workers AI has plan-dependent quotas and model usage. Check current account usage and pricing before relying on it. A free allowance is not an unlimited guarantee; do not add a paid provider or upgrade plan without the owner's approval.
 
-## Worker variables
+## GitHub deployment secrets
 
-- `ACCESS_REQUIRED=true`
-- `ACCESS_TEAM_DOMAIN`: your Cloudflare Zero Trust team domain, without scheme
-- `ACCESS_AUD`: the Access application's AUD tag
-- `ALLOWED_ORIGINS=https://kirillovec.ru,https://www.kirillovec.ru` (remove `www` if unused)
-- `MAX_JOBS_PER_HOUR=10`
+In repository **Settings → Secrets and variables → Actions**, the API deployment workflow expects exactly these three repository secrets:
 
-The Worker has no provider configured by default. Image/video generation remains disabled until a provider is deliberately configured. External inference providers such as Replicate may charge per use; do not add a paid provider or token unless you have reviewed its pricing and chosen to enable it.
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+- `D1_DATABASE_ID`
 
-## Free-first limitations
+The workflow substitutes `D1_DATABASE_ID` into a temporary copy of `wrangler.toml`, applies the D1 migrations, and deploys the Worker. Never put secret values in repository files or chat.
 
-- **Image/video generation:** a Worker does not provide a free GPU. Real generation requires a model running on hardware you control or a provider with a currently available free allowance. Free allowances may be limited or change; check terms and usage before enabling.
-- **Uploads:** R2 is intentionally optional and not bound in the default setup. Upload endpoints remain disabled until you explicitly choose a storage provider. This avoids creating an R2 bucket or exposing storage costs.
-- **Own model:** set `SELF_HOSTED_API_URL` only if you already operate a compatible inference endpoint on hardware you control. A home PC/GPU can incur electricity and internet costs and must be secured.
-- **Spending safety:** keep provider tokens out of GitHub files and frontend code. Configure hard spending limits wherever available before testing.
+The workflow is **Actions → Deploy AI Studio API**. Static-site publication uses the separate **Deploy static site to GitHub Pages** workflow.
 
-## Smoke tests
+## Cloudflare Access and Worker JWT validation
 
-- `GET https://api.kirillovec.ru/health` should return `{"ok":true,...}`.
-- `GET https://api.kirillovec.ru/api/v1/capabilities` should show image/video disabled until a provider is intentionally configured.
-- Open `https://kirillovec.ru/studio/` after the frontend API URL is configured.
+Protect the custom API hostname (currently `api.kirillovec.ru`) with a Cloudflare Access application and policy. The Access policy is the external gate in front of the Worker.
 
-The frontend API URL is public configuration, not a secret. Set `apiBaseUrl` in `studio/config.js` to `https://api.kirillovec.ru` only after the API hostname exists and passes its health check.
+The repository currently sets:
+
+```toml
+ACCESS_REQUIRED = "false"
+```
+
+This means the Worker does not perform a second JWT validation itself. That is intentional for the current setup: the custom API hostname must remain protected by Cloudflare Access. The two Worker-level variables below are therefore **not required** while `ACCESS_REQUIRED` remains false:
+
+- `ACCESS_TEAM_DOMAIN`
+- `ACCESS_AUD`
+
+Only enable `ACCESS_REQUIRED=true` if both variables are configured in the Worker Production environment and the Access JWT validation has been deliberately tested. Do not turn it on as a troubleshooting step; a missing or incorrect value will reject API requests.
+
+`ALLOWED_ORIGINS` should include the website origins, currently `https://kirillovec.ru,https://www.kirillovec.ru`. `MAX_JOBS_PER_HOUR` sets the per-identity generation request limit.
+
+## Uploads and storage
+
+The current photo-editing flow sends a resized image inline to the Worker and then to Workers AI. It does not need persistent object storage. The separate `/api/v1/assets` endpoint remains unavailable unless a storage binding and public base URL are deliberately configured. Do not create an R2 bucket for the current workflow.
+
+## Verification checklist
+
+1. Confirm the latest **Deploy AI Studio API** run is green in GitHub Actions.
+2. Open `https://api.kirillovec.ru/health` while signed in through Cloudflare Access; expect JSON with `ok: true`.
+3. Open `https://api.kirillovec.ru/api/v1/capabilities`; image should report enabled when the Workers AI binding is present. Video may remain disabled.
+4. Open `https://kirillovec.ru/studio/` and test text-to-image first, then upload a JPG, PNG, or WEBP to test photo editing.
+5. Video mode is a prompt handoff to the selected external service; the user uploads the source image there manually.
+
+If a test fails, record the exact error message and check Worker logs before changing secrets or enabling paid services.
