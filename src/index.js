@@ -2,9 +2,6 @@
  * kirillovec AI Studio API — Cloudflare Workers
  * Required bindings: DB (D1) and AI (Workers AI). Persistent object storage is not required.
  * Text→image: FLUX.1 Schnell. Image editing: FLUX.2 Klein 4B.
- */ * kirillovec AI Studio API — Cloudflare Workers
- * Required binding: DB (D1). Optional: AI (Workers AI), ASSETS (R2).
- * Text→image: Flux Schnell. Image→image: SD 1.5 img2img.
  */
 const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...extra}});
 const now=()=>new Date().toISOString();
