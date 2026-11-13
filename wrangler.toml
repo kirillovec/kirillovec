@@ -4,6 +4,8 @@ compatibility_date = "2026-10-15"
 workers_dev = false
 
 [vars]
+# Cloudflare Access protects the custom API hostname; Worker JWT validation is optional.
+# Keep false unless ACCESS_TEAM_DOMAIN and ACCESS_AUD are configured in Production.
 ACCESS_REQUIRED = "false"
 MAX_JOBS_PER_HOUR = "10"
 ALLOWED_ORIGINS = "https://kirillovec.ru,https://www.kirillovec.ru"
