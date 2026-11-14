@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'творчество/фото/2.jpg.b64'
+      - 'творчество/фото/2.jpg.b64.part*'
       - '.github/workflows/sync-media.yml'
 
 permissions:
@@ -15,24 +15,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Decode 2.jpg from base64 text
+      - name: Decode 2.jpg from chunked base64
         run: |
           mkdir -p "творчество/фото"
-          if [ -f "творчество/фото/2.jpg.b64" ]; then
-            base64 -d "творчество/фото/2.jpg.b64" > "творчество/фото/2.jpg"
+          if ls "творчество/фото/2.jpg.b64.part"* >/dev/null 2>&1; then
+            cat "творчество/фото/2.jpg.b64.part"* | tr -d '\n' | base64 -d > "творчество/фото/2.jpg"
             ls -la "творчество/фото/2.jpg"
+            file "творчество/фото/2.jpg" || true
           else
-            echo "No b64 source"
+            echo "No b64 parts"
             exit 0
           fi
       - name: Commit decoded image
         run: |
           git config user.name "kirillovec-bot"
           git config user.email "296966519+kirillovec@users.noreply.github.com"
+          # remove intermediate sources after success (optional keep)
           git add "творчество/фото/2.jpg"
           if git diff --staged --quiet; then
             echo "No changes"
           else
-            git commit -m "media: decode and publish 2.jpg"
+            git commit -m "media: publish compressed 2.jpg from auto-sync"
             git push
           fi
