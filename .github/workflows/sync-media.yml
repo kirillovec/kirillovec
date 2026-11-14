@@ -1,40 +1,36 @@
 name: Sync media assets
 
+# Автопубликация медиа:
+# 1. Залей файлы через GitHub UI (Add file → Upload):
+#    - творчество/фото/2.jpg
+#    - творчество/видео/nizko_promo.mp4
+# 2. workflow deploy.yml сам выкатит сайт на Pages.
+# Этот workflow можно запускать вручную (Actions → Sync media → Run).
+
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'творчество/фото/2.jpg.b64.part*'
-      - '.github/workflows/sync-media.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  sync-media:
+  status:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Decode 2.jpg from chunked base64
+      - name: Media status
         run: |
-          mkdir -p "творчество/фото"
-          if ls "творчество/фото/2.jpg.b64.part"* >/dev/null 2>&1; then
-            cat "творчество/фото/2.jpg.b64.part"* | tr -d '\n' | base64 -d > "творчество/фото/2.jpg"
-            ls -la "творчество/фото/2.jpg"
-            file "творчество/фото/2.jpg" || true
+          echo "=== Фото ==="
+          ls -la "творчество/фото/" 2>/dev/null || true
+          echo "=== Видео ==="
+          ls -la "творчество/видео/" 2>/dev/null || true
+          if [ -f "творчество/фото/2.jpg" ]; then
+            echo "OK: 2.jpg present ($(wc -c < творчество/фото/2.jpg) bytes)"
           else
-            echo "No b64 parts"
-            exit 0
+            echo "TODO: upload творчество/фото/2.jpg"
           fi
-      - name: Commit decoded image
-        run: |
-          git config user.name "kirillovec-bot"
-          git config user.email "296966519+kirillovec@users.noreply.github.com"
-          # remove intermediate sources after success (optional keep)
-          git add "творчество/фото/2.jpg"
-          if git diff --staged --quiet; then
-            echo "No changes"
+          if [ -f "творчество/видео/nizko_promo.mp4" ]; then
+            echo "OK: nizko_promo.mp4 present"
           else
-            git commit -m "media: publish compressed 2.jpg from auto-sync"
-            git push
+            echo "TODO: upload творчество/видео/nizko_promo.mp4"
           fi
