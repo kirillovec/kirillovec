@@ -4,65 +4,99 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Видео — kirillovec</title>
-<meta name="description" content="Видео и визуальные работы проекта kirillovec. Смотрите ролик прямо на сайте.">
+<meta name="description" content="Видео и визуальные работы проекта kirillovec. Промо «НИЗКО» и архив.">
 <link rel="canonical" href="https://kirillovec.ru/творчество/видео/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="kirillovec">
 <meta property="og:title" content="Видео — kirillovec">
-<meta property="og:description" content="Видео и визуальные работы проекта kirillovec.">
+<meta property="og:description" content="Промо альбома «НИЗКО» и видео-работы.">
 <style>
 :root{--bg:#0a0a0b;--card:#121214;--text:#e8e6e3;--muted:#8a8780;--accent:#c4a77d;--border:rgba(255,255,255,.08)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
 .wrap{max-width:1000px;margin:auto;padding:40px 22px 72px}
+.topnav{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;font-size:.85rem}
+.topnav a{color:var(--muted);text-decoration:none}.topnav a:hover{color:var(--accent)}
 .back{color:var(--muted);text-decoration:none}
 h1{font:400 clamp(2rem,5vw,3rem) Georgia,'Times New Roman',serif;margin:30px 0 8px}
 .desc{color:var(--muted);margin:0 0 32px}
-.video-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;overflow:hidden}
-.poster{display:flex;align-items:center;justify-content:center;min-height:280px;background:#111;border-radius:10px;color:var(--muted);font-size:.95rem;margin-bottom:12px}
+.video-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;overflow:hidden;margin-bottom:24px}
+.poster{display:flex;align-items:center;justify-content:center;min-height:220px;background:#111;border-radius:10px;color:var(--muted);font-size:.95rem;margin-bottom:12px;text-align:center;padding:16px}
 video{display:block;width:100%;max-height:72vh;background:#000;border-radius:10px}
-h2{font:400 1.4rem Georgia,serif;margin:18px 0 8px}
-.meta{color:var(--muted);font-size:.9rem}
-.download{display:inline-block;color:var(--accent);text-decoration:none;margin-top:10px}
-footer{margin-top:36px;border-top:1px solid var(--border);padding-top:24px}
-footer a{color:var(--muted);text-decoration:none}
+h2{font:400 1.35rem Georgia,serif;margin:8px 0}
+.meta{color:var(--muted);font-size:.9rem;margin:4px 0 10px}
+.download{display:inline-block;color:var(--accent);text-decoration:none;margin-top:8px}
+.btn{display:block;margin:0 auto 12px;padding:12px 24px;border-radius:999px;border:1px solid rgba(196,167,125,.4);background:rgba(196,167,125,.15);color:#c4a77d;font:500 15px system-ui;cursor:pointer}
+.btn:hover{background:rgba(196,167,125,.28)}
+footer{margin-top:36px;border-top:1px solid var(--border);padding-top:24px;display:flex;flex-wrap:wrap;gap:16px}
+footer a{color:var(--muted);text-decoration:none}footer a:hover{color:var(--accent)}
 </style>
 </head>
 <body>
 <main class="wrap">
+<nav class="topnav">
+  <a href="/">Главная</a>
+  <a href="/artist/">Музыка</a>
+  <a href="/творчество/">Творчество</a>
+  <a href="/studio/">AI Studio</a>
+</nav>
 <a class="back" href="/%D1%82%D0%B2%D0%BE%D1%80%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE/">← Творчество</a>
 <h1>🎬 Видео</h1>
-<p class="desc">Видео и визуальные работы. Ролик подгружается только после нажатия «Смотреть».</p>
+<p class="desc">Промо альбома «НИЗКО» и архив. Ролики подгружаются только после нажатия «Смотреть».</p>
+
 <section class="video-card">
-<div id="player-wrap">
-  <div class="poster" id="poster">Нажмите, чтобы загрузить и смотреть видео (~7 МБ)</div>
-  <button type="button" id="load-btn" style="display:block;margin:0 auto 16px;padding:12px 24px;border-radius:999px;border:1px solid rgba(196,167,125,.4);background:rgba(196,167,125,.15);color:#c4a77d;font:500 15px system-ui;cursor:pointer">▶ Смотреть</button>
-</div>
-<h2>Видео из архива</h2>
-<p class="meta">MP4 · 1920 × 1080</p>
-<a class="download" href="./854102-hd_1920_1080_25fps.mp4" download>Скачать видео ↗</a>
+  <h2>Промо «НИЗКО»</h2>
+  <p class="meta">Промо-ролик · out now</p>
+  <div id="promo-wrap">
+    <div class="poster">Нажмите, чтобы загрузить промо (~8 МБ). Если файла ещё нет на сервере — появится ошибка, загрузите nizko_promo.mp4 в папку видео.</div>
+    <button type="button" class="btn" id="promo-btn">▶ Смотреть промо</button>
+  </div>
+  <a class="download" href="./nizko_promo.mp4" download>Скачать промо ↗</a>
 </section>
-<footer><a href="/">← На главную</a></footer>
+
+<section class="video-card">
+  <h2>Видео из архива</h2>
+  <p class="meta">MP4 · 1920 × 1080</p>
+  <div id="archive-wrap">
+    <div class="poster">Нажмите, чтобы загрузить и смотреть (~7 МБ)</div>
+    <button type="button" class="btn" id="archive-btn">▶ Смотреть</button>
+  </div>
+  <a class="download" href="./854102-hd_1920_1080_25fps.mp4" download>Скачать видео ↗</a>
+</section>
+
+<footer>
+  <a href="/">← На главную</a>
+  <a href="/artist/">Музыка</a>
+  <a href="/творчество/">Творчество</a>
+</footer>
 </main>
 <script>
 (function(){
-  var btn = document.getElementById('load-btn');
-  var wrap = document.getElementById('player-wrap');
-  if (!btn) return;
-  btn.addEventListener('click', function(){
-    var v = document.createElement('video');
-    v.controls = true;
-    v.playsInline = true;
-    v.preload = 'metadata';
-    v.style.cssText = 'display:block;width:100%;max-height:72vh;background:#000;border-radius:10px';
-    var s = document.createElement('source');
-    s.src = './854102-hd_1920_1080_25fps.mp4';
-    s.type = 'video/mp4';
-    v.appendChild(s);
-    wrap.innerHTML = '';
-    wrap.appendChild(v);
-    v.play().catch(function(){});
-  });
+  function loadInto(wrapId, btnId, src){
+    var btn = document.getElementById(btnId);
+    var wrap = document.getElementById(wrapId);
+    if (!btn || !wrap) return;
+    btn.addEventListener('click', function(){
+      var v = document.createElement('video');
+      v.controls = true;
+      v.playsInline = true;
+      v.preload = 'metadata';
+      v.style.cssText = 'display:block;width:100%;max-height:72vh;background:#000;border-radius:10px';
+      var s = document.createElement('source');
+      s.src = src;
+      s.type = 'video/mp4';
+      v.appendChild(s);
+      wrap.innerHTML = '';
+      wrap.appendChild(v);
+      v.play().catch(function(){});
+      v.addEventListener('error', function(){
+        wrap.innerHTML = '<div class="poster">Файл пока не загружен на сервер. Загрузите <code>'+src.replace('./','')+'</code> в репозиторий.</div>';
+      });
+    });
+  }
+  loadInto('promo-wrap','promo-btn','./nizko_promo.mp4');
+  loadInto('archive-wrap','archive-btn','./854102-hd_1920_1080_25fps.mp4');
 })();
 </script>
 </body>
