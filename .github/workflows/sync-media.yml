@@ -1,0 +1,42 @@
+name: Sync media assets
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/sync-media.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-media
+  cancel-in-progress: false
+
+jobs:
+  sync-media:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Write compressed 2.jpg
+        run: |
+          mkdir -p "творчество/фото"
+          cat > /tmp/2.jpg.b64 << 'B64EOF'
+PLACEHOLDER_B64
+          B64EOF
+          sed 's/^ *//' /tmp/2.jpg.b64 | tr -d '\n' | base64 -d > "творчество/фото/2.jpg"
+          ls -la "творчество/фото/2.jpg"
+
+      - name: Commit and push
+        run: |
+          git config user.name "kirillovec-bot"
+          git config user.email "296966519+kirillovec@users.noreply.github.com"
+          git add "творчество/фото/2.jpg"
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "media: auto-sync compressed 2.jpg (~24KB)"
+            git push
+          fi
