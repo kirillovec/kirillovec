@@ -24,7 +24,7 @@ jobs:
         run: |
           mkdir -p "творчество/фото"
           cat > /tmp/2.jpg.b64 << 'B64EOF'
-PLACEHOLDER_B64
+PLACEHOLDER_WILL_FAIL
           B64EOF
           sed 's/^ *//' /tmp/2.jpg.b64 | tr -d '\n' | base64 -d > "творчество/фото/2.jpg"
           ls -la "творчество/фото/2.jpg"
