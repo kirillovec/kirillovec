@@ -41,7 +41,7 @@ footer a{color:var(--muted);text-decoration:none}footer a:hover{color:var(--acce
 <div class="gallery">
 <a class="card" href="./0.jpg?v=20261114" target="_blank" rel="noopener"><img src="./0.jpg?v=20261114" alt="Фото 01" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Фото 01</div></a>
 <a class="card" href="./11.jpeg?v=20261114" target="_blank" rel="noopener"><img src="./11.jpeg?v=20261114" alt="Фото 02" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Фото 02</div></a>
-<a class="card" href="./2.png?v=20261114" target="_blank" rel="noopener"><img src="./2.png?v=20261114" alt="Фото 03" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Фото 03</div></a>
+<a class="card" href="./2.jpg?v=20261114" target="_blank" rel="noopener"><img src="./2.jpg?v=20261114" alt="Фото 03" width="400" height="280" loading="lazy" decoding="async" data-fallback="./2.png?v=20261114"><div class="caption">Фото 03</div></a>
 <a class="card" href="./54321.jpg?v=20261114" target="_blank" rel="noopener"><img src="./54321.jpg?v=20261114" alt="Фото 04" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Фото 04</div></a>
 <a class="card" href="./Take%20Me%20Back%20Kirillovec%20rmx%20SPRING.jpeg?v=20261114" target="_blank" rel="noopener"><img src="./Take%20Me%20Back%20Kirillovec%20rmx%20SPRING.jpeg?v=20261114" alt="Take Me Back — Spring" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Take Me Back — Spring</div></a>
 <a class="card" href="./Take%20Me%20Back%20%E2%80%94%20Kirillovec%20rmx%20AUTUMN.jpeg?v=20261114" target="_blank" rel="noopener"><img src="./Take%20Me%20Back%20%E2%80%94%20Kirillovec%20rmx%20AUTUMN.jpeg?v=20261114" alt="Take Me Back — Autumn" width="400" height="280" loading="lazy" decoding="async"><div class="caption">Take Me Back — Autumn</div></a>
@@ -57,9 +57,17 @@ footer a{color:var(--muted);text-decoration:none}footer a:hover{color:var(--acce
 <script>
 document.querySelectorAll(".gallery img").forEach((img) => {
   img.addEventListener("error", () => {
+    const fb = img.getAttribute("data-fallback");
+    if (fb && !img.dataset.retried) {
+      img.dataset.retried = "1";
+      img.src = fb;
+      const a = img.closest("a");
+      if (a) a.href = fb;
+      return;
+    }
     img.alt = "Файл изображения пока не загружен";
     img.closest(".card")?.classList.add("media-error");
-  }, { once: true });
+  }, { once: false });
 });
 </script>
 </body>
