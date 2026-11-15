@@ -164,32 +164,33 @@
   }
   async function api(path, options = {}){
     if (!apiBase) throw new Error("API сайта не настроен.");
-    let response;
+    const controller = new AbortController();
+    const timeoutMs = options.timeoutMs || (path === "/api/v1/jobs" && options.method === "POST" ? 120000 : 30000);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    const { timeoutMs: _timeoutMs, signal: externalSignal, ...fetchOptions } = options;
+    if (externalSignal) externalSignal.addEventListener("abort", () => controller.abort(), { once: true });
     try {
-      response = await fetch(apiBase + path, {
-        ...options,
-        mode: "cors",
-        credentials: "include",
-        headers: { ...(options.headers || {}) }
+      const response = await fetch(apiBase + path, {
+        ...fetchOptions, signal: controller.signal, mode: "cors",
+        credentials: "include", headers: { ...(options.headers || {}) }
       });
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.toLowerCase().includes("application/json")) {
+        if (response.redirected || /cloudflareaccess|cdn-cgi\/access/i.test(response.url)) {
+          throw new Error("Cloudflare Access перенаправил запрос на страницу входа. Сначала авторизуйся на https://api.kirillovec.ru, затем обнови AI Studio.");
+        }
+        throw new Error("API вернул не JSON. Проверь адрес сервера и настройки Cloudflare Access.");
+      }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || data.error || ("Ошибка API: " + response.status));
+      return data;
     } catch (err) {
-      const name = err && err.name ? String(err.name) : "";
-      if (name === "AbortError" || name === "TimeoutError") {
-        throw new Error("API не ответил вовремя. Проверь соединение и авторизацию Cloudflare Access, затем повтори попытку.");
+      if (controller.signal.aborted || err?.name === "AbortError" || err?.name === "TimeoutError") {
+        throw new Error(timeoutMs >= 120000 ? "Сервер не завершил генерацию за 2 минуты. Проверь лимит Workers AI и попробуй ещё раз." : "API не ответил вовремя. Проверь соединение и авторизацию Cloudflare Access.");
       }
-      const detail = err && err.message ? String(err.message) : "network";
-      throw new Error("Не удалось связаться с API (" + apiBase + "). " + detail + ". Проверь https://api.kirillovec.ru/api/v1/capabilities.");
-    }
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.toLowerCase().includes("application/json")) {
-      if (response.redirected || /cloudflareaccess|cdn-cgi\/access/i.test(response.url)) {
-        throw new Error("Cloudflare Access перенаправил запрос на страницу входа. Сначала авторизуйся на https://api.kirillovec.ru, затем обнови AI Studio.");
-      }
-      throw new Error("API вернул не JSON. Проверь адрес сервера и настройки Cloudflare Access.");
-    }
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.message || data.error || ("Ошибка API: " + response.status));
-    return data;
+      if (err instanceof TypeError) throw new Error("Не удалось связаться с API (" + apiBase + "). Проверь CORS, Cloudflare Access и доступность сервера.");
+      throw err;
+    } finally { clearTimeout(timeout); }
   }
   async function refreshCapabilities(){
     try {
@@ -282,7 +283,13 @@
         aspectRatio: $("#ratio").value === "auto" ? "1:1" : $("#ratio").value,
         modelSource: $("#model-source").value || "api"
       };
-      if (selectedFile) body.imageDataUrl = await fileAsDataUrl(selectedFile);
+      if (selectedFile) {
+        setStatus("Подготовка фото…");
+        btn.textContent = "Подготовка фото…";
+        body.imageDataUrl = await fileAsDataUrl(selectedFile);
+      }
+      setStatus("Отправка в генератор…");
+      btn.textContent = "Генерация…";
       const job = await api("/api/v1/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
