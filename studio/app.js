@@ -173,8 +173,12 @@
         headers: { ...(options.headers || {}) }
       });
     } catch (err) {
+      const name = err && err.name ? String(err.name) : "";
+      if (name === "AbortError" || name === "TimeoutError") {
+        throw new Error("API не ответил вовремя. Проверь соединение и авторизацию Cloudflare Access, затем повтори попытку.");
+      }
       const detail = err && err.message ? String(err.message) : "network";
-      throw new Error("Не удалось связаться с API (" + apiBase + "). " + detail + ". Открой https://api.kirillovec.ru/api/v1/capabilities в новой вкладке и проверь, открывается ли JSON.");
+      throw new Error("Не удалось связаться с API (" + apiBase + "). " + detail + ". Проверь https://api.kirillovec.ru/api/v1/capabilities.");
     }
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.toLowerCase().includes("application/json")) {
@@ -189,11 +193,16 @@
   }
   async function refreshCapabilities(){
     try {
+      // Access-protected custom domains can be slower on the first request.
+      // Do not abort a healthy capabilities request after an aggressive 7s deadline.
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 7000);
+      const timeout = setTimeout(() => controller.abort(), 25000);
       let data;
       try {
-        data = await api("/api/v1/capabilities", { signal: controller.signal });
+        data = await api("/api/v1/capabilities", {
+          signal: controller.signal,
+          cache: "no-store"
+        });
       } finally {
         clearTimeout(timeout);
       }
