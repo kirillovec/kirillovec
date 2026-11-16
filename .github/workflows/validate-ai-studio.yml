@@ -27,6 +27,8 @@ jobs:
           test -s migrations/0001_initial.sql
           test -s wrangler.toml
           test -s docs/AI-STUDIO-DEPLOYMENT.md
+          test -f .nojekyll
+          test -s llms.txt
           test -s robots.txt
           test -s sitemap.xml
           test -s guides/index.html
