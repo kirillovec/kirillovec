@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Аккаунт — kirillovec</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:dark;--bg:#090a0f;--text:#f4f2f8;--muted:#a4a3b1;--line:#292c39;--gold:#c4a77d}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font:16px/1.5 system-ui,sans-serif;background:#090a0f}
+a{color:inherit}
+.wrap{width:min(480px,calc(100% - 32px));margin:auto;padding:28px 0 64px}
+nav{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-bottom:28px}
+nav a{text-decoration:none}nav a:hover{color:var(--gold)}
+h1{font-weight:650;font-size:32px;margin:0 0 8px}
+p{color:var(--muted);margin:0 0 18px}
+form, .card{border:1px solid var(--line);border-radius:16px;padding:18px;background:#12141c}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0c0d12;color:var(--text);font:16px system-ui}
+.row{display:flex;gap:10px;margin-top:16px}
+button{border:0;border-radius:999px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--gold);color:#111}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+#msg{min-height:1.4em;margin-top:14px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <a href="/">Главная</a>
+  <a href="/studio/">AI Studio</a>
+  <a href="/artist/">Музыка</a>
+</nav>
+<h1>Аккаунт</h1>
+<p id="lead">Регистрация привязывает генерации в AI Studio к тебе, а не к общему гостевому режиму.</p>
+<div id="panel"></div>
+<p id="msg" role="status"></p>
+</div>
+<script>
+const API="https://api.kirillovec.ru";
+const panel=document.getElementById("panel");
+const msg=document.getElementById("msg");
+function form(){
+  panel.innerHTML='<form id="f"><label>Почта</label><input name="email" type="email" autocomplete="username" required><label>Пароль</label><input name="password" type="password" minlength="8" autocomplete="current-password" required><div class="row"><button type="submit">Войти</button><button class="ghost" type="button" id="reg">Создать аккаунт</button></div></form>';
+  document.getElementById("f").onsubmit=e=>{e.preventDefault();send("/api/v1/auth/login")};
+  document.getElementById("reg").onclick=()=>send("/api/v1/auth/register");
+}
+function logged(user){
+  panel.innerHTML='<div class="card"><div>'+user.email+'</div><div class="row"><button type="button" id="out">Выйти</button><a href="/studio/"><button class="ghost" type="button">AI Studio</button></a></div></div>';
+  document.getElementById("out").onclick=async()=>{
+    await fetch(API+"/api/v1/auth/logout",{method:"POST",credentials:"include"});
+    msg.textContent="Сессия закрыта.";
+    form();
+  };
+}
+async function send(path){
+  const f=document.getElementById("f");
+  msg.textContent="Отправка…";
+  const r=await fetch(API+path,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:f.email.value,password:f.password.value})});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok){msg.textContent=data.message||"Не получилось.";return}
+  msg.textContent=path.endsWith("register")?"Аккаунт создан.":"Вход выполнен.";
+  logged(data.user);
+}
+(async()=>{
+  try{
+    const r=await fetch(API+"/api/v1/auth/me",{credentials:"include"});
+    const data=await r.json();
+    if(data.user){logged(data.user);return}
+  }catch(e){msg.textContent="API сейчас недоступен."}
+  form();
+})();
+</script>
+</body>
+</html>

@@ -97,10 +97,56 @@ async function generateImageToImage(env,prompt,imageDataUrl){
   return resultToDataUrl(result);
 }
 
+
+function b64url(bytes){return btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+async function sha256hex(text){const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text));return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("")}
+async function hashPassword(password,saltBytes){const salt=saltBytes||crypto.getRandomValues(new Uint8Array(16));const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveBits"]);const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:100000,hash:"SHA-256"},key,256);return "pbkdf2$100000$"+b64url(salt)+"$"+b64url(new Uint8Array(bits))}
+async function verifyPassword(password,stored){const parts=String(stored||"").split("$");if(parts.length!==4||parts[0]!=="pbkdf2")return false;const salt=Uint8Array.from(atob(parts[2].replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-parts[2].length%4)%4)),c=>c.charCodeAt(0));const next=await hashPassword(password,salt);return next===stored}
+function readCookie(request,name){const m=(request.headers.get("Cookie")||"").match(new RegExp("(?:^|; )"+name+"=([^;]+)"));return m?decodeURIComponent(m[1]):""}
+function sessionCookie(token,maxAge){return "ko_session="+encodeURIComponent(token)+"; HttpOnly; Secure; Path=/; SameSite=None; Max-Age="+maxAge}
+function clientIp(request){return request.headers.get("CF-Connecting-IP")||"unknown"}
+function validEmail(email){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)&&email.length<=120}
+async function userFromSession(request,env){if(!env.DB)return null;const token=readCookie(request,"ko_session");if(!token||token.length<20)return null;const hash=await sha256hex(token);const row=await env.DB.prepare("SELECT u.id, u.email FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?").bind(hash,now()).first();return row||null}
+async function issueSession(env,userId){const token=b64url(crypto.getRandomValues(new Uint8Array(32)));const exp=new Date(Date.now()+30*864e5).toISOString();await env.DB.prepare("INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)").bind(id(),userId,await sha256hex(token),exp,now()).run();return sessionCookie(token,30*86400)}
+
 async function handle(request,env){
  const url=new URL(request.url),path=url.pathname.replace(/\/$/,"")||"/";
  if(request.method==="OPTIONS")return new Response(null,{status:204,headers:corsHeaders(request,env)});
  if(path==="/health"&&request.method==="GET")return response(request,env,{ok:true,service:"kirillovec-ai-studio",time:now()});
+
+ if(path.startsWith("/api/v1/auth/")){
+  if(!env.DB)return response(request,env,{error:"BACKEND_NOT_CONFIGURED",message:"Не настроена база D1."},503);
+  if(path==="/api/v1/auth/me"&&request.method==="GET"){
+   const user=await userFromSession(request,env);
+   if(!user)return response(request,env,{user:null});
+   return response(request,env,{user:{id:user.id,email:user.email}});
+  }
+  if(path==="/api/v1/auth/logout"&&request.method==="POST"){
+   const token=readCookie(request,"ko_session");
+   if(token)await env.DB.prepare("DELETE FROM sessions WHERE token_hash = ?").bind(await sha256hex(token)).run();
+   return json({ok:true},200,{...corsHeaders(request,env),"Set-Cookie":sessionCookie("",0)});
+  }
+  if((path==="/api/v1/auth/register"||path==="/api/v1/auth/login")&&request.method==="POST"){
+   if(!(await rateLimit(env,{subject:clientIp(request)},path.endsWith("register")?"register":"login",path.endsWith("register")?8:20,3600)))return response(request,env,{error:"RATE_LIMIT",message:"Слишком много попыток. Попробуй позже."},429);
+   let body;try{body=await request.json()}catch{return response(request,env,{error:"INVALID_JSON",message:"Ожидается JSON."},400)}
+   const email=String(body.email||"").trim().toLowerCase();
+   const password=String(body.password||"");
+   if(!validEmail(email)||password.length<8||password.length>72)return response(request,env,{error:"INVALID_INPUT",message:"Нужны почта и пароль от 8 до 72 символов."},400);
+   if(path.endsWith("register")){
+    const exists=await env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(email).first();
+    if(exists)return response(request,env,{error:"EMAIL_TAKEN",message:"Такая почта уже зарегистрирована."},409);
+    const userId=id();
+    await env.DB.prepare("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)").bind(userId,email,await hashPassword(password),now()).run();
+    const cookie=await issueSession(env,userId);
+    return json({user:{id:userId,email}},201,{...corsHeaders(request,env),"Set-Cookie":cookie});
+   }
+   const user=await env.DB.prepare("SELECT id, email, password_hash FROM users WHERE email = ?").bind(email).first();
+   if(!user||!(await verifyPassword(password,user.password_hash)))return response(request,env,{error:"INVALID_LOGIN",message:"Неверная почта или пароль."},401);
+   const cookie=await issueSession(env,user.id);
+   return json({user:{id:user.id,email:user.email}},200,{...corsHeaders(request,env),"Set-Cookie":cookie});
+  }
+  return response(request,env,{error:"NOT_FOUND",message:"Маршрут не найден."},404);
+ }
 
  if(path==="/api/v1/capabilities"&&request.method==="GET"){
   const workersAI=Boolean(env.AI);
@@ -126,6 +172,8 @@ async function handle(request,env){
 
  let identity;try{identity=await accessIdentity(request,env)}catch{return response(request,env,{error:"ACCESS_REQUIRED",message:"Требуется авторизованный доступ через Cloudflare Access."},401)}
  if(!env.DB)return response(request,env,{error:"BACKEND_NOT_CONFIGURED",message:"Не настроена база D1."},503);
+ const sessionUser=await userFromSession(request,env);
+ if(sessionUser)identity={email:sessionUser.email,subject:"user:"+sessionUser.id};
 
  if(path==="/api/v1/assets"&&request.method==="POST"){
   if(!env.ASSETS||!env.ASSETS_PUBLIC_BASE_URL)return response(request,env,{error:"UPLOAD_NOT_CONFIGURED",message:"Загрузка исходных файлов пока отключена."},503);
