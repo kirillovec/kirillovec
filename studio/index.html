@@ -101,5 +101,13 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="./config.js?v=20261113b"></script>
 <script src="./app.js?v=20261113d"></script>
+<script>
+document.querySelectorAll(".sample-card img").forEach((img) => {
+  img.addEventListener("error", () => {
+    const card = img.closest(".sample-card");
+    if (card) card.hidden = true;
+  }, { once: true });
+});
+</script>
 </body>
 </html>
