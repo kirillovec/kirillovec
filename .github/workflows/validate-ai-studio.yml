@@ -27,3 +27,12 @@ jobs:
           test -s migrations/0001_initial.sql
           test -s wrangler.toml
           test -s docs/AI-STUDIO-DEPLOYMENT.md
+          test -s robots.txt
+          test -s sitemap.xml
+          test -s guides/index.html
+          test -s guides/rap-cover-prompt/index.html
+          grep -q 'GPTBot' robots.txt
+          grep -q 'ClaudeBot' robots.txt
+          grep -q 'PerplexityBot' robots.txt
+          grep -q 'SoftwareApplication' index.html
+          grep -q 'rap-cover-prompt' sitemap.xml
