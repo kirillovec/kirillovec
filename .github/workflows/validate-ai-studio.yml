@@ -33,8 +33,41 @@ jobs:
           test -s sitemap.xml
           test -s guides/index.html
           test -s guides/rap-cover-prompt/index.html
+          test -s guides/gray-background-photo/index.html
           grep -q 'GPTBot' robots.txt
           grep -q 'ClaudeBot' robots.txt
           grep -q 'PerplexityBot' robots.txt
           grep -q 'SoftwareApplication' index.html
           grep -q 'rap-cover-prompt' sitemap.xml
+
+      - name: Validate sitemap and structured data
+        run: |
+          python3 - <<'PY'
+          import json
+          import xml.etree.ElementTree as ET
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          ET.parse("sitemap.xml")
+
+          class JsonLdParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.capture = False
+                  self.parts = []
+              def handle_starttag(self, tag, attrs):
+                  if tag == "script" and dict(attrs).get("type") == "application/ld+json":
+                      self.capture = True
+                      self.parts = []
+              def handle_data(self, data):
+                  if self.capture:
+                      self.parts.append(data)
+              def handle_endtag(self, tag):
+                  if tag == "script" and self.capture:
+                      json.loads("".join(self.parts))
+                      self.capture = False
+
+          for path in ["index.html", "studio/index.html", "guides/rap-cover-prompt/index.html", "guides/gray-background-photo/index.html"]:
+              parser = JsonLdParser()
+              parser.feed(Path(path).read_text(encoding="utf-8"))
+          PY
