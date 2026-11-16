@@ -171,6 +171,11 @@ async function handle(request,env){
  }
 
  let identity;try{identity=await accessIdentity(request,env)}catch{return response(request,env,{error:"ACCESS_REQUIRED",message:"Требуется авторизованный доступ через Cloudflare Access."},401)}
+ // Give unauthenticated visitors a stable per-IP guest identity instead of sharing one global quota.
+ if(identity.subject==="development"){
+  const guestHash=await sha256hex(clientIp(request));
+  identity={email:"",subject:"guest:"+guestHash};
+ }
  if(!env.DB)return response(request,env,{error:"BACKEND_NOT_CONFIGURED",message:"Не настроена база D1."},503);
  const sessionUser=await userFromSession(request,env);
  if(sessionUser)identity={email:sessionUser.email,subject:"user:"+sessionUser.id};
