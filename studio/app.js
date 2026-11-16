@@ -110,7 +110,16 @@
       row.className = "history-item";
       const thumb = document.createElement("div");
       thumb.className = "history-thumb";
-      thumb.textContent = "▧";
+      if (item.resultUrl) {
+        const preview = document.createElement("img");
+        preview.src = item.resultUrl;
+        preview.alt = "";
+        preview.loading = "lazy";
+        preview.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:8px";
+        thumb.append(preview);
+      } else {
+        thumb.textContent = "▧";
+      }
       const detail = document.createElement("div");
       const title = document.createElement("strong");
       title.textContent = (item.prompt || "Задача").slice(0, 65);
@@ -134,7 +143,18 @@
     const media = document.createElement("img");
     media.src = url;
     media.alt = "Результат генерации";
-    stage.append(media);
+    media.loading = "eager";
+    const mime = (String(url).match(/^data:(image\/[a-z0-9.+-]+)/i) || [])[1] || "image/png";
+    const ext = mime.split("/")[1].replace("jpeg", "jpg").replace("svg+xml", "svg");
+    const actions = document.createElement("div");
+    actions.className = "result-actions";
+    const download = document.createElement("a");
+    download.href = url;
+    download.download = "kirillovec-ai-studio-" + new Date().toISOString().slice(0, 10) + "." + ext;
+    download.textContent = "↓ Скачать изображение";
+    download.setAttribute("aria-label", "Скачать созданное изображение");
+    actions.append(download);
+    stage.append(media, actions);
   }
   async function fileAsDataUrl(file){
     let bitmap;
