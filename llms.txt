@@ -1,0 +1,31 @@
+# kirillovec
+
+> kirillovec is a Russian-language creative AI studio for musicians, independent artists and music releases.
+
+## Main pages
+- https://kirillovec.ru/ — project homepage
+- https://kirillovec.ru/studio/ — AI Studio for image generation, image editing and prompt preparation
+- https://kirillovec.ru/artist/ — artist profile and music release information
+- https://kirillovec.ru/творчество/ — creative portfolio sections
+- https://kirillovec.ru/guides/ — practical guides for music visuals
+- https://kirillovec.ru/guides/rap-cover-prompt/ — guide to writing prompts for rap single and album covers
+
+## What the studio is for
+- Developing visual concepts for rap, hip-hop and independent music releases.
+- Preparing prompts for cover art, artist portraits and cinematic scenes.
+- Generating or editing images when the image model API is available.
+- Preparing video prompts and handing them off to external video platforms.
+
+## Important capability notes
+- Image generation depends on the availability and configuration of the site's Cloudflare Workers AI API.
+- Video generation is currently prepared through prompts and external services; the site does not claim to render video internally.
+- Availability, free credits and usage limits of external platforms are controlled by those platforms.
+- Users should only upload images they have permission to use.
+
+## Language and audience
+- Primary language: Russian.
+- Audience: musicians, rappers, independent artists and creators who need visual assets for music releases.
+
+## Contact and ownership
+- Project name: kirillovec.
+- Website: https://kirillovec.ru/
