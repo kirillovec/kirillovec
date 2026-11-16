@@ -39,6 +39,7 @@ jobs:
           grep -q 'PerplexityBot' robots.txt
           grep -q 'SoftwareApplication' index.html
           grep -q 'rap-cover-prompt' sitemap.xml
+          grep -q 'sdzlc482ygxrmold' index.html
 
       - name: Validate sitemap and structured data
         run: |
