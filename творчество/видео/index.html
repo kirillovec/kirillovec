@@ -91,7 +91,7 @@ footer a{color:var(--muted);text-decoration:none}footer a:hover{color:var(--acce
       wrap.appendChild(v);
       v.play().catch(function(){});
       v.addEventListener('error', function(){
-        wrap.innerHTML = '<div class="poster">Файл пока не загружен на сервер. Загрузите <code>'+src.replace('./','')+'</code> в репозиторий.</div>';
+        wrap.innerHTML = '<div class="poster">Не удалось загрузить видео. Проверьте соединение или скачайте файл по ссылке ниже.</div>';
       });
     });
   }
