@@ -92,9 +92,28 @@
     $("#file-preview").style.display = "none";
   });
   function saveHistory(item){
-    localHistory.push(item);
+    const existing = localHistory.findIndex(entry => entry.id && entry.id === item.id);
+    if (existing >= 0) localHistory[existing] = item;
+    else localHistory.push(item);
     localHistory = localHistory.slice(-20);
-    try { localStorage.setItem(historyKey, JSON.stringify(localHistory)); } catch {}
+    // Keep the full result in memory, but persist only a small recent preview.
+    // Base64 images can exceed the browser's localStorage quota very quickly.
+    const persisted = localHistory.map(entry => ({...entry}));
+    let imageBudget = 2 * 1024 * 1024;
+    for (let i = persisted.length - 1; i >= 0; i--) {
+      const url = persisted[i].resultUrl;
+      if (!url) continue;
+      if (url.length <= imageBudget) imageBudget -= url.length;
+      else delete persisted[i].resultUrl;
+    }
+    try {
+      localStorage.setItem(historyKey, JSON.stringify(persisted));
+    } catch {
+      // If storage is still full, preserve task metadata and discard stored images.
+      try {
+        localStorage.setItem(historyKey, JSON.stringify(persisted.map(({resultUrl, ...entry}) => entry)));
+      } catch {}
+    }
     renderHistory();
   }
   function renderHistory(){
