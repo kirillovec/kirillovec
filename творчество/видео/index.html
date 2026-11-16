@@ -6,6 +6,7 @@
 <title>Видео — kirillovec</title>
 <meta name="description" content="Видео и визуальные работы проекта kirillovec. Промо «НИЗКО» и архив.">
 <link rel="canonical" href="https://kirillovec.ru/творчество/видео/">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="kirillovec">
@@ -49,20 +50,20 @@ footer a{color:var(--muted);text-decoration:none}footer a:hover{color:var(--acce
   <h2>Промо «НИЗКО»</h2>
   <p class="meta">Промо-ролик · out now</p>
   <div id="promo-wrap">
-    <div class="poster">Нажмите, чтобы загрузить промо (~8 МБ). Если файла ещё нет на сервере — появится ошибка, загрузите nizko_promo.mp4 в папку видео.</div>
+    <div class="poster">Нажмите, чтобы загрузить промо с CDN (~0.8 МБ). Если файла ещё нет на сервере — появится ошибка, загрузите nizko_promo.mp4 в папку видео.</div>
     <button type="button" class="btn" id="promo-btn">▶ Смотреть промо</button>
   </div>
-  <a class="download" href="./nizko_promo.mp4" download>Скачать промо ↗</a>
+  <a class="download" href="https://cdn.jsdelivr.net/gh/kirillovec/kirillovec@main/%D1%82%D0%B2%D0%BE%D1%80%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE/%D0%B2%D0%B8%D0%B4%D0%B5%D0%BE/nizko_promo.mp4" download>Скачать промо ↗</a>
 </section>
 
 <section class="video-card">
   <h2>Видео из архива</h2>
   <p class="meta">MP4 · 1920 × 1080</p>
   <div id="archive-wrap">
-    <div class="poster">Нажмите, чтобы загрузить и смотреть (~7 МБ)</div>
+    <div class="poster">Нажмите, чтобы загрузить и смотреть с CDN</div>
     <button type="button" class="btn" id="archive-btn">▶ Смотреть</button>
   </div>
-  <a class="download" href="./854102-hd_1920_1080_25fps.mp4" download>Скачать видео ↗</a>
+  <a class="download" href="https://cdn.jsdelivr.net/gh/kirillovec/kirillovec@main/%D1%82%D0%B2%D0%BE%D1%80%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE/%D0%B2%D0%B8%D0%B4%D0%B5%D0%BE/854102-hd_1920_1080_25fps.mp4" download>Скачать видео ↗</a>
 </section>
 
 <footer>
@@ -95,8 +96,8 @@ footer a{color:var(--muted);text-decoration:none}footer a:hover{color:var(--acce
       });
     });
   }
-  loadInto('promo-wrap','promo-btn','./nizko_promo.mp4');
-  loadInto('archive-wrap','archive-btn','./854102-hd_1920_1080_25fps.mp4');
+  loadInto('promo-wrap','promo-btn','https://cdn.jsdelivr.net/gh/kirillovec/kirillovec@main/%D1%82%D0%B2%D0%BE%D1%80%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE/%D0%B2%D0%B8%D0%B4%D0%B5%D0%BE/nizko_promo.mp4');
+  loadInto('archive-wrap','archive-btn','https://cdn.jsdelivr.net/gh/kirillovec/kirillovec@main/%D1%82%D0%B2%D0%BE%D1%80%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE/%D0%B2%D0%B8%D0%B4%D0%B5%D0%BE/854102-hd_1920_1080_25fps.mp4');
 })();
 </script>
 </body>
