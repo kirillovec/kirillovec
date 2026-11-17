@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090a0f">
 <title>kirillovec — AI Studio</title>
-<meta name="description" content="kirillovec AI Studio — творческая студия для музыкантов: идеи и промпты для обложек рэп-треков, обработки фото и музыкальных видео.">
+<meta name="description" content="kirillovec AI Studio — генерация обложек, портретов и визуалов для рэп-треков. Пресеты «Дым и ночь», «Обложка НИЗКО», кинематограф.">
 <link rel="canonical" href="https://kirillovec.ru/">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="author" content="kirillovec">
@@ -14,14 +14,13 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="kirillovec">
 <meta property="og:title" content="kirillovec — AI Studio · альбом НИЗКО">
-<meta property="og:description" content="Творческая лаборатория и альбом «НИЗКО» — 16 треков. Лирика дыма.">
+<meta property="og:description" content="Творческая лаборатория: обложки, портреты, дым и ночь. Альбом «НИЗКО» — 16 треков.">
 <meta property="og:url" content="https://kirillovec.ru/">
 <meta property="og:image" content="https://ava.yourtunes.net/files/500//f9/bc/ef/0ef6ff0ca82d84161e04.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <style>
 :root{color-scheme:dark;--bg:#090a0f;--panel:#12141d;--line:#292c39;--text:#f4f2f8;--muted:#a4a3b1;--accent:#c9a7ff;--accent2:#9c7be8;--gold:#c4a77d}
-*{box-sizing:border-box}
-html{min-height:100%;background:var(--bg)}
+*{box-sizing:border-box}html{min-height:100%;background:var(--bg)}
 body{margin:0;min-height:100vh;color:var(--text);font:16px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 50% 0%,#28203a 0,transparent 48%),linear-gradient(160deg,#090a0f,#10111a 65%,#0b0c12)}
 a{color:inherit;text-decoration:none}
 .wrap{width:min(1080px,calc(100% - 40px));margin:auto}
@@ -30,39 +29,44 @@ header{height:78px;display:flex;align-items:center;justify-content:space-between
 .mark{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,#e5d5ff,#9773e7);color:#17121f;font-weight:900}
 .nav{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .nav a:hover{color:var(--accent)}
-main{padding:70px 0 72px}
+main{padding:56px 0 64px}
 .kicker{text-align:center;color:var(--accent);font-size:11px;letter-spacing:2.6px;text-transform:uppercase;font-weight:800}
-h1{text-align:center;font-size:clamp(38px,7vw,68px);letter-spacing:-2.6px;line-height:1.04;margin:17px 0}
-.lead{max-width:650px;margin:0 auto;text-align:center;color:var(--muted);font-size:17px}
-.album-strip{max-width:850px;margin:36px auto 0;padding:22px 24px;border-radius:18px;border:1px solid rgba(196,167,125,.28);background:linear-gradient(135deg,#1a1612,#141218 55%,#17141f);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
-.album-strip strong{color:var(--gold);font-size:15px}
-.album-strip p{margin:4px 0 0;color:var(--muted);font-size:13px}
-.album-cta{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;background:var(--gold);color:#0a0a0b;font-size:13px;font-weight:800}
-.album-cta:hover{filter:brightness(1.08)}
-.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:850px;margin:48px auto 0}
-.card{min-height:220px;padding:27px;border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,#171722,#11121a);display:flex;flex-direction:column;align-items:flex-start;transition:transform .2s,border-color .2s,background .2s}
-.card:hover{transform:translateY(-3px);border-color:#8064ad;background:linear-gradient(145deg,#211b2c,#13141e)}
-.card-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:#2a2138;color:#e0ceff;font-size:23px;margin-bottom:22px}
-.card h2{font-size:21px;margin:0 0 7px}
-.card p{font-size:13px;color:var(--muted);margin:0 0 20px;max-width:330px}
-.action{margin-top:auto;display:inline-flex;align-items:center;gap:9px;background:linear-gradient(105deg,#e0ceff,#a989ed);color:#17121f;padding:11px 17px;border-radius:999px;font-size:13px;font-weight:800}
-.card.secondary .action{background:#24202d;color:#e8dcff;border:1px solid #46375b}
-.section-links{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:34px auto 0}
-.text-link{padding:9px 14px;color:#c7c3d1;font-size:13px;border-bottom:1px solid #ffffff22}
-.text-link:hover{color:var(--accent);border-color:var(--accent)}
-.note{text-align:center;color:#777887;font-size:11px;max-width:650px;margin:34px auto 0}
-footer{border-top:1px solid #ffffff12;padding:25px 0;color:#777887;font-size:12px;text-align:center}
-@media(max-width:620px){.wrap{width:min(100% - 28px,1080px)}header{height:auto;padding:14px 0;flex-direction:column;align-items:flex-start}.nav{gap:12px}main{padding:50px 0 50px}.cards{grid-template-columns:1fr;margin-top:34px;gap:12px}.card{min-height:190px;padding:22px}.lead{font-size:15px}h1{letter-spacing:-1.6px}.album-strip{flex-direction:column;align-items:flex-start}}
+h1{text-align:center;font-size:clamp(34px,6.5vw,58px);letter-spacing:-2.2px;line-height:1.06;margin:14px 0 12px}
+.lead{max-width:620px;margin:0 auto;text-align:center;color:var(--muted);font-size:16px}
+.cta-row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:28px 0 0}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:999px;font-size:14px;font-weight:800;transition:filter .15s,transform .15s}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn-primary{background:linear-gradient(105deg,#e0ceff,#a989ed);color:#17121f}
+.btn-secondary{background:#1c1824;color:#e8dcff;border:1px solid #46375b}
+.presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:900px;margin:42px auto 0}
+.preset{padding:20px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,#171722,#11121a);transition:transform .2s,border-color .2s}
+.preset:hover{transform:translateY(-3px);border-color:#8064ad}
+.preset .ico{font-size:22px;margin-bottom:12px}
+.preset h3{margin:0 0 6px;font-size:16px}
+.preset p{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
+.preset .go{display:inline-block;margin-top:14px;font-size:12px;font-weight:700;color:var(--accent)}
+.album{max-width:900px;margin:40px auto 0;padding:18px 22px;border-radius:16px;border:1px solid rgba(196,167,125,.22);background:linear-gradient(135deg,#1a1612,#141218);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.album strong{color:var(--gold);font-size:14px}
+.album p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.album a{padding:10px 16px;border-radius:999px;background:var(--gold);color:#0a0a0b;font-size:12px;font-weight:800}
+.features{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:900px;margin:36px auto 0}
+.feat{padding:16px;border:1px solid var(--line);border-radius:14px;background:#12141c}
+.feat strong{display:block;font-size:13px;margin-bottom:4px}
+.feat span{font-size:11px;color:var(--muted)}
+.links{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:32px auto 0}
+.links a{font-size:13px;color:#c7c3d1;border-bottom:1px solid #ffffff18;padding-bottom:2px}
+.links a:hover{color:var(--accent);border-color:var(--accent)}
+.note{text-align:center;color:#777887;font-size:11px;max-width:580px;margin:28px auto 0}
+footer{border-top:1px solid #ffffff12;padding:22px 0;color:#777887;font-size:12px;text-align:center}
+@media(max-width:720px){.presets{grid-template-columns:1fr}.features{grid-template-columns:1fr 1fr}.wrap{width:min(100% - 28px,1080px)}header{height:auto;padding:14px 0;flex-direction:column;align-items:flex-start}.nav{gap:12px}main{padding:40px 0 48px}h1{letter-spacing:-1.4px}}
+@media(max-width:420px){.features{grid-template-columns:1fr}}
 </style>
 <script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@graph":[
-    {"@type":"WebSite","@id":"https://kirillovec.ru/#website","url":"https://kirillovec.ru/","name":"kirillovec","inLanguage":"ru-RU","description":"Творческая AI-студия для музыкантов и независимых артистов."},
-    {"@type":"Organization","@id":"https://kirillovec.ru/#organization","name":"kirillovec","url":"https://kirillovec.ru/"},
-    {"@type":"SoftwareApplication","@id":"https://kirillovec.ru/#software","name":"kirillovec AI Studio","url":"https://kirillovec.ru/studio/","applicationCategory":"MultimediaApplication","operatingSystem":"Web","inLanguage":"ru-RU","description":"Веб-студия для подготовки промптов, работы с изображениями и создания визуальных концепций музыкальных релизов.","publisher":{"@id":"https://kirillovec.ru/#organization"}}
-  ]
-}
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebSite","@id":"https://kirillovec.ru/#website","url":"https://kirillovec.ru/","name":"kirillovec","inLanguage":"ru-RU","description":"Творческая AI-студия для музыкантов и независимых артистов."},
+{"@type":"Organization","@id":"https://kirillovec.ru/#organization","name":"kirillovec","url":"https://kirillovec.ru/"},
+{"@type":"SoftwareApplication","@id":"https://kirillovec.ru/#software","name":"kirillovec AI Studio","url":"https://kirillovec.ru/studio/","applicationCategory":"MultimediaApplication","operatingSystem":"Web","inLanguage":"ru-RU","description":"Веб-студия для подготовки промптов, работы с изображениями и создания визуальных концепций музыкальных релизов.","publisher":{"@id":"https://kirillovec.ru/#organization"}}
+]}
 </script>
 </head>
 <body>
@@ -70,55 +74,66 @@ footer{border-top:1px solid #ffffff12;padding:25px 0;color:#777887;font-size:12p
 <header>
   <a class="brand" href="/"><span class="mark">K</span><span>kirillovec</span></a>
   <nav class="nav">
+    <a href="/studio/">AI Studio</a>
     <a href="/artist/">Музыка</a>
     <a href="/творчество/">Творчество</a>
-    <a href="/studio/">AI Studio</a>
     <a href="/referrals/">Рефералы</a>
     <a href="/account/">Аккаунт</a>
   </nav>
 </header>
 <main>
-<div class="kicker">AI · творчество · музыка</div>
-<h1>Создавай больше.<br>Воплощай смелее.</h1>
-<p class="lead">Единое пространство kirillovec для работы с изображениями и видео, творческих экспериментов и альбома «НИЗКО».</p>
+<div class="kicker">AI Studio · kirillovec</div>
+<h1>От идеи до обложки<br>за минуты</h1>
+<p class="lead">Генерация изображений, редактирование кадров и готовые пресеты под рэп, дым и атмосферу «НИЗКО».</p>
 
-<div class="album-strip">
+<div class="cta-row">
+  <a class="btn btn-primary" href="/studio/">✦ Открыть AI Studio</a>
+  <a class="btn btn-secondary" href="/artist/#links">Слушать «НИЗКО»</a>
+</div>
+
+<div class="presets">
+  <a class="preset" href="/studio/?preset=music">
+    <div class="ico">🎤</div>
+    <h3>Обложка рэп-трека</h3>
+    <p>Город, характер, настроение релиза. Сразу открывает Studio с нужным пресетом.</p>
+    <span class="go">Создать →</span>
+  </a>
+  <a class="preset" href="/studio/?preset=smoke">
+    <div class="ico">💨</div>
+    <h3>Дым и ночь</h3>
+    <p>Сигаретный дым, холодный свет из окна, городские огни — фирменная атмосфера.</p>
+    <span class="go">Создать →</span>
+  </a>
+  <a class="preset" href="/studio/?preset=cover">
+    <div class="ico">📀</div>
+    <h3>Обложка «НИЗКО»</h3>
+    <p>Тёмный минимализм, окно в ночной город, типографика. Пресет под альбом.</p>
+    <span class="go">Создать →</span>
+  </a>
+</div>
+
+<div class="album">
   <div>
     <strong>Альбом «НИЗКО» — out now</strong>
     <p>16 треков · лирика дыма · 5 ноября 2026</p>
   </div>
-  <a class="album-cta" href="/artist/#links">Слушать альбом →</a>
+  <a href="/artist/#links">Слушать →</a>
 </div>
 
-<div class="cards">
-<a class="card" href="/studio/">
-<div class="card-icon" aria-hidden="true">✦</div>
-<h2>AI Studio</h2>
-<p>Подготовка промптов, работа с исходными фото и видео, переход к внешним сервисам генерации.</p>
-<span class="action">Открыть AI Studio <span aria-hidden="true">→</span></span>
-</a>
-<a class="card secondary" href="https://alice.yandex.ru/" target="_blank" rel="noopener noreferrer">
-<div class="card-icon" aria-hidden="true">◉</div>
-<h2>Яндекс Алиса</h2>
-<p>Открыть голосового и текстового AI-помощника Яндекса в отдельной вкладке.</p>
-<span class="action">Открыть Алису <span aria-hidden="true">↗</span></span>
-</a>
+<div class="features">
+  <div class="feat"><strong>Текст → изображение</strong><span>Промпт, стиль, пропорции</span></div>
+  <div class="feat"><strong>Редактирование</strong><span>Загрузи кадр и опиши изменения</span></div>
+  <div class="feat"><strong>Пресеты</strong><span>Под треки и атмосферу «НИЗКО»</span></div>
+  <div class="feat"><strong>Видео-промпты</strong><span>Подготовка для внешних сервисов</span></div>
 </div>
-<section aria-labelledby="guides-title" style="max-width:850px;margin:42px auto 0">
-<h2 id="guides-title" style="font-size:23px;margin-bottom:10px">AI-инструменты для музыкального творчества</h2>
-<p class="lead" style="text-align:left;font-size:14px">Создавайте визуальную концепцию релиза: от идеи обложки и промпта до подготовки фото и видеосцен.</p>
-<div class="section-links" style="margin-top:14px">
-<a class="text-link" href="/guides/">Гайды и инструкции</a>
-<a class="text-link" href="/guides/rap-cover-prompt/">Как написать промпт для рэп-обложки</a>
+
+<div class="links">
+  <a href="/guides/rap-cover-prompt/">Гайд: промпт для рэп-обложки</a>
+  <a href="/guides/">Все гайды</a>
+  <a href="/творчество/">Творчество</a>
+  <a href="/referrals/">Рефералы</a>
 </div>
-</section>
-<div class="section-links">
-<a class="text-link" href="/artist/">Музыка и профиль артиста</a>
-<a class="text-link" href="/творчество/">Раздел «Творчество»</a>
-<a class="text-link" href="/referrals/">Рефералы</a>
-<a class="text-link" href="/account/">Аккаунт</a>
-</div>
-<p class="note">В AI Studio доступен режим подготовки заданий для внешних сервисов. Доступность бесплатных кредитов и функций определяется самими сервисами.</p>
+<p class="note">Генерация изображений — через API сайта. Видео готовится на внешних площадках. Лимиты зависят от доступности модели.</p>
 </main>
 <footer>© 2026 kirillovec <span style="display:block;margin-top:4px;font-size:10px;color:#777887">Код подтверждения площадки: sdzlc482ygxrmold</span></footer>
 </div>
