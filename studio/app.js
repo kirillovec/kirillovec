@@ -4,42 +4,173 @@
   const prompt = $("#prompt"), config = window.AI_STUDIO_CONFIG || {};
   const apiBase = String(config.apiBaseUrl || "").replace(/\/$/, "");
   const historyKey = "kirillovec-ai-studio-history-v2";
-  let mode = "image", selectedFile = null, localHistory = [], currentJob = null, pollTimer = null, capabilities = null;
-  const labels = {starting:"Запускается",starting_up:"Запускается",processing:"Выполняется",queued:"В очереди",succeeded:"Готово",failed:"Ошибка",canceled:"Отменено"};
+  let mode = "image", selectedFile = null, localHistory = [], pollTimer = null, capabilities = null;
+  const selected = { genre: new Set(), instruments: new Set(), mood: new Set(), vocal: new Set(), production: new Set() };
+  const labels = {starting:"Запускается",processing:"Выполняется",queued:"В очереди",succeeded:"Готово",failed:"Ошибка"};
+
   function toast(message){const el=$("#toast");if(!el)return;el.textContent=message;el.style.display="block";clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display="none",4500);}
   function setStatus(text){const el=$("#result-status");if(el)el.textContent=text;}
   function setNotice(text,kind){const el=$("#notice");if(!el)return;el.textContent=text;el.style.display="block";el.style.borderColor=kind==="error"?"#754044":"#55432d";}
+
   function updateAvailability(){
-    const enabled = mode === "video" || Boolean(capabilities?.image?.enabled);
     const btn = $("#generate");
-    if (!btn) return;
-    btn.disabled = !enabled;
-    btn.textContent = mode === "video" ? "▶　Скопировать промпт для видео" : (enabled ? "✦　Создать изображение" : "Модель не подключена");
+    if (btn) {
+      btn.disabled = mode === "image" && !capabilities?.image?.enabled;
+      if (mode === "image") btn.textContent = capabilities?.image?.enabled ? "✦ Создать изображение" : "Модель не подключена";
+    }
     const hint = $("#model-hint");
-    if (hint) hint.textContent = mode === "video" ? "Видео: скопируй промпт и загрузи исходник на внешней площадке." : (enabled ? "Модель доступна." : "Модель изображений не подключена.");
+    if (hint && mode === "image") hint.textContent = capabilities?.image?.enabled ? "Модель доступна." : "Модель изображений не подключена.";
     const vp = $("#video-providers");
     if (vp) vp.style.display = mode === "video" ? "block" : "none";
   }
+
   function setMode(next){
-    mode = next === "video" ? "video" : "image";
-    document.querySelectorAll("[data-mode]").forEach(b => { const active = b.dataset.mode === mode; b.classList.toggle("active", active); b.setAttribute("aria-pressed", String(active)); });
-    if ($("#mode-caption")) $("#mode-caption").textContent = mode === "video" ? "Фото → видео · внешний сервис" : "Текст → изображение";
-    if ($("#crumb-title")) $("#crumb-title").textContent = mode === "video" ? "Видео" : "Изображения";
-    if ($("#page-title")) $("#page-title").textContent = mode === "video" ? "Оживи исходное фото" : "Преврати идею в визуал";
-    if ($("#page-subtitle")) $("#page-subtitle").textContent = mode === "video" ? "Опиши движение и сцену. Скопируй промпт и передай фото выбранному видеосервису." : "Создавай изображения по описанию или редактируй исходный кадр.";
-    if ($("#file-input")) $("#file-input").accept = "image/png,image/jpeg,image/webp";
+    mode = next === "video" ? "video" : next === "audio" ? "audio" : "image";
+    document.body.classList.toggle("mode-audio", mode === "audio");
+    document.querySelectorAll("[data-mode]").forEach(b => {
+      const active = b.dataset.mode === mode;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-pressed", String(active));
+    });
+    const titles = {
+      image: ["Изображения", "Преврати идею в визуал", "Текст → изображение", "Обложки и кадры"],
+      audio: ["Аудио / Suno", "Собери Style и Lyrics для Suno", "Style + Lyrics", "Промпт-билдер"],
+      video: ["Видео", "Оживи исходное фото", "Фото → видео", "Внешний сервис"]
+    };
+    const t = titles[mode];
+    if ($("#crumb-title")) $("#crumb-title").textContent = t[0];
+    if ($("#page-title")) $("#page-title").textContent = t[1];
+    if ($("#mode-caption")) $("#mode-caption").textContent = t[2];
+    if ($("#page-eyebrow")) $("#page-eyebrow").textContent = t[3];
+    if ($("#page-subtitle")) $("#page-subtitle").textContent =
+      mode === "audio" ? "Конструктор в духе usesuno: жанр, инструменты, настроение, вокал, продакшн → копируй в Suno."
+      : mode === "video" ? "Скопируй промпт и открой внешний видеосервис."
+      : "Создавай изображения или редактируй исходный кадр.";
+    if ($("#panel-title")) $("#panel-title").textContent = mode === "audio" ? "Suno Prompt Builder" : "Новая генерация";
     updateAvailability();
   }
+
   const examples = {
-    music: "Square album cover, 1:1. Night view from a high-rise window in a Russian city, cold distant lights, thin cigarette smoke in a beam of light, dark minimal interior silhouette, deep shadows, muted blue-grey palette, photorealistic, film grain, no people faces, no hearts, no cliché symbols. Leave clean dark negative space in the lower third for bold typography \"kirillovec\". High detail, album cover composition, editorial music artwork.",
-    cover: "Square album cover for the project «НИЗКО». Dark minimalism: open window at night, city lights blurred outside, soft smoke drifting indoors, cold side light, almost black shadows, restrained colour, photorealistic still. Large bold title space for \"НИЗКО\" and small signature \"kirillovec\". No faces, no decorative clichés, no cartoon style. Square 1:1, high detail, serious rap album artwork.",
-    smoke: "Album-ready frame: cigarette smoke in a sharp ray of light from a night window, dark room, city glow beyond the glass, cold cyan-grey tones, heavy atmosphere of solitude, film grain, photorealistic, cinematic still. Square composition with empty dark area for typography. Mood of late night and emptiness. No text in the image, no logos, no faces.",
-    cinematic: "Cinematic night still for a rap album cover: wet asphalt reflecting neon, smoke in a light beam, deep contrast, teal and amber accents, 35mm film look, high detail, square 1:1 framing, strong negative space for title. Urban, cold, no people in focus, no hearts or glitter. Photorealistic album artwork mood.",
-    portrait: "Editorial half-portrait for album artwork: man in dim room light from a window, soft smoke, city bokeh outside, 85mm f/1.8 look, natural skin, serious expression, dark clothing, muted colours. Square crop friendly, space near edges for typography. Photorealistic, no heavy retouch, no cliché poses.",
-    window: "Square album cover: close view of a night apartment window, condensation and soft reflections, distant tower blocks, one thin trail of smoke, cold blue light, almost monochrome, photorealistic, film grain. Minimal, quiet, heavy mood. Leave lower area dark and empty for the name \"kirillovec\".",
-    low: "Square cover concept «НИЗКО»: looking down from a balcony at night, sparse street lights far below, fog or smoke in the air, deep black sky, cold desaturated colours, photorealistic, cinematic. Feeling of being low and detached. Bold negative space for the word НИЗКО. No people, no symbols, album cover composition."
+    music: "Square album cover, 1:1. Night view from a high-rise window in a Russian city, cold distant lights, thin cigarette smoke in a beam of light, dark minimal interior silhouette, deep shadows, muted blue-grey palette, photorealistic, film grain, no people faces, no hearts, no cliché symbols. Leave clean dark negative space in the lower third for bold typography \"kirillovec\". High detail, album cover composition.",
+    cover: "Square album cover for the project «НИЗКО». Dark minimalism: open window at night, city lights blurred outside, soft smoke drifting indoors, cold side light, almost black shadows, photorealistic still. Large bold title space for \"НИЗКО\" and small signature \"kirillovec\". Square 1:1, serious rap album artwork.",
+    smoke: "Album-ready frame: cigarette smoke in a sharp ray of light from a night window, dark room, city glow beyond the glass, cold cyan-grey tones, film grain, photorealistic. Square composition with empty dark area for typography. No faces.",
+    cinematic: "Cinematic night still for a rap album cover: wet asphalt reflecting neon, smoke in a light beam, deep contrast, teal and amber accents, 35mm film look, square 1:1, negative space for title.",
+    portrait: "Editorial half-portrait for album artwork: man in dim room light from a window, soft smoke, city bokeh, 85mm f/1.8, natural skin, serious expression, dark clothing. Square crop friendly.",
+    window: "Square album cover: close view of a night apartment window, condensation, distant tower blocks, thin smoke, cold blue light, almost monochrome, film grain. Lower area empty for \"kirillovec\".",
+    low: "Square cover concept «НИЗКО»: looking down from a balcony at night, sparse street lights far below, fog, deep black sky, cold desaturated colours. Bold negative space for НИЗКО."
   };
+
+  const audioPresets = {
+    nizko: {
+      genre: ["southern hip hop", "melodic rap"],
+      instruments: ["808 bass", "dark piano", "atmospheric pads", "sparse drums"],
+      mood: ["nocturnal", "melancholic", "introspective", "heavy atmosphere"],
+      vocal: ["male rap vocals", "melodic rap delivery", "emotional singing hooks"],
+      production: ["dark mix", "spacey reverb", "minimal arrangement", "cinematic atmosphere"],
+      lyrics: "[Intro]\nтишина и дым...\n\n[Verse]\nсмотришь вниз с балкона — огни далеко\nгород как чужой, а ты всё ещё тут\n\n[Chorus]\nнизко... слишком низко\nно дыхание ещё есть\n\n[Verse]\n\n[Chorus]\n\n[Outro]\n"
+    },
+    smoke: {
+      genre: ["cloud rap", "lo-fi hip hop"],
+      instruments: ["atmospheric pads", "vinyl crackle", "dark piano", "sparse drums"],
+      mood: ["nocturnal", "cold and distant", "nostalgic"],
+      vocal: ["male rap vocals", "raw spoken flow"],
+      production: ["dark mix", "spacey reverb", "tape saturation"],
+      lyrics: "[Verse]\nдым в луче из окна\nгород за стеклом — чужая жизнь\n\n[Chorus]\nостанься в этой ночи ещё немного\n\n[Verse]\n\n[Outro]\n"
+    },
+    trap: {
+      genre: ["trap rap", "southern hip hop"],
+      instruments: ["808 bass", "trap hi-hats", "atmospheric pads"],
+      mood: ["aggressive", "nocturnal", "heavy atmosphere"],
+      vocal: ["male rap vocals", "autotuned vocals", "double-tracked chorus"],
+      production: ["hard-hitting low end", "dark mix"],
+      lyrics: "[Intro]\n\n[Verse]\n\n[Chorus]\n\n[Verse]\n\n[Chorus]\n\n[Outro]\n"
+    },
+    melodic: {
+      genre: ["melodic rap", "emo rap"],
+      instruments: ["dark piano", "guitar sample", "atmospheric pads", "808 bass"],
+      mood: ["melancholic", "nostalgic", "introspective"],
+      vocal: ["melodic rap delivery", "emotional singing hooks", "autotuned vocals"],
+      production: ["spacey reverb", "cinematic atmosphere", "minimal arrangement"],
+      lyrics: "[Verse]\n\n[Chorus]\n\n[Verse]\n\n[Chorus]\n\n[Bridge]\n\n[Chorus]\n"
+    }
+  };
+
+  function buildStyle(){
+    const parts = [];
+    ["genre","instruments","mood","vocal","production"].forEach(k => {
+      if (selected[k].size) parts.push([...selected[k]].join(", "));
+    });
+    return parts.join(", ");
+  }
+
+  function refreshStyleOut(){
+    const s = buildStyle();
+    const el = $("#style-out");
+    if (el) el.textContent = s || "Выбери чипы выше — Style соберётся сам";
+    if ($("#style-count")) $("#style-count").textContent = s.length + " симв.";
+  }
+
+  document.querySelectorAll(".chip-row .chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const pillar = btn.closest("[data-pillar]")?.dataset.pillar;
+      const v = btn.dataset.v;
+      if (!pillar || !v) return;
+      if (selected[pillar].has(v)) { selected[pillar].delete(v); btn.classList.remove("active"); }
+      else { selected[pillar].add(v); btn.classList.add("active"); }
+      refreshStyleOut();
+    });
+  });
+
+  document.querySelectorAll("[data-audio-preset]").forEach(b => {
+    b.addEventListener("click", () => {
+      const p = audioPresets[b.dataset.audioPreset];
+      if (!p) return;
+      Object.keys(selected).forEach(k => selected[k].clear());
+      document.querySelectorAll(".chip-row .chip").forEach(c => c.classList.remove("active"));
+      ["genre","instruments","mood","vocal","production"].forEach(k => {
+        (p[k] || []).forEach(v => {
+          selected[k].add(v);
+          document.querySelectorAll(`.chip-row[data-pillar="${k}"] .chip`).forEach(chip => {
+            if (chip.dataset.v === v) chip.classList.add("active");
+          });
+        });
+      });
+      if ($("#lyrics") && p.lyrics) $("#lyrics").value = p.lyrics;
+      refreshStyleOut();
+      setMode("audio");
+      toast("Пресет применён");
+    });
+  });
+
+  document.querySelectorAll("[data-tag]").forEach(b => {
+    b.addEventListener("click", () => {
+      const ta = $("#lyrics");
+      if (!ta) return;
+      const tag = b.dataset.tag + "\n";
+      const start = ta.selectionStart || ta.value.length;
+      ta.value = ta.value.slice(0, start) + tag + ta.value.slice(start);
+      ta.focus();
+      ta.selectionStart = ta.selectionEnd = start + tag.length;
+    });
+  });
+
+  async function copyText(text, okMsg){
+    try { await navigator.clipboard.writeText(text); toast(okMsg || "Скопировано"); }
+    catch { toast("Не удалось скопировать"); }
+  }
+  if ($("#copy-style")) $("#copy-style").addEventListener("click", () => {
+    const s = buildStyle();
+    if (!s) { toast("Сначала выбери Style-чипы"); return; }
+    copyText(s, "Style скопирован — вставь в Suno");
+  });
+  if ($("#copy-lyrics")) $("#copy-lyrics").addEventListener("click", () => {
+    const t = ($("#lyrics")?.value || "").trim();
+    if (!t) { toast("Lyrics пустые"); return; }
+    copyText(t, "Lyrics скопированы");
+  });
+
   document.querySelectorAll("[data-prompt]").forEach(b => b.addEventListener("click", () => {
+    if (!prompt) return;
     prompt.value = examples[b.dataset.prompt] || prompt.value;
     if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000";
     prompt.focus();
@@ -48,126 +179,99 @@
   document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => {
     document.querySelectorAll("[data-view]").forEach(n => n.classList.toggle("active", n === b));
     const v = b.dataset.view;
-    if (v === "image" || v === "create") { setMode("image"); prompt.focus(); }
-    if (v === "history") $("#history-list")?.scrollIntoView({behavior:"smooth", block:"center"});
+    if (v === "audio") setMode("audio");
+    else if (v === "image" || v === "create") setMode("image");
+    else if (v === "history") $("#history-list")?.scrollIntoView({behavior:"smooth", block:"center"});
   }));
   document.querySelectorAll("[data-tool]").forEach(b => b.addEventListener("click", () => {
-    const tool = b.dataset.tool;
-    const map = {
-      animate: "Edit the uploaded image: add a subtle sense of motion in the frame, keep face and proportions, cinematic night light, photorealistic.",
-      edit: "Edit the uploaded image, keep composition. Change: ",
-      face: "Process the image, keep natural proportions and realistic lighting. Goal: ",
-      cover: examples.cover
-    };
-    const text = map[tool];
+    const map = { edit: "Edit the uploaded image, keep composition. Change: ", face: "Process the image, keep natural proportions. Goal: ", cover: examples.cover };
+    const text = map[b.dataset.tool];
     if (!text) return;
     setMode("image");
-    prompt.value = text;
-    if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000";
-    prompt.focus();
+    if (prompt) { prompt.value = text; if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000"; prompt.focus(); }
   }));
-  prompt.addEventListener("input", () => { if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000"; });
+  if (prompt) prompt.addEventListener("input", () => { if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000"; });
+
   function attachFile(file){
     if (!file) return;
-    if (!["image/jpeg","image/png","image/webp"].includes(file.type)) { toast("Поддерживаются JPG, PNG и WEBP. HEIC сначала преобразуй в JPG."); if ($("#file-input")) $("#file-input").value = ""; return; }
-    if (file.size > 4*1024*1024) { toast("Максимальный размер файла — 4 МБ."); if ($("#file-input")) $("#file-input").value = ""; return; }
+    if (!["image/jpeg","image/png","image/webp"].includes(file.type)) { toast("JPG, PNG или WEBP"); return; }
+    if (file.size > 4*1024*1024) { toast("Макс. 4 МБ"); return; }
     selectedFile = file;
     const old = $("#file-thumb");
     if (old?.dataset.url) URL.revokeObjectURL(old.dataset.url);
     const url = URL.createObjectURL(file);
     const img = document.createElement("img");
-    img.id = "file-thumb"; img.alt = "Предпросмотр"; img.src = url; img.dataset.url = url;
+    img.id = "file-thumb"; img.src = url; img.dataset.url = url; img.alt = "";
     old?.replaceWith(img);
     if ($("#file-name")) $("#file-name").textContent = file.name;
-    if ($("#file-size")) $("#file-size").textContent = (file.size/1048576).toFixed(2) + " МБ · будет уменьшено до 512px (лимит модели)";
+    if ($("#file-size")) $("#file-size").textContent = (file.size/1048576).toFixed(2) + " МБ · до 512px";
     if ($("#file-preview")) $("#file-preview").style.display = "flex";
     toast("Исходник прикреплён");
   }
   if ($("#file-input")) $("#file-input").addEventListener("change", e => attachFile(e.target.files?.[0]));
-  const upload = document.querySelector(".upload");
-  if (upload) {
-    ["dragenter","dragover"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = "var(--accent)"; }));
-    ["dragleave","drop"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = ""; }));
-    upload.addEventListener("drop", e => attachFile(e.dataTransfer.files?.[0]));
-    upload.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file-input")?.click(); } });
-  }
-  const removeBtn = $("#remove-file");
-  if (removeBtn) removeBtn.addEventListener("click", () => {
+  if ($("#remove-file")) $("#remove-file").addEventListener("click", () => {
     selectedFile = null;
     if ($("#file-input")) $("#file-input").value = "";
     const img = $("#file-thumb");
     if (img?.dataset.url) URL.revokeObjectURL(img.dataset.url);
     if ($("#file-preview")) $("#file-preview").style.display = "none";
   });
+
   function saveHistory(item){
-    const existing = localHistory.findIndex(entry => entry.id && entry.id === item.id);
-    if (existing >= 0) localHistory[existing] = item; else localHistory.push(item);
+    const i = localHistory.findIndex(e => e.id && e.id === item.id);
+    if (i >= 0) localHistory[i] = item; else localHistory.push(item);
     localHistory = localHistory.slice(-20);
-    const persisted = localHistory.map(entry => ({...entry}));
-    let imageBudget = 2 * 1024 * 1024;
-    for (let i = persisted.length - 1; i >= 0; i--) {
-      const url = persisted[i].resultUrl;
-      if (!url) continue;
-      if (url.length <= imageBudget) imageBudget -= url.length; else delete persisted[i].resultUrl;
-    }
-    try { localStorage.setItem(historyKey, JSON.stringify(persisted)); }
-    catch { try { localStorage.setItem(historyKey, JSON.stringify(persisted.map(({resultUrl, ...entry}) => entry))); } catch {} }
+    try { localStorage.setItem(historyKey, JSON.stringify(localHistory)); } catch {}
     renderHistory();
   }
   function renderHistory(){
     const list = $("#history-list");
     if (!list) return;
     list.replaceChildren();
-    if (!localHistory.length) {
-      list.innerHTML = '<div class="history-empty">История появится после запуска задач</div>';
-      if ($("#history-count")) $("#history-count").textContent = "0 задач";
-      return;
-    }
+    if (!localHistory.length) { list.innerHTML = '<div class="history-empty">История изображений</div>'; if ($("#history-count")) $("#history-count").textContent = "0"; return; }
     localHistory.slice().reverse().forEach(item => {
       const row = document.createElement("div");
       row.className = "history-item";
       const thumb = document.createElement("div");
       thumb.className = "history-thumb";
       if (item.resultUrl) {
-        const preview = document.createElement("img");
-        preview.src = item.resultUrl; preview.alt = ""; preview.loading = "lazy";
-        preview.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:8px";
-        thumb.append(preview);
+        const im = document.createElement("img");
+        im.src = item.resultUrl; im.alt = ""; im.loading = "lazy";
+        im.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:8px";
+        thumb.append(im);
       } else thumb.textContent = "▧";
       const detail = document.createElement("div");
       const title = document.createElement("strong");
-      title.textContent = (item.prompt || "Задача").slice(0, 65);
+      title.textContent = (item.prompt || "Задача").slice(0, 60);
       const meta = document.createElement("span");
-      meta.textContent = (labels[item.status] || item.status || "Подготовлено") + " · " + new Date(item.ts).toLocaleString("ru-RU");
+      meta.textContent = (labels[item.status] || item.status || "") + " · " + new Date(item.ts).toLocaleString("ru-RU");
       detail.append(title, meta);
       row.append(thumb, detail);
       row.addEventListener("click", () => {
-        prompt.value = item.prompt || "";
+        if (prompt) prompt.value = item.prompt || "";
         setMode("image");
-        if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000";
         if (item.resultUrl) showResult(item.resultUrl);
       });
       list.append(row);
     });
-    if ($("#history-count")) $("#history-count").textContent = localHistory.length + " задач";
+    if ($("#history-count")) $("#history-count").textContent = String(localHistory.length);
   }
   function showResult(url){
     const stage = $("#result-stage");
     if (!stage) return;
     stage.replaceChildren();
     const media = document.createElement("img");
-    media.src = url; media.alt = "Результат генерации"; media.loading = "eager";
-    const mime = (String(url).match(/^data:(image\/[a-z0-9.+-]+)/i) || [])[1] || "image/png";
-    const ext = mime.split("/")[1].replace("jpeg", "jpg").replace("svg+xml", "svg");
+    media.src = url; media.alt = "Результат"; media.loading = "eager";
     const actions = document.createElement("div");
-    actions.className = "result-actions";
-    const download = document.createElement("a");
-    download.href = url;
-    download.download = "kirillovec-ai-studio-" + new Date().toISOString().slice(0, 10) + "." + ext;
-    download.textContent = "↓ Скачать изображение";
-    actions.append(download);
+    actions.style.cssText = "display:flex;justify-content:center;margin-top:14px";
+    const a = document.createElement("a");
+    a.href = url; a.download = "kirillovec-" + Date.now() + ".jpg";
+    a.textContent = "↓ Скачать";
+    a.style.cssText = "padding:10px 16px;border:1px solid #57466f;border-radius:999px;background:#211a2d;color:#e6d8ff;font-size:12px;font-weight:700";
+    actions.append(a);
     stage.append(media, actions);
   }
+
   async function fileAsDataUrl(file){
     let bitmap;
     try {
@@ -178,134 +282,69 @@
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(1, Math.round(bitmap.width * scale));
       canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-      const context = canvas.getContext("2d", { alpha: false });
-      if (!context) throw new Error("Не удалось подготовить изображение.");
-      context.fillStyle = "#000";
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-      const blob = await new Promise((resolve, reject) => {
-        canvas.toBlob(v => v ? resolve(v) : reject(new Error("Не удалось сжать изображение.")), "image/jpeg", 0.85);
-      });
-      return await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error("Не удалось прочитать изображение."));
-        reader.readAsDataURL(blob);
-      });
-    } catch (error) {
-      throw new Error(error?.message || "Не удалось подготовить фото. Попробуй JPG (не HEIC).");
+      const ctx = canvas.getContext("2d", { alpha: false });
+      ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((res, rej) => canvas.toBlob(v => v ? res(v) : rej(new Error("compress")), "image/jpeg", 0.85));
+      return await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error("read")); r.readAsDataURL(blob); });
     } finally { bitmap?.close?.(); }
   }
+
   async function api(path, options = {}){
-    if (!apiBase) throw new Error("API сайта не настроен.");
+    if (!apiBase) throw new Error("API не настроен");
     const controller = new AbortController();
     const timeoutMs = options.timeoutMs || (path === "/api/v1/jobs" && options.method === "POST" ? 150000 : 30000);
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
-    const { timeoutMs: _t, signal: externalSignal, ...fetchOptions } = options;
-    if (externalSignal) externalSignal.addEventListener("abort", () => controller.abort(), { once: true });
     try {
-      const response = await fetch(apiBase + path, {
-        ...fetchOptions, signal: controller.signal, mode: "cors",
-        credentials: "include", headers: { ...(options.headers || {}) }
-      });
-      const contentType = response.headers.get("content-type") || "";
-      if (!contentType.toLowerCase().includes("application/json")) {
-        if (response.redirected || /cloudflareaccess|cdn-cgi\/access/i.test(response.url)) throw new Error("Cloudflare Access: авторизуйся на https://api.kirillovec.ru");
-        throw new Error("API вернул не JSON.");
-      }
+      const response = await fetch(apiBase + path, { ...options, signal: controller.signal, mode: "cors", credentials: "include", headers: { ...(options.headers || {}) } });
+      const ct = response.headers.get("content-type") || "";
+      if (!ct.includes("application/json")) throw new Error("API вернул не JSON");
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || data.error || ("Ошибка API: " + response.status));
+      if (!response.ok) throw new Error(data.message || data.error || ("Ошибка " + response.status));
       return data;
     } catch (err) {
-      if (controller.signal.aborted || err?.name === "AbortError" || err?.name === "TimeoutError") {
-        throw new Error(timeoutMs >= 120000 ? "Генерация заняла слишком много времени. Попробуй без исходного фото или меньший JPG." : "API не ответил вовремя.");
-      }
-      if (err instanceof TypeError) throw new Error("Не удалось связаться с API.");
+      if (controller.signal.aborted) throw new Error(timeoutMs >= 120000 ? "Таймаут генерации. Попробуй без фото." : "API не ответил");
+      if (err instanceof TypeError) throw new Error("Нет связи с API");
       throw err;
     } finally { clearTimeout(timeout); }
   }
+
   async function refreshCapabilities(){
     try {
       const data = await api("/api/v1/capabilities", { cache: "no-store", timeoutMs: 25000 });
       capabilities = data;
-      const image = data.image?.enabled;
-      if ($("#integration-hint")) $("#integration-hint").textContent = "API доступен. Изображения: " + (image ? "подключено" : "не подключено") + ".";
+      if ($("#integration-hint")) $("#integration-hint").textContent = "API: изображения " + (data.image?.enabled ? "ок" : "нет") + " · аудио = Suno helper";
       updateAvailability();
-      return data;
     } catch (e) {
       capabilities = null;
-      if ($("#integration-hint")) $("#integration-hint").textContent = "API пока недоступен: " + e.message;
+      if ($("#integration-hint")) $("#integration-hint").textContent = "API: " + e.message;
       updateAvailability();
-      if ($("#model-hint")) $("#model-hint").textContent = e.message;
-      return null;
     }
   }
-  async function pollJob(jobId){
-    clearInterval(pollTimer);
-    let attempts = 0;
-    const check = async () => {
-      try {
-        const data = await api("/api/v1/jobs/" + encodeURIComponent(jobId));
-        setStatus(labels[data.status] || data.status || "Выполняется");
-        if (data.resultUrl) {
-          clearInterval(pollTimer);
-          showResult(data.resultUrl);
-          setStatus("Готово");
-          setNotice("Генерация завершена.");
-          const item = localHistory.find(x => x.id === jobId);
-          if (item) { item.status = "succeeded"; item.resultUrl = data.resultUrl; saveHistory(item); }
-          return;
-        }
-        if (["failed","canceled"].includes(data.status)) {
-          clearInterval(pollTimer);
-          setNotice(data.error || "Ошибка задачи.", "error");
-          return;
-        }
-        if (++attempts > 180) { clearInterval(pollTimer); setNotice("Ожидание остановлено по тайм-ауту.", "error"); }
-      } catch (e) { clearInterval(pollTimer); setNotice(e.message, "error"); }
-    };
-    await check();
-    pollTimer = setInterval(check, Math.max(4000, Number(config.pollIntervalMs) || 5000));
-  }
-  if ($("#model-source")) $("#model-source").addEventListener("change", updateAvailability);
-  $("#generate").addEventListener("click", async () => {
-    const text = prompt.value.trim();
-    if (mode === "video") {
-      if (!text) { toast("Сначала опиши движение и сцену."); prompt.focus(); return; }
-      try { await navigator.clipboard.writeText(text); toast("Промпт скопирован."); setNotice("Промпт скопирован. Вставь его на внешней площадке."); }
-      catch { toast("Не удалось скопировать."); }
-      return;
-    }
-    if (!text) { toast("Сначала опиши, что хочешь создать."); prompt.focus(); return; }
-    if (!capabilities?.image?.enabled) { toast("Модель изображений не подключена."); return; }
+
+  if ($("#generate")) $("#generate").addEventListener("click", async () => {
+    if (mode !== "image") return;
+    const text = (prompt?.value || "").trim();
+    if (!text) { toast("Опиши, что создать"); return; }
+    if (!capabilities?.image?.enabled) { toast("Модель не подключена"); return; }
     const btn = $("#generate");
     btn.disabled = true;
-    setStatus("Запускается");
-    setNotice("Отправляем задание…");
+    setStatus("Генерация…");
+    setNotice("Отправляем…");
     try {
       const body = { mode: "image", prompt: text };
-      if (selectedFile) {
-        setStatus("Подготовка фото…");
-        body.imageDataUrl = await fileAsDataUrl(selectedFile);
-      }
-      setStatus("Генерация…");
-      const job = await api("/api/v1/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-        timeoutMs: 150000
-      });
+      if (selectedFile) body.imageDataUrl = await fileAsDataUrl(selectedFile);
+      const job = await api("/api/v1/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), timeoutMs: 150000 });
       const item = { id: job.id, prompt: text, status: job.status || "queued", ts: Date.now() };
       if (job.resultUrl) {
         item.status = "succeeded"; item.resultUrl = job.resultUrl; saveHistory(item);
-        showResult(job.resultUrl); setStatus("Готово"); setNotice("Генерация завершена.");
-      } else {
-        saveHistory(item); setStatus(labels[job.status] || "В очереди"); setNotice("Задание принято. Ожидаем результат…"); pollJob(job.id);
-      }
+        showResult(job.resultUrl); setStatus("Готово"); setNotice("Готово.");
+      } else { saveHistory(item); setNotice("В очереди…"); }
     } catch (e) {
-      setStatus("Не запущено"); setNotice(e.message, "error"); toast(e.message);
+      setStatus("Ошибка"); setNotice(e.message, "error"); toast(e.message);
     } finally { updateAvailability(); }
   });
+
   try {
     const saved = JSON.parse(localStorage.getItem(historyKey) || "[]");
     if (Array.isArray(saved)) localHistory = saved.filter(x => x && typeof x.prompt === "string").slice(-20);
@@ -315,11 +354,11 @@
   try {
     const params = new URLSearchParams(location.search);
     const preset = params.get("preset");
-    if (preset && examples[preset]) {
+    if (preset && examples[preset] && prompt) {
       prompt.value = examples[preset];
       if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000";
-      if (history.replaceState) history.replaceState(null, "", "/studio/");
     }
+    if (params.get("tab") === "audio") setMode("audio");
   } catch {}
   refreshCapabilities();
 })();
