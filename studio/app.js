@@ -65,7 +65,7 @@
   function attachFile(file){
     if (!file) return;
     if (!["image/jpeg","image/png","image/webp"].includes(file.type)) { toast("Поддерживаются JPG, PNG и WEBP. HEIC сначала преобразуй в JPG."); $("#file-input").value = ""; return; }
-    if (file.size > 4*1024*1024) { toast("Максимальный размер файла — 4 МБ. Уменьши изображение или сохрани его в WEBP."); $("#file-input").value = ""; return; }
+    if (file.size > 4*1024*1024) { toast("Максимальный размер файла — 4 МБ. Уменьши изображение."); $("#file-input").value = ""; return; }
     selectedFile = file;
     const old = $("#file-thumb");
     if (old?.dataset.url) URL.revokeObjectURL(old.dataset.url);
@@ -74,17 +74,20 @@
     img.id = "file-thumb"; img.alt = "Предпросмотр"; img.src = url; img.dataset.url = url;
     old?.replaceWith(img);
     $("#file-name").textContent = file.name;
-    $("#file-size").textContent = (file.size/1048576).toFixed(2) + " МБ · перед отправкой будет перекодировано в JPG";
+    $("#file-size").textContent = (file.size/1048576).toFixed(2) + " МБ · будет уменьшено до 512px (лимит модели)";
     $("#file-preview").style.display = "flex";
     toast("Исходник прикреплён");
   }
   $("#file-input").addEventListener("change", e => attachFile(e.target.files?.[0]));
   const upload = document.querySelector(".upload");
-  ["dragenter","dragover"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = "var(--accent)"; }));
-  ["dragleave","drop"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = ""; }));
-  upload.addEventListener("drop", e => attachFile(e.dataTransfer.files?.[0]));
-  upload.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file-input").click(); } });
-  $("#remove-file").addEventListener("click", () => {
+  if (upload) {
+    ["dragenter","dragover"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = "var(--accent)"; }));
+    ["dragleave","drop"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = ""; }));
+    upload.addEventListener("drop", e => attachFile(e.dataTransfer.files?.[0]));
+    upload.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file-input").click(); } });
+  }
+  const removeBtn = $("#remove-file");
+  if (removeBtn) removeBtn.addEventListener("click", () => {
     selectedFile = null;
     $("#file-input").value = "";
     const img = $("#file-thumb");
@@ -104,21 +107,17 @@
       if (url.length <= imageBudget) imageBudget -= url.length;
       else delete persisted[i].resultUrl;
     }
-    try {
-      localStorage.setItem(historyKey, JSON.stringify(persisted));
-    } catch {
-      try {
-        localStorage.setItem(historyKey, JSON.stringify(persisted.map(({resultUrl, ...entry}) => entry)));
-      } catch {}
-    }
+    try { localStorage.setItem(historyKey, JSON.stringify(persisted)); }
+    catch { try { localStorage.setItem(historyKey, JSON.stringify(persisted.map(({resultUrl, ...entry}) => entry))); } catch {} }
     renderHistory();
   }
   function renderHistory(){
     const list = $("#history-list");
+    if (!list) return;
     list.replaceChildren();
     if (!localHistory.length) {
       list.innerHTML = '<div class="history-empty">История появится после запуска задач</div>';
-      $("#history-count").textContent = "0 задач";
+      if ($("#history-count")) $("#history-count").textContent = "0 задач";
       return;
     }
     localHistory.slice().reverse().forEach(item => {
@@ -128,14 +127,10 @@
       thumb.className = "history-thumb";
       if (item.resultUrl) {
         const preview = document.createElement("img");
-        preview.src = item.resultUrl;
-        preview.alt = "";
-        preview.loading = "lazy";
+        preview.src = item.resultUrl; preview.alt = ""; preview.loading = "lazy";
         preview.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:8px";
         thumb.append(preview);
-      } else {
-        thumb.textContent = "▧";
-      }
+      } else thumb.textContent = "▧";
       const detail = document.createElement("div");
       const title = document.createElement("strong");
       title.textContent = (item.prompt || "Задача").slice(0, 65);
@@ -146,20 +141,19 @@
       row.addEventListener("click", () => {
         prompt.value = item.prompt || "";
         setMode("image");
-        $("#prompt-count").textContent = prompt.value.length + " / 2000";
+        if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000";
         if (item.resultUrl) showResult(item.resultUrl);
       });
       list.append(row);
     });
-    $("#history-count").textContent = localHistory.length + " задач";
+    if ($("#history-count")) $("#history-count").textContent = localHistory.length + " задач";
   }
   function showResult(url){
     const stage = $("#result-stage");
+    if (!stage) return;
     stage.replaceChildren();
     const media = document.createElement("img");
-    media.src = url;
-    media.alt = "Результат генерации";
-    media.loading = "eager";
+    media.src = url; media.alt = "Результат генерации"; media.loading = "eager";
     const mime = (String(url).match(/^data:(image\/[a-z0-9.+-]+)/i) || [])[1] || "image/png";
     const ext = mime.split("/")[1].replace("jpeg", "jpg").replace("svg+xml", "svg");
     const actions = document.createElement("div");
@@ -168,21 +162,16 @@
     download.href = url;
     download.download = "kirillovec-ai-studio-" + new Date().toISOString().slice(0, 10) + "." + ext;
     download.textContent = "↓ Скачать изображение";
-    download.setAttribute("aria-label", "Скачать созданное изображение");
     actions.append(download);
     stage.append(media, actions);
   }
   async function fileAsDataUrl(file){
-    // Always re-encode to JPEG so Workers AI / Flux can decode reliably.
-    // WebP and some progressive JPEGs fail with "source image could not be decoded".
+    // Flux img2img requires input images smaller than 512x512 (Cloudflare Workers AI docs).
     let bitmap;
     try {
-      try {
-        bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-      } catch {
-        bitmap = await createImageBitmap(file);
-      }
-      const maxSide = 1024;
+      try { bitmap = await createImageBitmap(file, { imageOrientation: "from-image" }); }
+      catch { bitmap = await createImageBitmap(file); }
+      const maxSide = 512;
       const scale = Math.min(1, maxSide / bitmap.width, maxSide / bitmap.height);
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(1, Math.round(bitmap.width * scale));
@@ -193,45 +182,24 @@
       context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
       const blob = await new Promise((resolve, reject) => {
-        canvas.toBlob(
-          value => value ? resolve(value) : reject(new Error("Не удалось сжать исходное изображение.")),
-          "image/jpeg",
-          0.9
-        );
+        canvas.toBlob(v => v ? resolve(v) : reject(new Error("Не удалось сжать изображение.")), "image/jpeg", 0.85);
       });
-      if (blob.size > 3.5 * 1024 * 1024) {
-        const blob2 = await new Promise((resolve, reject) => {
-          canvas.toBlob(
-            value => value ? resolve(value) : reject(new Error("Не удалось сжать исходное изображение.")),
-            "image/jpeg",
-            0.72
-          );
-        });
-        return await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = () => reject(new Error("Не удалось прочитать подготовленное изображение."));
-          reader.readAsDataURL(blob2);
-        });
-      }
       return await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error("Не удалось прочитать подготовленное изображение."));
+        reader.onerror = () => reject(new Error("Не удалось прочитать изображение."));
         reader.readAsDataURL(blob);
       });
     } catch (error) {
-      throw new Error(error?.message || "Не удалось подготовить фото. Попробуй JPG или PNG (не HEIC).");
-    } finally {
-      bitmap?.close?.();
-    }
+      throw new Error(error?.message || "Не удалось подготовить фото. Попробуй JPG (не HEIC).");
+    } finally { bitmap?.close?.(); }
   }
   async function api(path, options = {}){
     if (!apiBase) throw new Error("API сайта не настроен.");
     const controller = new AbortController();
-    const timeoutMs = options.timeoutMs || (path === "/api/v1/jobs" && options.method === "POST" ? 120000 : 30000);
+    const timeoutMs = options.timeoutMs || (path === "/api/v1/jobs" && options.method === "POST" ? 150000 : 30000);
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
-    const { timeoutMs: _timeoutMs, signal: externalSignal, ...fetchOptions } = options;
+    const { timeoutMs: _t, signal: externalSignal, ...fetchOptions } = options;
     if (externalSignal) externalSignal.addEventListener("abort", () => controller.abort(), { once: true });
     try {
       const response = await fetch(apiBase + path, {
@@ -241,44 +209,36 @@
       const contentType = response.headers.get("content-type") || "";
       if (!contentType.toLowerCase().includes("application/json")) {
         if (response.redirected || /cloudflareaccess|cdn-cgi\/access/i.test(response.url)) {
-          throw new Error("Cloudflare Access перенаправил запрос на страницу входа. Сначала авторизуйся на https://api.kirillovec.ru, затем обнови AI Studio.");
+          throw new Error("Cloudflare Access: сначала авторизуйся на https://api.kirillovec.ru");
         }
-        throw new Error("API вернул не JSON. Проверь адрес сервера и настройки Cloudflare Access.");
+        throw new Error("API вернул не JSON.");
       }
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || data.error || ("Ошибка API: " + response.status));
       return data;
     } catch (err) {
       if (controller.signal.aborted || err?.name === "AbortError" || err?.name === "TimeoutError") {
-        throw new Error(timeoutMs >= 120000 ? "Сервер не завершил генерацию за 2 минуты. Проверь лимит Workers AI и попробуй ещё раз." : "API не ответил вовремя. Проверь соединение и авторизацию Cloudflare Access.");
+        throw new Error(timeoutMs >= 120000
+          ? "Генерация заняла слишком много времени. Попробуй без исходного фото или загрузи меньший JPG."
+          : "API не ответил вовремя.");
       }
-      if (err instanceof TypeError) throw new Error("Не удалось связаться с API (" + apiBase + "). Проверь CORS, Cloudflare Access и доступность сервера.");
+      if (err instanceof TypeError) throw new Error("Не удалось связаться с API.");
       throw err;
     } finally { clearTimeout(timeout); }
   }
   async function refreshCapabilities(){
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 25000);
-      let data;
-      try {
-        data = await api("/api/v1/capabilities", {
-          signal: controller.signal,
-          cache: "no-store"
-        });
-      } finally {
-        clearTimeout(timeout);
-      }
+      const data = await api("/api/v1/capabilities", { cache: "no-store", timeoutMs: 25000 });
       capabilities = data;
       const image = data.image?.enabled;
-      $("#integration-hint").textContent = "API доступен. Изображения: " + (image ? "подключено" : "не подключено") + ".";
+      if ($("#integration-hint")) $("#integration-hint").textContent = "API доступен. Изображения: " + (image ? "подключено" : "не подключено") + ".";
       updateAvailability();
       return data;
     } catch (e) {
       capabilities = null;
-      $("#integration-hint").textContent = "API пока недоступен: " + e.message;
+      if ($("#integration-hint")) $("#integration-hint").textContent = "API пока недоступен: " + e.message;
       updateAvailability();
-      $("#model-hint").textContent = e.message;
+      if ($("#model-hint")) $("#model-hint").textContent = e.message;
       return null;
     }
   }
@@ -293,19 +253,19 @@
           clearInterval(pollTimer);
           showResult(data.resultUrl);
           setStatus("Готово");
-          setNotice("Генерация завершена. Результат получен через API сайта.");
+          setNotice("Генерация завершена.");
           const item = localHistory.find(x => x.id === jobId);
           if (item) { item.status = "succeeded"; item.resultUrl = data.resultUrl; saveHistory(item); }
           return;
         }
         if (["failed","canceled"].includes(data.status)) {
           clearInterval(pollTimer);
-          setNotice(data.error || "Провайдер завершил задачу с ошибкой.", "error");
+          setNotice(data.error || "Ошибка задачи.", "error");
           return;
         }
         if (++attempts > 180) {
           clearInterval(pollTimer);
-          setNotice("Ожидание остановлено по тайм-ауту. Задача могла продолжить работу на сервере.", "error");
+          setNotice("Ожидание остановлено по тайм-ауту.", "error");
         }
       } catch (e) {
         clearInterval(pollTimer);
@@ -315,18 +275,16 @@
     await check();
     pollTimer = setInterval(check, Math.max(4000, Number(config.pollIntervalMs) || 5000));
   }
-  $("#model-source").addEventListener("change", updateAvailability);
+  if ($("#model-source")) $("#model-source").addEventListener("change", updateAvailability);
   $("#generate").addEventListener("click", async () => {
     const text = prompt.value.trim();
     if (mode === "video") {
       if (!text) { toast("Сначала опиши движение и сцену."); prompt.focus(); return; }
       try {
         await navigator.clipboard.writeText(text);
-        toast("Промпт скопирован. Загрузи исходник на выбранной площадке.");
-        setNotice("Промпт скопирован в буфер. Открой внешний сервис и вставь описание там.");
-      } catch {
-        toast("Не удалось скопировать. Выдели текст вручную.");
-      }
+        toast("Промпт скопирован.");
+        setNotice("Промпт скопирован. Вставь его на внешней площадке.");
+      } catch { toast("Не удалось скопировать."); }
       return;
     }
     if (!text) { toast("Сначала опиши, что хочешь создать."); prompt.focus(); return; }
@@ -334,24 +292,19 @@
     const btn = $("#generate");
     btn.disabled = true;
     setStatus("Запускается");
-    setNotice("Отправляем задание в API…");
+    setNotice("Отправляем задание…");
     try {
-      const body = {
-        mode: "image",
-        prompt: text,
-        aspectRatio: ($("#ratio") && $("#ratio").value === "auto") ? "1:1" : (($("#ratio") && $("#ratio").value) || "1:1"),
-        modelSource: ($("#model-source") && $("#model-source").value) || "api"
-      };
+      const body = { mode: "image", prompt: text };
       if (selectedFile) {
         setStatus("Подготовка фото…");
         body.imageDataUrl = await fileAsDataUrl(selectedFile);
       }
-      setStatus("Отправка в генератор…");
+      setStatus("Генерация…");
       const job = await api("/api/v1/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-        timeoutMs: 120000
+        timeoutMs: 150000
       });
       const item = { id: job.id, prompt: text, status: job.status || "queued", ts: Date.now() };
       if (job.resultUrl) {
@@ -386,7 +339,7 @@
     const preset = params.get("preset");
     if (preset && examples[preset]) {
       prompt.value = examples[preset];
-      $("#prompt-count").textContent = prompt.value.length + " / 2000";
+      if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000";
       if (history.replaceState) history.replaceState(null, "", "/studio/");
     }
   } catch {}
