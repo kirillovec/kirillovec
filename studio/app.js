@@ -12,31 +12,36 @@
   function updateAvailability(){
     const enabled = mode === "video" || Boolean(capabilities?.image?.enabled);
     const btn = $("#generate");
+    if (!btn) return;
     btn.disabled = !enabled;
     btn.textContent = mode === "video" ? "▶　Скопировать промпт для видео" : (enabled ? "✦　Создать изображение" : "Модель не подключена");
-    $("#model-hint").textContent = mode === "video" ? "Видео готовится через внешнюю площадку: скопируй промпт и загрузи исходник там вручную." : (enabled ? "Модель доступна. Задание будет выполнено через API сайта." : "Для генерации изображений ещё не подключена модель.");
-    $("#video-providers").style.display = mode === "video" ? "block" : "none";
+    const hint = $("#model-hint");
+    if (hint) hint.textContent = mode === "video" ? "Видео: скопируй промпт и загрузи исходник на внешней площадке." : (enabled ? "Модель доступна." : "Модель изображений не подключена.");
+    const vp = $("#video-providers");
+    if (vp) vp.style.display = mode === "video" ? "block" : "none";
   }
   function setMode(next){
     mode = next === "video" ? "video" : "image";
     document.querySelectorAll("[data-mode]").forEach(b => { const active = b.dataset.mode === mode; b.classList.toggle("active", active); b.setAttribute("aria-pressed", String(active)); });
-    $("#mode-caption").textContent = mode === "video" ? "Фото → видео · внешний сервис" : "Текст → изображение";
-    $("#crumb-title").textContent = mode === "video" ? "Видео" : "Изображения";
-    $("#page-title").textContent = mode === "video" ? "Оживи исходное фото" : "Преврати идею в визуал";
-    $("#page-subtitle").textContent = mode === "video" ? "Опиши движение и сцену. Скопируй промпт и передай фото выбранному видеосервису." : "Создавай изображения по описанию или редактируй исходный кадр.";
+    if ($("#mode-caption")) $("#mode-caption").textContent = mode === "video" ? "Фото → видео · внешний сервис" : "Текст → изображение";
+    if ($("#crumb-title")) $("#crumb-title").textContent = mode === "video" ? "Видео" : "Изображения";
+    if ($("#page-title")) $("#page-title").textContent = mode === "video" ? "Оживи исходное фото" : "Преврати идею в визуал";
+    if ($("#page-subtitle")) $("#page-subtitle").textContent = mode === "video" ? "Опиши движение и сцену. Скопируй промпт и передай фото выбранному видеосервису." : "Создавай изображения по описанию или редактируй исходный кадр.";
     if ($("#file-input")) $("#file-input").accept = "image/png,image/jpeg,image/webp";
     updateAvailability();
   }
   const examples = {
-    cinematic: "Кинематографичный ночной кадр: мокрый асфальт, холодный неоновый свет, дым в луче, глубокие тени, плёночная цветокоррекция, высокая детализация, реалистичная фактура, cinematic still, 35mm.",
-    portrait: "Реалистичный портрет мужчины в полумраке, мягкий боковой свет из окна, лёгкий сигаретный дым, городской фон в боке, объектив 85mm f/1.8, editorial photography, естественная кожа, без ретуши.",
-    music: "Обложка рэп-трека: окно московской многоэтажки ночью, холодные городские огни, тонкий дым, тёмный минимализм, реалистичная фотография, без клише и сердечек, крупная типографика kirillovec, album cover composition.",
-    smoke: "Атмосфера дыма и ночи: сигаретный дым в луче света из окна, тёмный интерьер, городские огни за стеклом, холодные сине-серые тона, кинематографичный реализм, film grain, mood of solitude.",
-    cover: "Обложка альбома «НИЗКО»: тёмный минимализм, окно в ночной город, дым, холодный свет, реалистичная фотография, крупная типографика НИЗКО / kirillovec, square album cover, high detail."
+    music: "Square album cover, 1:1. Night view from a high-rise window in a Russian city, cold distant lights, thin cigarette smoke in a beam of light, dark minimal interior silhouette, deep shadows, muted blue-grey palette, photorealistic, film grain, no people faces, no hearts, no cliché symbols. Leave clean dark negative space in the lower third for bold typography \"kirillovec\". High detail, album cover composition, editorial music artwork.",
+    cover: "Square album cover for the project «НИЗКО». Dark minimalism: open window at night, city lights blurred outside, soft smoke drifting indoors, cold side light, almost black shadows, restrained colour, photorealistic still. Large bold title space for \"НИЗКО\" and small signature \"kirillovec\". No faces, no decorative clichés, no cartoon style. Square 1:1, high detail, serious rap album artwork.",
+    smoke: "Album-ready frame: cigarette smoke in a sharp ray of light from a night window, dark room, city glow beyond the glass, cold cyan-grey tones, heavy atmosphere of solitude, film grain, photorealistic, cinematic still. Square composition with empty dark area for typography. Mood of late night and emptiness. No text in the image, no logos, no faces.",
+    cinematic: "Cinematic night still for a rap album cover: wet asphalt reflecting neon, smoke in a light beam, deep contrast, teal and amber accents, 35mm film look, high detail, square 1:1 framing, strong negative space for title. Urban, cold, no people in focus, no hearts or glitter. Photorealistic album artwork mood.",
+    portrait: "Editorial half-portrait for album artwork: man in dim room light from a window, soft smoke, city bokeh outside, 85mm f/1.8 look, natural skin, serious expression, dark clothing, muted colours. Square crop friendly, space near edges for typography. Photorealistic, no heavy retouch, no cliché poses.",
+    window: "Square album cover: close view of a night apartment window, condensation and soft reflections, distant tower blocks, one thin trail of smoke, cold blue light, almost monochrome, photorealistic, film grain. Minimal, quiet, heavy mood. Leave lower area dark and empty for the name \"kirillovec\".",
+    low: "Square cover concept «НИЗКО»: looking down from a balcony at night, sparse street lights far below, fog or smoke in the air, deep black sky, cold desaturated colours, photorealistic, cinematic. Feeling of being low and detached. Bold negative space for the word НИЗКО. No people, no symbols, album cover composition."
   };
   document.querySelectorAll("[data-prompt]").forEach(b => b.addEventListener("click", () => {
     prompt.value = examples[b.dataset.prompt] || prompt.value;
-    $("#prompt-count").textContent = prompt.value.length + " / 2000";
+    if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000";
     prompt.focus();
   }));
   document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
@@ -44,28 +49,28 @@
     document.querySelectorAll("[data-view]").forEach(n => n.classList.toggle("active", n === b));
     const v = b.dataset.view;
     if (v === "image" || v === "create") { setMode("image"); prompt.focus(); }
-    if (v === "history") $("#history-list").scrollIntoView({behavior:"smooth", block:"center"});
+    if (v === "history") $("#history-list")?.scrollIntoView({behavior:"smooth", block:"center"});
   }));
   document.querySelectorAll("[data-tool]").forEach(b => b.addEventListener("click", () => {
     const tool = b.dataset.tool;
     const map = {
-      animate: "Отредактируй загруженное изображение: добавь естественное ощущение движения в кадре, сохрани внешность и пропорции, кинематографичный свет.",
-      edit: "Отредактируй загруженное изображение, сохранив композицию. Измени: ",
-      face: "Обработай изображение с сохранением естественных пропорций и реалистичного освещения. Цель: ",
+      animate: "Edit the uploaded image: add a subtle sense of motion in the frame, keep face and proportions, cinematic night light, photorealistic.",
+      edit: "Edit the uploaded image, keep composition. Change: ",
+      face: "Process the image, keep natural proportions and realistic lighting. Goal: ",
       cover: examples.cover
     };
     const text = map[tool];
     if (!text) return;
     setMode("image");
     prompt.value = text;
-    $("#prompt-count").textContent = prompt.value.length + " / 2000";
+    if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000";
     prompt.focus();
   }));
-  prompt.addEventListener("input", () => $("#prompt-count").textContent = prompt.value.length + " / 2000");
+  prompt.addEventListener("input", () => { if ($("#prompt-count")) $("#prompt-count").textContent = prompt.value.length + " / 2000"; });
   function attachFile(file){
     if (!file) return;
-    if (!["image/jpeg","image/png","image/webp"].includes(file.type)) { toast("Поддерживаются JPG, PNG и WEBP. HEIC сначала преобразуй в JPG."); $("#file-input").value = ""; return; }
-    if (file.size > 4*1024*1024) { toast("Максимальный размер файла — 4 МБ. Уменьши изображение."); $("#file-input").value = ""; return; }
+    if (!["image/jpeg","image/png","image/webp"].includes(file.type)) { toast("Поддерживаются JPG, PNG и WEBP. HEIC сначала преобразуй в JPG."); if ($("#file-input")) $("#file-input").value = ""; return; }
+    if (file.size > 4*1024*1024) { toast("Максимальный размер файла — 4 МБ."); if ($("#file-input")) $("#file-input").value = ""; return; }
     selectedFile = file;
     const old = $("#file-thumb");
     if (old?.dataset.url) URL.revokeObjectURL(old.dataset.url);
@@ -73,39 +78,37 @@
     const img = document.createElement("img");
     img.id = "file-thumb"; img.alt = "Предпросмотр"; img.src = url; img.dataset.url = url;
     old?.replaceWith(img);
-    $("#file-name").textContent = file.name;
-    $("#file-size").textContent = (file.size/1048576).toFixed(2) + " МБ · будет уменьшено до 512px (лимит модели)";
-    $("#file-preview").style.display = "flex";
+    if ($("#file-name")) $("#file-name").textContent = file.name;
+    if ($("#file-size")) $("#file-size").textContent = (file.size/1048576).toFixed(2) + " МБ · будет уменьшено до 512px (лимит модели)";
+    if ($("#file-preview")) $("#file-preview").style.display = "flex";
     toast("Исходник прикреплён");
   }
-  $("#file-input").addEventListener("change", e => attachFile(e.target.files?.[0]));
+  if ($("#file-input")) $("#file-input").addEventListener("change", e => attachFile(e.target.files?.[0]));
   const upload = document.querySelector(".upload");
   if (upload) {
     ["dragenter","dragover"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = "var(--accent)"; }));
     ["dragleave","drop"].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.style.borderColor = ""; }));
     upload.addEventListener("drop", e => attachFile(e.dataTransfer.files?.[0]));
-    upload.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file-input").click(); } });
+    upload.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file-input")?.click(); } });
   }
   const removeBtn = $("#remove-file");
   if (removeBtn) removeBtn.addEventListener("click", () => {
     selectedFile = null;
-    $("#file-input").value = "";
+    if ($("#file-input")) $("#file-input").value = "";
     const img = $("#file-thumb");
     if (img?.dataset.url) URL.revokeObjectURL(img.dataset.url);
-    $("#file-preview").style.display = "none";
+    if ($("#file-preview")) $("#file-preview").style.display = "none";
   });
   function saveHistory(item){
     const existing = localHistory.findIndex(entry => entry.id && entry.id === item.id);
-    if (existing >= 0) localHistory[existing] = item;
-    else localHistory.push(item);
+    if (existing >= 0) localHistory[existing] = item; else localHistory.push(item);
     localHistory = localHistory.slice(-20);
     const persisted = localHistory.map(entry => ({...entry}));
     let imageBudget = 2 * 1024 * 1024;
     for (let i = persisted.length - 1; i >= 0; i--) {
       const url = persisted[i].resultUrl;
       if (!url) continue;
-      if (url.length <= imageBudget) imageBudget -= url.length;
-      else delete persisted[i].resultUrl;
+      if (url.length <= imageBudget) imageBudget -= url.length; else delete persisted[i].resultUrl;
     }
     try { localStorage.setItem(historyKey, JSON.stringify(persisted)); }
     catch { try { localStorage.setItem(historyKey, JSON.stringify(persisted.map(({resultUrl, ...entry}) => entry))); } catch {} }
@@ -166,7 +169,6 @@
     stage.append(media, actions);
   }
   async function fileAsDataUrl(file){
-    // Flux img2img requires input images smaller than 512x512 (Cloudflare Workers AI docs).
     let bitmap;
     try {
       try { bitmap = await createImageBitmap(file, { imageOrientation: "from-image" }); }
@@ -208,9 +210,7 @@
       });
       const contentType = response.headers.get("content-type") || "";
       if (!contentType.toLowerCase().includes("application/json")) {
-        if (response.redirected || /cloudflareaccess|cdn-cgi\/access/i.test(response.url)) {
-          throw new Error("Cloudflare Access: сначала авторизуйся на https://api.kirillovec.ru");
-        }
+        if (response.redirected || /cloudflareaccess|cdn-cgi\/access/i.test(response.url)) throw new Error("Cloudflare Access: авторизуйся на https://api.kirillovec.ru");
         throw new Error("API вернул не JSON.");
       }
       const data = await response.json().catch(() => ({}));
@@ -218,9 +218,7 @@
       return data;
     } catch (err) {
       if (controller.signal.aborted || err?.name === "AbortError" || err?.name === "TimeoutError") {
-        throw new Error(timeoutMs >= 120000
-          ? "Генерация заняла слишком много времени. Попробуй без исходного фото или загрузи меньший JPG."
-          : "API не ответил вовремя.");
+        throw new Error(timeoutMs >= 120000 ? "Генерация заняла слишком много времени. Попробуй без исходного фото или меньший JPG." : "API не ответил вовремя.");
       }
       if (err instanceof TypeError) throw new Error("Не удалось связаться с API.");
       throw err;
@@ -263,14 +261,8 @@
           setNotice(data.error || "Ошибка задачи.", "error");
           return;
         }
-        if (++attempts > 180) {
-          clearInterval(pollTimer);
-          setNotice("Ожидание остановлено по тайм-ауту.", "error");
-        }
-      } catch (e) {
-        clearInterval(pollTimer);
-        setNotice(e.message, "error");
-      }
+        if (++attempts > 180) { clearInterval(pollTimer); setNotice("Ожидание остановлено по тайм-ауту.", "error"); }
+      } catch (e) { clearInterval(pollTimer); setNotice(e.message, "error"); }
     };
     await check();
     pollTimer = setInterval(check, Math.max(4000, Number(config.pollIntervalMs) || 5000));
@@ -280,11 +272,8 @@
     const text = prompt.value.trim();
     if (mode === "video") {
       if (!text) { toast("Сначала опиши движение и сцену."); prompt.focus(); return; }
-      try {
-        await navigator.clipboard.writeText(text);
-        toast("Промпт скопирован.");
-        setNotice("Промпт скопирован. Вставь его на внешней площадке.");
-      } catch { toast("Не удалось скопировать."); }
+      try { await navigator.clipboard.writeText(text); toast("Промпт скопирован."); setNotice("Промпт скопирован. Вставь его на внешней площадке."); }
+      catch { toast("Не удалось скопировать."); }
       return;
     }
     if (!text) { toast("Сначала опиши, что хочешь создать."); prompt.focus(); return; }
@@ -308,25 +297,14 @@
       });
       const item = { id: job.id, prompt: text, status: job.status || "queued", ts: Date.now() };
       if (job.resultUrl) {
-        item.status = "succeeded";
-        item.resultUrl = job.resultUrl;
-        saveHistory(item);
-        showResult(job.resultUrl);
-        setStatus("Готово");
-        setNotice("Генерация завершена.");
+        item.status = "succeeded"; item.resultUrl = job.resultUrl; saveHistory(item);
+        showResult(job.resultUrl); setStatus("Готово"); setNotice("Генерация завершена.");
       } else {
-        saveHistory(item);
-        setStatus(labels[job.status] || "В очереди");
-        setNotice("Задание принято. Ожидаем результат…");
-        pollJob(job.id);
+        saveHistory(item); setStatus(labels[job.status] || "В очереди"); setNotice("Задание принято. Ожидаем результат…"); pollJob(job.id);
       }
     } catch (e) {
-      setStatus("Не запущено");
-      setNotice(e.message, "error");
-      toast(e.message);
-    } finally {
-      updateAvailability();
-    }
+      setStatus("Не запущено"); setNotice(e.message, "error"); toast(e.message);
+    } finally { updateAvailability(); }
   });
   try {
     const saved = JSON.parse(localStorage.getItem(historyKey) || "[]");
