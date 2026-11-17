@@ -5,88 +5,251 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b0b0d">
 <title>AI Studio — kirillovec</title>
-<meta name="description" content="kirillovec AI Studio: генерация изображений и обложек для музыкальных релизов.">
+<meta name="description" content="kirillovec AI Studio: обложки, изображения и промпты для Suno.">
 <link rel="canonical" href="https://kirillovec.ru/studio/">
-<meta name="robots" content="index,follow">
 <style>
-:root{color-scheme:dark;--bg:#0b0b0d;--panel:#121216;--panel2:#18181e;--line:#292930;--muted:#92929e;--text:#f4f3f7;--accent:#c9a7ff;--accent2:#9c7be8;--green:#9de2bb}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}.app{min-height:100vh;display:grid;grid-template-columns:244px minmax(0,1fr)}.sidebar{border-right:1px solid var(--line);padding:24px 16px;display:flex;flex-direction:column;gap:26px;background:#0d0d10}.brand{display:flex;align-items:center;gap:10px;padding:0 10px;font-weight:750;font-size:18px;letter-spacing:-.4px}.brandmark{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#e1cfff,#9670e7);color:#17121f;font-weight:900}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:1.7px;text-transform:uppercase;font-weight:600}.nav-label{padding:0 11px;color:#686874;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}.nav{display:grid;gap:5px}.nav button{border:1px solid transparent;background:transparent;color:#b7b6c1;text-align:left;padding:11px 12px;border-radius:10px;display:flex;gap:12px;align-items:center}.nav button:hover,.nav button.active{background:#1c1923;border-color:#30273f;color:#fff}.nav .ico{width:19px;text-align:center;color:#c4a4ff;font-size:16px}.side-bottom{margin-top:auto}.provider-card{background:#15151b;border:1px solid var(--line);border-radius:13px;padding:14px;color:var(--muted);font-size:12px}.provider-card strong{display:block;color:var(--text);font-size:13px;margin-bottom:5px}.main{min-width:0}.topbar{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 32px;gap:20px}.crumb{color:var(--muted);font-size:13px}.crumb b{color:var(--text);font-weight:600}.top-actions{display:flex;align-items:center;gap:10px}.status{font-size:11px;border:1px solid #3d344e;color:#d4c2f8;border-radius:999px;padding:6px 10px}.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#292331;color:#e0d0ff;font-weight:700}.content{max-width:1360px;margin:0 auto;padding:34px 32px 60px}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:26px}.eyebrow{color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:800}.page-head h1{font-size:clamp(27px,3vw,38px);line-height:1.15;letter-spacing:-1.3px;margin:8px 0 10px}.page-head p{color:var(--muted);margin:0;max-width:640px}.pill{border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:#c5c4ce;font-size:12px;white-space:nowrap}.workspace{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:20px;align-items:start}.panel{border:1px solid var(--line);background:var(--panel);border-radius:17px;overflow:hidden}.panel-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}.panel-head h2{font-size:15px;margin:0;font-weight:700}.panel-head span{font-size:12px;color:var(--muted)}.panel-body{padding:20px}.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:5px;background:#0a0a0d;border:1px solid var(--line);border-radius:12px;margin-bottom:22px}.mode-switch button{border:0;background:transparent;color:var(--muted);border-radius:8px;padding:11px;font-weight:650}.mode-switch button.active{background:#2a2137;color:#f5edff;box-shadow:inset 0 0 0 1px #493761}.video-providers{display:none;margin-top:14px;padding:15px;border:1px solid #493761;border-radius:12px;background:#17131e}.video-providers p{font-size:12px;color:var(--muted);margin:0 0 10px}.provider-links{display:flex;flex-wrap:wrap;gap:8px}.provider-links a{display:inline-flex;padding:8px 12px;border:1px solid #493761;border-radius:999px;color:#e4d5ff;font-size:12px}.field{margin-bottom:20px}.field label,.field-title{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;font-weight:650;margin-bottom:9px}.field label span,.field-title span{font-size:11px;color:var(--muted);font-weight:400}.prompt{width:100%;min-height:142px;resize:vertical;background:#0d0d11;border:1px solid #34343d;border-radius:11px;color:var(--text);padding:14px;outline:none}.prompt:focus,input:focus,select:focus{border-color:#9271c8;box-shadow:0 0 0 3px #a77df21c;outline:none}.field small{display:block;color:var(--muted);font-size:11px;margin-top:7px}.upload{border:1px dashed #46404f;background:#101014;border-radius:12px;min-height:106px;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;text-align:center;cursor:pointer;transition:.2s;position:relative}.upload:hover{border-color:var(--accent);background:#15121b}.mobile-nav{display:none}.prompt-presets{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.prompt-presets button{border:1px solid #34303d;background:#17151c;color:#d8c9f0;border-radius:999px;padding:7px 10px;font-size:11px;cursor:pointer}.prompt-presets button:hover,.prompt-presets button:focus-visible{border-color:var(--accent);background:#241c30}.upload-icon{width:37px;height:37px;border-radius:10px;background:#25202f;display:grid;place-items:center;font-size:19px}.upload strong{display:block;font-size:13px}.upload span{font-size:11px;color:var(--muted)}.upload input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;pointer-events:none}.preview-file{display:none;align-items:center;gap:12px;margin-top:10px;padding:8px;background:#0c0c10;border:1px solid var(--line);border-radius:10px}.preview-file img{width:52px;height:52px;object-fit:cover;border-radius:7px}.preview-file div{min-width:0;flex:1}.preview-file strong{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.preview-file span{font-size:11px;color:var(--muted)}.preview-file button{background:transparent;border:0;color:#d2c3e7}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.select{width:100%;background:#0d0d11;border:1px solid #34343d;color:var(--text);padding:11px 12px;border-radius:10px}.generate{width:100%;border:0;border-radius:11px;padding:14px 18px;background:linear-gradient(105deg,#ddc8ff,#a989ed);color:#17121f;font-weight:800;box-shadow:0 7px 24px #9b75d51e}.generate:hover{filter:brightness(1.08)}.generate:disabled{opacity:.6;cursor:not-allowed}.disclaimer{color:#85838f;font-size:11px;text-align:center;margin:11px 0 0}.result-stage{padding:20px;min-height:375px;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 25%,#211a2c 0,transparent 62%),#101014}.empty{text-align:center;max-width:280px}.empty-icon{width:65px;height:65px;border:1px solid #3b3148;background:#1d1825;border-radius:19px;margin:0 auto 17px;display:grid;place-items:center;font-size:27px;color:#d7bfff}.empty h3{font-size:15px;margin:0 0 7px}.empty p{color:var(--muted);font-size:12px;margin:0}.result-stage img{width:100%;max-height:520px;object-fit:contain;border-radius:10px}.result-actions{display:flex;justify-content:center;width:100%;margin-top:14px}.result-actions a{display:inline-flex;padding:10px 16px;border:1px solid #57466f;border-radius:999px;background:#211a2d;color:#e6d8ff;font-size:12px;font-weight:700}.notice{display:none;margin:0 20px 20px;border:1px solid #55432d;background:#211a12;color:#f2d6aa;border-radius:11px;padding:12px 14px;font-size:12px}.history{margin-top:20px}.history-list{padding:14px 20px;display:grid;gap:9px}.history-empty{color:var(--muted);font-size:12px;text-align:center;padding:12px}.history-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px;cursor:pointer}.history-item:hover{border-color:#493761;background:#1a1620}.history-thumb{width:38px;height:38px;display:grid;place-items:center;background:#201b29;border-radius:8px;color:var(--accent)}.history-item strong{display:block;font-size:12px}.history-item span{display:block;color:var(--muted);font-size:10px}.toast{position:fixed;bottom:20px;right:20px;max-width:360px;background:#201a29;border:1px solid #47375b;border-radius:12px;padding:14px 16px;color:#f0e7ff;box-shadow:0 12px 40px #0008;display:none;z-index:10;font-size:13px}
-@media(max-width:1050px){.app{grid-template-columns:78px minmax(0,1fr)}.sidebar{padding:22px 10px}.brand{justify-content:center;padding:0}.brand-copy,.nav-label,.nav-text,.provider-card{display:none}.nav button{justify-content:center;padding:12px 8px}.side-bottom{display:none}.workspace{grid-template-columns:1fr}}
-@media(max-width:650px){.app{display:block}.sidebar{display:none}.topbar{height:60px;padding:0 16px}.content{padding:20px 12px 92px}.mobile-nav{position:sticky;top:0;z-index:8;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:8px 10px;background:#0d0d10;border-bottom:1px solid var(--line)}.mobile-nav button{min-width:0;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:9px;padding:9px 3px;font-size:11px}.mobile-nav button.active{color:#fff;background:#211a2b;border-color:#413251}.page-head{display:block}.panel-body{padding:15px}.prompt-presets{display:flex;overflow-x:auto;padding-bottom:4px}.prompt-presets button{white-space:nowrap;flex:0 0 auto}}
+:root{color-scheme:dark;--bg:#0b0b0d;--panel:#121216;--line:#292930;--muted:#92929e;--text:#f4f3f7;--accent:#c9a7ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+.app{min-height:100vh;display:grid;grid-template-columns:244px minmax(0,1fr)}
+.sidebar{border-right:1px solid var(--line);padding:24px 16px;display:flex;flex-direction:column;gap:26px;background:#0d0d10}
+.brand{display:flex;align-items:center;gap:10px;padding:0 10px;font-weight:750;font-size:18px}
+.brandmark{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#e1cfff,#9670e7);color:#17121f;font-weight:900}
+.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:1.7px;text-transform:uppercase;font-weight:600}
+.nav-label{padding:0 11px;color:#686874;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.nav{display:grid;gap:5px}
+.nav button{border:1px solid transparent;background:transparent;color:#b7b6c1;text-align:left;padding:11px 12px;border-radius:10px;display:flex;gap:12px;align-items:center}
+.nav button:hover,.nav button.active{background:#1c1923;border-color:#30273f;color:#fff}
+.nav .ico{width:19px;text-align:center;color:#c4a4ff}
+.side-bottom{margin-top:auto}
+.provider-card{background:#15151b;border:1px solid var(--line);border-radius:13px;padding:14px;color:var(--muted);font-size:12px}
+.provider-card strong{display:block;color:var(--text);font-size:13px;margin-bottom:5px}
+.main{min-width:0}
+.topbar{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 32px}
+.crumb{color:var(--muted);font-size:13px}.crumb b{color:var(--text);font-weight:600}
+.content{max-width:1360px;margin:0 auto;padding:34px 32px 60px}
+.page-head{margin-bottom:26px}
+.eyebrow{color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:2px;font-weight:800}
+.page-head h1{font-size:clamp(27px,3vw,38px);line-height:1.15;letter-spacing:-1.3px;margin:8px 0 10px}
+.page-head p{color:var(--muted);margin:0;max-width:640px}
+.workspace{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:20px;align-items:start}
+.panel{border:1px solid var(--line);background:var(--panel);border-radius:17px;overflow:hidden}
+.panel-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.panel-head h2{font-size:15px;margin:0;font-weight:700}
+.panel-head span{font-size:12px;color:var(--muted)}
+.panel-body{padding:20px}
+.mode-switch{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;padding:5px;background:#0a0a0d;border:1px solid var(--line);border-radius:12px;margin-bottom:22px}
+.mode-switch button{border:0;background:transparent;color:var(--muted);border-radius:8px;padding:11px;font-weight:650}
+.mode-switch button.active{background:#2a2137;color:#f5edff;box-shadow:inset 0 0 0 1px #493761}
+.field{margin-bottom:18px}
+.field label,.field-title{display:flex;justify-content:space-between;font-size:13px;font-weight:650;margin-bottom:9px}
+.field label span,.field-title span{font-size:11px;color:var(--muted);font-weight:400}
+.prompt{width:100%;min-height:120px;resize:vertical;background:#0d0d11;border:1px solid #34343d;border-radius:11px;color:var(--text);padding:14px}
+.prompt:focus{border-color:#9271c8;outline:none;box-shadow:0 0 0 3px #a77df21c}
+.prompt-presets{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.prompt-presets button{border:1px solid #34303d;background:#17151c;color:#d8c9f0;border-radius:999px;padding:7px 10px;font-size:11px}
+.prompt-presets button:hover{border-color:var(--accent);background:#241c30}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid #34303d;background:#14131a;color:#c9c4d6;border-radius:999px;padding:6px 10px;font-size:11px}
+.chip.active,.chip:hover{border-color:var(--accent);background:#241c30;color:#f0e7ff}
+.upload{border:1px dashed #46404f;background:#101014;border-radius:12px;min-height:90px;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;text-align:center;cursor:pointer;position:relative}
+.upload input{position:absolute;opacity:0;width:1px;height:1px}
+.preview-file{display:none;align-items:center;gap:12px;margin-top:10px;padding:8px;background:#0c0c10;border:1px solid var(--line);border-radius:10px}
+.preview-file img{width:52px;height:52px;object-fit:cover;border-radius:7px}
+.generate{width:100%;border:0;border-radius:11px;padding:14px 18px;background:linear-gradient(105deg,#ddc8ff,#a989ed);color:#17121f;font-weight:800;display:block;text-align:center;text-decoration:none}
+.generate:disabled{opacity:.6;cursor:not-allowed}
+.btn-secondary{width:100%;border:1px solid #493761;border-radius:11px;padding:12px 16px;background:#1a1622;color:#e6d8ff;font-weight:700;margin-top:8px}
+.disclaimer{color:#85838f;font-size:11px;text-align:center;margin:11px 0 0}
+.result-stage{padding:20px;min-height:320px;display:grid;place-items:center;background:#101014}
+.empty{text-align:center;max-width:300px;color:var(--muted);font-size:13px}
+.empty h3{color:var(--text);font-size:15px;margin:0 0 8px}
+.notice{display:none;margin:0 20px 20px;border:1px solid #55432d;background:#211a12;color:#f2d6aa;border-radius:11px;padding:12px 14px;font-size:12px}
+.history-list{padding:14px 20px;display:grid;gap:9px}
+.history-empty{color:var(--muted);font-size:12px;text-align:center;padding:12px}
+.history-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.history-thumb{width:38px;height:38px;display:grid;place-items:center;background:#201b29;border-radius:8px;color:var(--accent)}
+.toast{position:fixed;bottom:20px;right:20px;max-width:360px;background:#201a29;border:1px solid #47375b;border-radius:12px;padding:14px 16px;display:none;z-index:10;font-size:13px}
+.mobile-nav{display:none}
+.audio-only{display:none}
+body.mode-audio .image-only{display:none}
+body.mode-audio .audio-only{display:block}
+.pillar{margin-bottom:14px}
+.pillar strong{display:block;font-size:12px;margin-bottom:6px;color:#d8c9f0}
+.outbox{background:#0d0d11;border:1px solid #34343d;border-radius:11px;padding:12px;min-height:90px;white-space:pre-wrap;font-size:13px;color:#e8e4f2}
+.tagbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tagbar button{border:1px solid #34303d;background:#17151c;color:#d8c9f0;border-radius:8px;padding:6px 9px;font-size:11px}
+@media(max-width:1050px){.app{grid-template-columns:78px minmax(0,1fr)}.brand-copy,.nav-label,.nav-text,.provider-card{display:none}.nav button{justify-content:center}.workspace{grid-template-columns:1fr}}
+@media(max-width:650px){.app{display:block}.sidebar{display:none}.content{padding:20px 12px 92px}.mobile-nav{position:sticky;top:0;z-index:8;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:8px 10px;background:#0d0d10;border-bottom:1px solid var(--line)}.mobile-nav button{border:1px solid transparent;background:transparent;color:var(--muted);border-radius:9px;padding:9px 3px;font-size:11px}.mobile-nav button.active{color:#fff;background:#211a2b;border-color:#413251}}
 </style>
 </head>
 <body>
 <div class="app">
 <aside class="sidebar">
 <a class="brand" href="/"><span class="brandmark">K</span><span class="brand-copy">kirillovec<small>AI STUDIO</small></span></a>
-<div><div class="nav-label">Рабочее пространство</div><nav class="nav" aria-label="Основная навигация">
+<div><div class="nav-label">Рабочее пространство</div>
+<nav class="nav">
 <button class="active" type="button" data-view="create"><span class="ico">✦</span><span class="nav-text">Создать</span></button>
 <button type="button" data-view="image"><span class="ico">▧</span><span class="nav-text">Изображения</span></button>
+<button type="button" data-view="audio"><span class="ico">♪</span><span class="nav-text">Аудио / Suno</span></button>
 <button type="button" data-view="history"><span class="ico">◷</span><span class="nav-text">История</span></button>
 </nav></div>
-<div><div class="nav-label">Инструменты</div><nav class="nav">
+<div><div class="nav-label">Инструменты</div>
+<nav class="nav">
 <button type="button" data-tool="cover"><span class="ico">🎤</span><span class="nav-text">Обложка трека</span></button>
 <button type="button" data-tool="edit"><span class="ico">✎</span><span class="nav-text">Редактирование</span></button>
 <button type="button" data-tool="face"><span class="ico">◎</span><span class="nav-text">Работа с лицом</span></button>
-<button type="button" data-tool="animate"><span class="ico">◉</span><span class="nav-text">Анимация фото</span></button>
 </nav></div>
-<div class="side-bottom"><div class="provider-card"><strong>Подключение моделей</strong><div id="integration-hint">Генерация через API сайта.</div></div></div>
+<div class="side-bottom"><div class="provider-card"><strong>Подключение</strong><div id="integration-hint">API изображений + промпты для Suno.</div></div></div>
 </aside>
 <main class="main">
-<header class="topbar"><div class="crumb"><span>AI Studio</span>　/　<b id="crumb-title">Создать</b></div><div class="top-actions"><span class="status">● Обложки и визуал</span><div class="avatar" title="kirillovec">K</div></div></header>
-<nav class="mobile-nav" aria-label="Быстрая навигация"><button class="active" type="button" data-view="create">✦ Создать</button><button type="button" data-view="image">▧ Фото</button><button type="button" data-view="history">◷ История</button></nav>
+<header class="topbar"><div class="crumb"><span>AI Studio</span>　/　<b id="crumb-title">Создать</b></div></header>
+<nav class="mobile-nav">
+<button class="active" type="button" data-view="create">✦</button>
+<button type="button" data-view="image">▧</button>
+<button type="button" data-view="audio">♪</button>
+<button type="button" data-view="history">◷</button>
+</nav>
 <div class="content">
-<div class="page-head"><div><div class="eyebrow">Обложки релиза</div><h1 id="page-title">Преврати идею в визуал</h1><p id="page-subtitle">Пресеты заточены под квадратные обложки kirillovec: ночь, дым, окно, «НИЗКО».</p></div><span class="pill">1:1 · album cover</span></div>
+<div class="page-head">
+<div class="eyebrow" id="page-eyebrow">Творческая лаборатория</div>
+<h1 id="page-title">Преврати идею в визуал</h1>
+<p id="page-subtitle">Обложки, изображения и Style/Lyrics промпты для Suno.</p>
+</div>
 <div class="workspace">
 <section class="panel">
-<div class="panel-head"><h2>Новая генерация</h2><span id="mode-caption">Текст → изображение</span></div>
+<div class="panel-head"><h2 id="panel-title">Новая генерация</h2><span id="mode-caption">Текст → изображение</span></div>
 <div class="panel-body">
-<div class="mode-switch" role="group" aria-label="Тип задачи"><button type="button" class="active" data-mode="image" aria-pressed="true">▧　Изображение</button><button type="button" data-mode="video" aria-pressed="false">▶　Видео</button></div>
-<div id="video-providers" class="video-providers"><p>Скопируй промпт и открой внешний сервис.</p></div>
-<div class="field"><label for="prompt">Опиши обложку <span id="prompt-count">0 / 2000</span></label>
-<textarea id="prompt" class="prompt" maxlength="2000" placeholder="Square album cover, night window, smoke, dark minimalism, space for kirillovec..."></textarea>
-<div class="prompt-presets" aria-label="Пресеты обложек">
+<div class="mode-switch" role="group">
+<button type="button" class="active" data-mode="image" aria-pressed="true">▧ Фото</button>
+<button type="button" data-mode="audio" aria-pressed="false">♪ Аудио</button>
+<button type="button" data-mode="video" aria-pressed="false">▶ Видео</button>
+</div>
+
+<div class="image-only">
+<div class="field"><label for="prompt">Промпт <span id="prompt-count">0 / 2000</span></label>
+<textarea id="prompt" class="prompt" maxlength="2000" placeholder="Square album cover, night window, smoke..."></textarea>
+<div class="prompt-presets">
 <button type="button" data-prompt="music">🎤 Обложка рэп-трека</button>
-<button type="button" data-prompt="cover">📀 Обложка «НИЗКО»</button>
+<button type="button" data-prompt="cover">📀 «НИЗКО»</button>
 <button type="button" data-prompt="smoke">💨 Дым и ночь</button>
-<button type="button" data-prompt="window">🪟 Окно / город</button>
-<button type="button" data-prompt="low">⬇️ «НИЗКО» ракурс</button>
-<button type="button" data-prompt="cinematic">🎬 Кинематографично</button>
+<button type="button" data-prompt="window">🪟 Окно</button>
+<button type="button" data-prompt="low">⬇️ Ракурс «НИЗКО»</button>
+<button type="button" data-prompt="cinematic">🎬 Кино</button>
 <button type="button" data-prompt="portrait">👤 Портрет</button>
+</div></div>
+<div class="field"><div class="field-title">Исходник <span>опционально</span></div>
+<label class="upload" for="file-input"><strong>JPG / PNG / WEBP · до 4 МБ</strong>
+<input id="file-input" type="file" accept="image/png,image/jpeg,image/webp"></label>
+<div class="preview-file" id="file-preview"><img id="file-thumb" alt=""><div><strong id="file-name"></strong><span id="file-size"></span></div><button type="button" id="remove-file">✕</button></div>
 </div>
-<small>Пресеты сразу ставят square 1:1, тёмный минимализм и место под типографику.</small></div>
-<div class="field"><div class="field-title">Исходный файл <span>необязательно</span></div>
-<label class="upload" for="file-input" tabindex="0" role="button" aria-label="Выбрать исходное изображение">
-<span class="upload-icon">＋</span>
-<span><strong>Добавь исходное изображение</strong><span>JPG / PNG / WEBP · до 4 МБ · перед отправкой до 512px</span></span>
-<input id="file-input" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp">
-</label>
-<div class="preview-file" id="file-preview" style="display:none"><img id="file-thumb" alt=""><div><strong id="file-name"></strong><span id="file-size"></span></div><button type="button" id="remove-file" aria-label="Убрать">✕</button></div>
-</div>
-<div class="two-col">
-<div class="field"><label for="ratio">Формат</label><select id="ratio" class="select"><option value="1:1" selected>1:1 квадрат (обложка)</option><option value="auto">Авто</option></select></div>
-<div class="field"><label for="model-source">Источник</label><select id="model-source" class="select"><option value="api" selected>API сайта</option></select></div>
-</div>
-<button type="button" class="generate" id="generate">✦　Создать изображение</button>
+<button type="button" class="generate" id="generate">✦ Создать изображение</button>
 <p class="disclaimer" id="model-hint">Модель проверяется при загрузке.</p>
 </div>
+
+<div class="audio-only">
+<p style="color:var(--muted);font-size:12px;margin:0 0 16px">Конструктор Style + Lyrics для <strong>Suno</strong> (как usesuno Prompt Builder). Локально — копируй на suno.com.</p>
+
+<div class="pillar"><strong>Жанр / стиль</strong>
+<div class="chip-row" data-pillar="genre">
+<button type="button" class="chip" data-v="southern hip hop">southern hip hop</button>
+<button type="button" class="chip" data-v="trap rap">trap rap</button>
+<button type="button" class="chip" data-v="melodic rap">melodic rap</button>
+<button type="button" class="chip" data-v="cloud rap">cloud rap</button>
+<button type="button" class="chip" data-v="boom bap">boom bap</button>
+<button type="button" class="chip" data-v="emo rap">emo rap</button>
+<button type="button" class="chip" data-v="phonk">phonk</button>
+<button type="button" class="chip" data-v="lo-fi hip hop">lo-fi hip hop</button>
+</div></div>
+
+<div class="pillar"><strong>Инструменты</strong>
+<div class="chip-row" data-pillar="instruments">
+<button type="button" class="chip" data-v="808 bass">808 bass</button>
+<button type="button" class="chip" data-v="dark piano">dark piano</button>
+<button type="button" class="chip" data-v="atmospheric pads">atmospheric pads</button>
+<button type="button" class="chip" data-v="trap hi-hats">trap hi-hats</button>
+<button type="button" class="chip" data-v="guitar sample">guitar sample</button>
+<button type="button" class="chip" data-v="vinyl crackle">vinyl crackle</button>
+<button type="button" class="chip" data-v="sparse drums">sparse drums</button>
+</div></div>
+
+<div class="pillar"><strong>Настроение</strong>
+<div class="chip-row" data-pillar="mood">
+<button type="button" class="chip" data-v="nocturnal">nocturnal</button>
+<button type="button" class="chip" data-v="melancholic">melancholic</button>
+<button type="button" class="chip" data-v="introspective">introspective</button>
+<button type="button" class="chip" data-v="cold and distant">cold and distant</button>
+<button type="button" class="chip" data-v="heavy atmosphere">heavy atmosphere</button>
+<button type="button" class="chip" data-v="nostalgic">nostalgic</button>
+<button type="button" class="chip" data-v="aggressive">aggressive</button>
+</div></div>
+
+<div class="pillar"><strong>Вокал</strong>
+<div class="chip-row" data-pillar="vocal">
+<button type="button" class="chip" data-v="male rap vocals">male rap vocals</button>
+<button type="button" class="chip" data-v="melodic rap delivery">melodic rap delivery</button>
+<button type="button" class="chip" data-v="autotuned vocals">autotuned vocals</button>
+<button type="button" class="chip" data-v="raw spoken flow">raw spoken flow</button>
+<button type="button" class="chip" data-v="emotional singing hooks">emotional singing hooks</button>
+<button type="button" class="chip" data-v="double-tracked chorus">double-tracked chorus</button>
+</div></div>
+
+<div class="pillar"><strong>Продакшн</strong>
+<div class="chip-row" data-pillar="production">
+<button type="button" class="chip" data-v="dark mix">dark mix</button>
+<button type="button" class="chip" data-v="spacey reverb">spacey reverb</button>
+<button type="button" class="chip" data-v="hard-hitting low end">hard-hitting low end</button>
+<button type="button" class="chip" data-v="minimal arrangement">minimal arrangement</button>
+<button type="button" class="chip" data-v="cinematic atmosphere">cinematic atmosphere</button>
+<button type="button" class="chip" data-v="tape saturation">tape saturation</button>
+</div></div>
+
+<div class="field"><div class="field-title">Style (Suno) <span id="style-count">0</span></div>
+<div class="outbox" id="style-out">Выбери чипы выше — Style соберётся сам</div>
+<button type="button" class="btn-secondary" id="copy-style">📋 Скопировать Style</button>
+</div>
+
+<div class="field"><div class="field-title">Lyrics <span>теги структуры</span></div>
+<div class="tagbar">
+<button type="button" data-tag="[Verse]">[Verse]</button>
+<button type="button" data-tag="[Chorus]">[Chorus]</button>
+<button type="button" data-tag="[Bridge]">[Bridge]</button>
+<button type="button" data-tag="[Intro]">[Intro]</button>
+<button type="button" data-tag="[Outro]">[Outro]</button>
+<button type="button" data-tag="[Hook]">[Hook]</button>
+</div>
+<textarea id="lyrics" class="prompt" maxlength="3000" placeholder="[Verse]\nтекст...\n\n[Chorus]\nтекст..."></textarea>
+<button type="button" class="btn-secondary" id="copy-lyrics">📋 Скопировать Lyrics</button>
+</div>
+
+<div class="prompt-presets" style="margin-bottom:14px">
+<button type="button" data-audio-preset="nizko">📀 Пресет «НИЗКО»</button>
+<button type="button" data-audio-preset="smoke">💨 Дым / ночь</button>
+<button type="button" data-audio-preset="trap">🔥 Trap drive</button>
+<button type="button" data-audio-preset="melodic">🌙 Melodic night</button>
+</div>
+
+<a class="generate" id="open-suno" href="https://suno.com/create" target="_blank" rel="noopener">Открыть Suno Create →</a>
+<p class="disclaimer">Неофициальный helper. Генерация — на suno.com. Вдохновлено usesuno.com.</p>
+</div>
+
+<div id="video-providers" style="display:none;margin-top:12px;padding:12px;border:1px solid #493761;border-radius:12px;color:var(--muted);font-size:12px">Скопируй промпт и открой внешний видеосервис.</div>
+</div>
 </section>
+
 <section class="panel">
-<div class="panel-head"><h2>Результат</h2><span id="result-status">Ожидание</span></div>
+<div class="panel-head"><h2>Результат / превью</h2><span id="result-status">Ожидание</span></div>
 <div class="result-stage" id="result-stage">
-<div class="empty"><div class="empty-icon">▧</div><h3>Здесь будет обложка</h3><p>Выбери пресет или напиши свой промпт и нажми «Создать».</p></div>
+<div class="empty" id="result-empty"><h3>Здесь будет результат</h3><p>Фото — через API. Аудио — скопируй Style/Lyrics в Suno.</p></div>
 </div>
 <div class="notice" id="notice"></div>
-<div class="history">
-<div class="panel-head"><h2>История</h2><span id="history-count">0 задач</span></div>
-<div class="history-list" id="history-list"><div class="history-empty">История появится после запуска задач</div></div>
-</div>
+<div class="panel-head"><h2>История</h2><span id="history-count">0</span></div>
+<div class="history-list" id="history-list"><div class="history-empty">История изображений</div></div>
 </section>
 </div>
 </div>
 </main>
 </div>
-<div class="toast" id="toast" role="status"></div>
+<div class="toast" id="toast"></div>
 <script src="config.js"></script>
 <script src="app.js"></script>
 </body>
