@@ -78,3 +78,7 @@ Do not add zone DNS, Email Sending, API token edit, or account member permission
 Never put these in `wrangler.toml` `[vars]`, `studio/config.js`, HTML, or a commit. `[vars]` is only for non-secret settings (`ACCESS_REQUIRED`, `MAX_JOBS_PER_HOUR`, `ALLOWED_ORIGINS`). API responses do not include upstream error bodies. Before the response is sent, the Worker removes those secret values if they ever appear in JSON. Session cookies store a random token; only its hash is kept in D1.
 
 If a token was pasted into chat, a log, or a commit, revoke it in Cloudflare or at the provider and create a new one. Do not rotate it by committing the new value.
+
+## Environment values
+
+Do not encode secrets into the repository. Base64 and similar encodings are reversible, so they are not used. Provider tokens stay in Worker secrets. Code reads them through a wrapper: converting the value to a string or JSON produces an empty result, and the raw value is used only in the outgoing `Authorization` header. The deploy workflow masks the Cloudflare token, account id, and D1 id in Actions logs before Wrangler runs.

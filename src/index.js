@@ -3,7 +3,8 @@
  * Text→image: FLUX.1 Schnell. Image editing: FLUX.2 Klein 4B.
  * Input images for img2img must be smaller than 512x512 (Workers AI docs).
  */
-function redactSecrets(env,text){let out=String(text);const values=[env?.REPLICATE_API_TOKEN,env?.RESEND_API_KEY,env?.SELF_HOSTED_API_TOKEN,env?.ACCESS_AUD].filter(v=>typeof v==="string"&&v.length>6);for(const secret of values){if(out.includes(secret))out=out.split(secret).join("[redacted]")}return out.replace(/bearer\s+[a-z0-9\-._~+/]+=*/gi,"Bearer [redacted]").replace(/\b(r8_|sk_live_|sk-)[A-Za-z0-9_\-]{8,}/g,"[redacted]")}
+function secret(env,key){const value=typeof env?.[key]==="string"?env[key]:"";return Object.freeze({present:value.length>0,reveal(){return value},toString(){return ""},valueOf(){return ""},toJSON(){return null}})}
+function redactSecrets(env,text){let out=String(text);for(const key of ["REPLICATE_API_TOKEN","RESEND_API_KEY","SELF_HOSTED_API_TOKEN","ACCESS_AUD"]){const value=secret(env,key).reveal();if(value.length>6&&out.includes(value))out=out.split(value).join("[redacted]")}return out.replace(/bearer\s+[a-z0-9\-._~+/]+=*/gi,"Bearer [redacted]").replace(/\b(r8_|sk_live_|sk-)[A-Za-z0-9_\-]{8,}/g,"[redacted]")}
 const json=(data,status=200,extra={},env)=>new Response(redactSecrets(env,JSON.stringify(data)),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...extra}});
 const now=()=>new Date().toISOString();
 function decodeB64Url(value){const base=value.replace(/-/g,"+").replace(/_/g,"/");return atob(base+"=".repeat((4-base.length%4)%4))}
@@ -28,7 +29,7 @@ async function accessIdentity(request,env){
 }
 function safeName(name){return String(name||"upload").replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100)||"upload"}
 async function rateLimit(env,identity,bucket,max,windowSeconds){const key=identity.subject||identity.email||"unknown";const cutoff=new Date(Date.now()-windowSeconds*1000).toISOString();await env.DB.prepare("DELETE FROM rate_limits WHERE created_at < ?").bind(cutoff).run();const row=await env.DB.prepare("SELECT COUNT(*) AS count FROM rate_limits WHERE identity = ? AND bucket = ? AND created_at >= ?").bind(key,bucket,cutoff).first();if((row?.count||0)>=max)return false;await env.DB.prepare("INSERT INTO rate_limits (identity, bucket, created_at) VALUES (?, ?, ?)").bind(key,bucket,now()).run();return true}
-async function replicate(env,path,init={}){if(!env.REPLICATE_API_TOKEN)throw new Error("PROVIDER_NOT_CONFIGURED");const r=await fetch("https://api.replicate.com/v1"+path,{...init,headers:{"Authorization":"Bearer "+env.REPLICATE_API_TOKEN,"Content-Type":"application/json",...(init.headers||{})}});const body=await r.json().catch(()=>({}));if(!r.ok){const e=new Error("PROVIDER_ERROR");e.status=r.status===429?429:502;throw e}return body}
+async function replicate(env,path,init={}){const token=secret(env,"REPLICATE_API_TOKEN");if(!token.present)throw new Error("PROVIDER_NOT_CONFIGURED");const r=await fetch("https://api.replicate.com/v1"+path,{...init,headers:{"Authorization":"Bearer "+token.reveal(),"Content-Type":"application/json",...(init.headers||{})}});const body=await r.json().catch(()=>({}));if(!r.ok){const e=new Error("PROVIDER_ERROR");e.status=r.status===429?429:502;throw e}return body}
 function arrayBufferToBase64(buffer){const bytes=new Uint8Array(buffer);let binary="";for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);return btoa(binary)}
 function detectImageMime(b64){if(b64.startsWith("/9j/"))return "image/jpeg";if(b64.startsWith("iVBOR"))return "image/png";if(b64.startsWith("UklGR"))return "image/webp";return "image/png"}
 function resultToDataUrl(result){let b64=null;if(typeof result==="string"){if(result.startsWith("data:"))return result;b64=result}else if(result instanceof ArrayBuffer){b64=arrayBufferToBase64(result)}else if(result instanceof Uint8Array){b64=arrayBufferToBase64(result.buffer)}else if(result?.image){b64=typeof result.image==="string"?result.image:arrayBufferToBase64(result.image)}else if(result?.data){b64=typeof result.data==="string"?result.data:arrayBufferToBase64(result.data)}if(!b64)throw new Error("WORKERS_AI_EMPTY_RESULT");if(b64.startsWith("data:"))return b64;return "data:"+detectImageMime(b64)+";base64,"+b64}
@@ -78,8 +79,9 @@ async function userFromSession(request,env){if(!env.DB)return null;const token=r
 async function sendResetMail(env,to,link){
  const subject="Сброс пароля — kirillovec";
  const text="Чтобы задать новый пароль, открой ссылку в течение 30 минут:\n"+link+"\n\nЕсли это был не ты, ничего делать не нужно.";
- if(env.RESEND_API_KEY){
-  const r=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+env.RESEND_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({from:"kirillovec <noreply@kirillovec.ru>",to:[to],subject,text})});
+ const resend=secret(env,"RESEND_API_KEY");
+ if(resend.present){
+  const r=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+resend.reveal(),"Content-Type":"application/json"},body:JSON.stringify({from:"kirillovec <noreply@kirillovec.ru>",to:[to],subject,text})});
   if(!r.ok){const e=new Error("MAIL_FAILED");e.detail="Почта не приняла письмо.";throw e}
   return;
  }
@@ -126,7 +128,7 @@ async function handle(request,env){
    let body;try{body=await request.json()}catch{return response(request,env,{error:"INVALID_JSON",message:"Ожидается JSON."},400)}
    const email=String(body.email||"").trim().toLowerCase();
    if(!validEmail(email))return response(request,env,{error:"INVALID_INPUT",message:"Укажи почту."},400);
-   if(!env.RESEND_API_KEY&&!(env.EMAIL&&typeof env.EMAIL.send==="function"))return response(request,env,{error:"MAIL_NOT_CONFIGURED",message:"Письма ещё не подключены. Если помнишь пароль, смени его после входа."},503);
+   if(!secret(env,"RESEND_API_KEY").present&&!(env.EMAIL&&typeof env.EMAIL.send==="function"))return response(request,env,{error:"MAIL_NOT_CONFIGURED",message:"Письма ещё не подключены. Если помнишь пароль, смени его после входа."},503);
    const generic={ok:true,message:"Если почта зарегистрирована, отправили ссылку. Она действует 30 минут."};
    const user=await env.DB.prepare("SELECT id, email FROM users WHERE email = ?").bind(email).first();
    if(!user)return response(request,env,generic);
@@ -155,7 +157,7 @@ async function handle(request,env){
   return response(request,env,{error:"NOT_FOUND",message:"Маршрут не найден."},404)
  }
  if(path==="/api/v1/capabilities"&&request.method==="GET"){
-  const workersAI=Boolean(env.AI);const replicateImg=Boolean(env.REPLICATE_API_TOKEN&&env.IMAGE_MODEL);const replicateVid=Boolean(env.REPLICATE_API_TOKEN&&env.VIDEO_MODEL);
+  const workersAI=Boolean(env.AI);const replicateToken=secret(env,"REPLICATE_API_TOKEN").present;const replicateImg=Boolean(replicateToken&&env.IMAGE_MODEL);const replicateVid=Boolean(replicateToken&&env.VIDEO_MODEL);
   return response(request,env,{image:{enabled:workersAI||replicateImg,model:workersAI?"@cf/black-forest-labs/flux-1-schnell":(env.IMAGE_MODEL||null),provider:workersAI?"workers-ai":(replicateImg?"replicate":null),imageToImage:workersAI,imageToImageModel:workersAI?"@cf/black-forest-labs/flux-2-klein-4b":null},video:{enabled:replicateVid,model:env.VIDEO_MODEL||null,provider:replicateVid?"replicate":null},selfHosted:{enabled:Boolean(env.SELF_HOSTED_API_URL),provider:env.SELF_HOSTED_API_URL?"custom":null},upload:{enabled:true,storage:"request-inline",maxBytes:4*1024*1024}})
  }
  let identity;try{identity=await accessIdentity(request,env)}catch{return response(request,env,{error:"ACCESS_REQUIRED",message:"Требуется авторизованный доступ через Cloudflare Access."},401)}
