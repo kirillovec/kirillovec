@@ -349,8 +349,33 @@
     const saved = JSON.parse(localStorage.getItem(historyKey) || "[]");
     if (Array.isArray(saved)) localHistory = saved.filter(x => x && typeof x.prompt === "string").slice(-20);
   } catch {}
+
+  async function syncAccount(){
+    const chip = $("#account-chip");
+    if (!apiBase) return;
+    try {
+      const me = await api("/api/v1/auth/me", { timeoutMs: 12000 });
+      if (chip) chip.textContent = me.user ? me.user.email : "Войти";
+      if (!me.user) return;
+      const data = await api("/api/v1/jobs", { timeoutMs: 20000 });
+      const remote = (data.jobs || []).map(job => ({
+        id: job.id,
+        prompt: job.prompt || "",
+        status: job.status || "",
+        resultUrl: job.result_url || "",
+        ts: Date.parse(job.created_at) || Date.now()
+      })).filter(x => x.prompt);
+      const byId = new Map(localHistory.filter(x => x.id).map(x => [x.id, x]));
+      remote.forEach(item => byId.set(item.id, { ...(byId.get(item.id) || {}), ...item }));
+      const onlyLocal = localHistory.filter(x => !x.id);
+      localHistory = [...onlyLocal, ...byId.values()].sort((a,b) => (a.ts||0)-(b.ts||0)).slice(-20);
+      renderHistory();
+    } catch {}
+  }
+
   renderHistory();
   setMode("image");
+  syncAccount();
   try {
     const params = new URLSearchParams(location.search);
     const preset = params.get("preset");
