@@ -3,12 +3,13 @@
  * Text→image: FLUX.1 Schnell. Image editing: FLUX.2 Klein 4B.
  * Input images for img2img must be smaller than 512x512 (Workers AI docs).
  */
-const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...extra}});
+function redactSecrets(env,text){let out=String(text);const values=[env?.REPLICATE_API_TOKEN,env?.RESEND_API_KEY,env?.SELF_HOSTED_API_TOKEN,env?.ACCESS_AUD].filter(v=>typeof v==="string"&&v.length>6);for(const secret of values){if(out.includes(secret))out=out.split(secret).join("[redacted]")}return out.replace(/bearer\s+[a-z0-9\-._~+/]+=*/gi,"Bearer [redacted]").replace(/\b(r8_|sk_live_|sk-)[A-Za-z0-9_\-]{8,}/g,"[redacted]")}
+const json=(data,status=200,extra={},env)=>new Response(redactSecrets(env,JSON.stringify(data)),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...extra}});
 const now=()=>new Date().toISOString();
 function decodeB64Url(value){const base=value.replace(/-/g,"+").replace(/_/g,"/");return atob(base+"=".repeat((4-base.length%4)%4))}
 const id=()=>crypto.randomUUID();
 function corsHeaders(request,env){const origin=request.headers.get("Origin")||"";const allowed=(env.ALLOWED_ORIGINS||"").split(",").map(s=>s.trim()).filter(Boolean);const h={"Vary":"Origin","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type","Access-Control-Max-Age":"86400"};if(allowed.includes(origin)){h["Access-Control-Allow-Origin"]=origin;h["Access-Control-Allow-Credentials"]="true"}return h}
-function response(request,env,data,status=200){return json(data,status,corsHeaders(request,env))}
+function response(request,env,data,status=200){return json(data,status,corsHeaders(request,env),env)}
 async function accessIdentity(request,env){
  if(env.ACCESS_REQUIRED!=="true")return{email:"development",subject:"development"};
  const assertion=request.headers.get("Cf-Access-Jwt-Assertion");if(!assertion||!env.ACCESS_TEAM_DOMAIN||!env.ACCESS_AUD)throw new Error("ACCESS_REQUIRED");
@@ -27,7 +28,7 @@ async function accessIdentity(request,env){
 }
 function safeName(name){return String(name||"upload").replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100)||"upload"}
 async function rateLimit(env,identity,bucket,max,windowSeconds){const key=identity.subject||identity.email||"unknown";const cutoff=new Date(Date.now()-windowSeconds*1000).toISOString();await env.DB.prepare("DELETE FROM rate_limits WHERE created_at < ?").bind(cutoff).run();const row=await env.DB.prepare("SELECT COUNT(*) AS count FROM rate_limits WHERE identity = ? AND bucket = ? AND created_at >= ?").bind(key,bucket,cutoff).first();if((row?.count||0)>=max)return false;await env.DB.prepare("INSERT INTO rate_limits (identity, bucket, created_at) VALUES (?, ?, ?)").bind(key,bucket,now()).run();return true}
-async function replicate(env,path,init={}){if(!env.REPLICATE_API_TOKEN)throw new Error("PROVIDER_NOT_CONFIGURED");const r=await fetch("https://api.replicate.com/v1"+path,{...init,headers:{"Authorization":"Bearer "+env.REPLICATE_API_TOKEN,"Content-Type":"application/json",...(init.headers||{})}});const body=await r.json().catch(()=>({}));if(!r.ok){const e=new Error("PROVIDER_ERROR");e.status=r.status===429?429:502;e.detail=body.detail||body.title||"Провайдер не смог выполнить запрос.";throw e}return body}
+async function replicate(env,path,init={}){if(!env.REPLICATE_API_TOKEN)throw new Error("PROVIDER_NOT_CONFIGURED");const r=await fetch("https://api.replicate.com/v1"+path,{...init,headers:{"Authorization":"Bearer "+env.REPLICATE_API_TOKEN,"Content-Type":"application/json",...(init.headers||{})}});const body=await r.json().catch(()=>({}));if(!r.ok){const e=new Error("PROVIDER_ERROR");e.status=r.status===429?429:502;throw e}return body}
 function arrayBufferToBase64(buffer){const bytes=new Uint8Array(buffer);let binary="";for(let i=0;i<bytes.length;i++)binary+=String.fromCharCode(bytes[i]);return btoa(binary)}
 function detectImageMime(b64){if(b64.startsWith("/9j/"))return "image/jpeg";if(b64.startsWith("iVBOR"))return "image/png";if(b64.startsWith("UklGR"))return "image/webp";return "image/png"}
 function resultToDataUrl(result){let b64=null;if(typeof result==="string"){if(result.startsWith("data:"))return result;b64=result}else if(result instanceof ArrayBuffer){b64=arrayBufferToBase64(result)}else if(result instanceof Uint8Array){b64=arrayBufferToBase64(result.buffer)}else if(result?.image){b64=typeof result.image==="string"?result.image:arrayBufferToBase64(result.image)}else if(result?.data){b64=typeof result.data==="string"?result.data:arrayBufferToBase64(result.data)}if(!b64)throw new Error("WORKERS_AI_EMPTY_RESULT");if(b64.startsWith("data:"))return b64;return "data:"+detectImageMime(b64)+";base64,"+b64}
@@ -97,16 +98,16 @@ async function handle(request,env){
  if(path.startsWith("/api/v1/auth/")){
   if(!env.DB)return response(request,env,{error:"BACKEND_NOT_CONFIGURED",message:"Не настроена база D1."},503);
   if(path==="/api/v1/auth/me"&&request.method==="GET"){const user=await userFromSession(request,env);if(!user)return response(request,env,{user:null});return response(request,env,{user:{id:user.id,email:user.email}})}
-  if(path==="/api/v1/auth/logout"&&request.method==="POST"){const token=readCookie(request,"ko_session");if(token)await env.DB.prepare("DELETE FROM sessions WHERE token_hash = ?").bind(await sha256hex(token)).run();return json({ok:true},200,{...corsHeaders(request,env),"Set-Cookie":sessionCookie("",0)})}
+  if(path==="/api/v1/auth/logout"&&request.method==="POST"){const token=readCookie(request,"ko_session");if(token)await env.DB.prepare("DELETE FROM sessions WHERE token_hash = ?").bind(await sha256hex(token)).run();return json({ok:true},200,{...corsHeaders(request,env),"Set-Cookie":sessionCookie("",0)},env)}
   if((path==="/api/v1/auth/register"||path==="/api/v1/auth/login")&&request.method==="POST"){
    if(!(await rateLimit(env,{subject:clientIp(request)},path.endsWith("register")?"register":"login",path.endsWith("register")?8:20,3600)))return response(request,env,{error:"RATE_LIMIT",message:"Слишком много попыток."},429);
    let body;try{body=await request.json()}catch{return response(request,env,{error:"INVALID_JSON",message:"Ожидается JSON."},400)}
    const email=String(body.email||"").trim().toLowerCase();const password=String(body.password||"");
    if(!validEmail(email)||password.length<8||password.length>72)return response(request,env,{error:"INVALID_INPUT",message:"Нужны почта и пароль от 8 до 72 символов."},400);
-   if(path.endsWith("register")){const exists=await env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(email).first();if(exists)return response(request,env,{error:"EMAIL_TAKEN",message:"Такая почта уже зарегистрирована."},409);const userId=id();await env.DB.prepare("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)").bind(userId,email,await hashPassword(password),now()).run();const cookie=await issueSession(env,userId);return json({user:{id:userId,email}},201,{...corsHeaders(request,env),"Set-Cookie":cookie})}
+   if(path.endsWith("register")){const exists=await env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(email).first();if(exists)return response(request,env,{error:"EMAIL_TAKEN",message:"Такая почта уже зарегистрирована."},409);const userId=id();await env.DB.prepare("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)").bind(userId,email,await hashPassword(password),now()).run();const cookie=await issueSession(env,userId);return json({user:{id:userId,email}},201,{...corsHeaders(request,env),"Set-Cookie":cookie},env)}
    const user=await env.DB.prepare("SELECT id, email, password_hash FROM users WHERE email = ?").bind(email).first();
    if(!user||!(await verifyPassword(password,user.password_hash)))return response(request,env,{error:"INVALID_LOGIN",message:"Неверная почта или пароль."},401);
-   const cookie=await issueSession(env,user.id);return json({user:{id:user.id,email:user.email}},200,{...corsHeaders(request,env),"Set-Cookie":cookie})
+   const cookie=await issueSession(env,user.id);return json({user:{id:user.id,email:user.email}},200,{...corsHeaders(request,env),"Set-Cookie":cookie},env)
   }
   if(path==="/api/v1/auth/password"&&request.method==="POST"){
    const session=await userFromSession(request,env);if(!session)return response(request,env,{error:"AUTH_REQUIRED",message:"Сначала войди."},401);
@@ -149,7 +150,7 @@ async function handle(request,env){
    await env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(row.user_id).run();
    const user=await env.DB.prepare("SELECT id, email FROM users WHERE id = ?").bind(row.user_id).first();
    const cookie=await issueSession(env,row.user_id);
-   return json({user:{id:user.id,email:user.email}},200,{...corsHeaders(request,env),"Set-Cookie":cookie});
+   return json({user:{id:user.id,email:user.email}},200,{...corsHeaders(request,env),"Set-Cookie":cookie},env);
   }
   return response(request,env,{error:"NOT_FOUND",message:"Маршрут не найден."},404)
  }
@@ -181,8 +182,9 @@ async function handle(request,env){
     await env.DB.prepare("INSERT INTO jobs (id, owner, mode, provider, provider_job_id, status, prompt, result_url, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(jobId,identity.subject,"image",providerLabel,jobId,"succeeded",prompt,null,now(),now()).run();
     return response(request,env,{id:jobId,status:"succeeded",provider:providerLabel,resultUrl},200);
    }catch(e){
-    const msg=e.message==="IMAGE_DECODE_FAILED"?(e.detail||"Не удалось прочитать фото."):(e.message==="INVALID_IMAGE"?"Некорректный исходник.":(e.detail||e.message||"Ошибка генерации"));
-    return response(request,env,{error:e.message||"GENERATION_FAILED",message:msg},e.message==="INVALID_IMAGE"||e.message==="IMAGE_DECODE_FAILED"?400:502);
+    const safe=e.message==="IMAGE_DECODE_FAILED"?"Не удалось прочитать фото.":(e.message==="INVALID_IMAGE"?"Некорректный исходник.":"Ошибка генерации.");
+    const code=e.message==="IMAGE_DECODE_FAILED"||e.message==="INVALID_IMAGE"?e.message:"GENERATION_FAILED";
+    return response(request,env,{error:code,message:safe},code==="GENERATION_FAILED"?502:400);
    }
   }
   return response(request,env,{error:"PROVIDER_NOT_CONFIGURED",message:"Нет доступного провайдера."},503)
@@ -199,4 +201,4 @@ async function handle(request,env){
  }
  return response(request,env,{error:"NOT_FOUND",message:"Маршрут не найден."},404)
 }
-export default {async fetch(request,env){try{return await handle(request,env)}catch(error){if(error.message==="PROVIDER_NOT_CONFIGURED")return response(request,env,{error:error.message,message:"Не настроен провайдер."},503);if(error.message==="ACCESS_REQUIRED")return response(request,env,{error:error.message,message:"Cloudflare Access."},401);return response(request,env,{error:"INTERNAL_ERROR",message:error.status===429?"Лимит провайдера.":error.detail||"Внутренняя ошибка."},error.status||500)}}};
+export default {async fetch(request,env){try{return await handle(request,env)}catch(error){if(error.message==="PROVIDER_NOT_CONFIGURED"||error.message==="PROVIDER_ERROR")return response(request,env,{error:"PROVIDER_ERROR",message:error.status===429?"Лимит провайдера.":"Провайдер не смог выполнить запрос."},error.status||502);if(error.message==="ACCESS_REQUIRED")return response(request,env,{error:error.message,message:"Cloudflare Access."},401);return response(request,env,{error:"INTERNAL_ERROR",message:"Внутренняя ошибка."},500)}}};

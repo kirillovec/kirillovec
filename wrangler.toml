@@ -10,6 +10,8 @@ ACCESS_REQUIRED = "false"
 MAX_JOBS_PER_HOUR = "10"
 ALLOWED_ORIGINS = "https://kirillovec.ru,https://www.kirillovec.ru"
 
+# Runtime secrets are not vars: set REPLICATE_API_TOKEN, RESEND_API_KEY and SELF_HOSTED_API_TOKEN with `wrangler secret put`.
+
 [ai]
 binding = "AI"
 
