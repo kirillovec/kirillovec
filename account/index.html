@@ -3,25 +3,37 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090a0f">
 <title>Аккаунт — kirillovec</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
-:root{color-scheme:dark;--bg:#090a0f;--text:#f4f2f8;--muted:#a4a3b1;--line:#292c39;--gold:#c4a77d}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font:16px/1.5 system-ui,sans-serif;background:#090a0f}
-a{color:inherit}
-.wrap{width:min(480px,calc(100% - 32px));margin:auto;padding:28px 0 64px}
-nav{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-bottom:28px}
-nav a{text-decoration:none}nav a:hover{color:var(--gold)}
-h1{font-weight:650;font-size:32px;margin:0 0 8px}
-p{color:var(--muted);margin:0 0 18px}
-form, .card{border:1px solid var(--line);border-radius:16px;padding:18px;background:#12141c}
-label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
-input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0c0d12;color:var(--text);font:16px system-ui}
-.row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-button{border:0;border-radius:999px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--gold);color:#111}
-button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
-button.link{background:none;color:var(--gold);padding:0;font-weight:600}
-#msg{min-height:1.4em;margin-top:14px;font-size:14px}
+:root{color-scheme:dark;--bg:#090a0f;--panel:#12141c;--text:#f4f2f8;--muted:#a4a3b1;--line:#292c39;--gold:#c4a77d;--accent:#c9a7ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font:16px/1.5 system-ui,sans-serif;background:radial-gradient(ellipse at 50% 0%,#1a1528 0,transparent 45%),#090a0f}
+a{color:inherit;text-decoration:none}
+.wrap{width:min(440px,calc(100% - 32px));margin:auto;padding:28px 0 64px}
+nav{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:28px}
+nav a:hover{color:var(--gold)}
+h1{font-weight:700;font-size:30px;margin:0 0 6px;letter-spacing:-.5px}
+.lead{color:var(--muted);margin:0 0 20px;font-size:14px}
+.card,form{border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--panel)}
+label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px;letter-spacing:.3px}
+input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0c0d12;color:var(--text);font:15px system-ui}
+input:focus{outline:none;border-color:#5a4a78}
+.row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+button,.btn{border:0;border-radius:999px;padding:11px 16px;font-weight:700;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+button.primary,.btn.primary{background:var(--gold);color:#111}
+button.ghost,.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+button.link{background:none;color:var(--gold);padding:0;font-weight:600;border:0}
+#msg{min-height:1.4em;margin-top:14px;font-size:14px;color:var(--muted)}
+#msg.ok{color:#9dcc9a}#msg.err{color:#e8a0a0}
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--muted);font-size:12px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+.oauth{display:flex;flex-direction:column;gap:8px}
+.oauth button{width:100%;justify-content:center;background:#1a1c26;border:1px solid var(--line);color:var(--text)}
+.badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:999px;background:#1e2a1e;color:#9dcc9a;margin-left:6px}
+.badge.warn{background:#2a2418;color:#c4a77d}
+.profile-email{font-size:15px;font-weight:600;word-break:break-all}
+.hint{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -30,77 +42,72 @@ button.link{background:none;color:var(--gold);padding:0;font-weight:600}
   <a href="/">Главная</a>
   <a href="/studio/">AI Studio</a>
   <a href="/artist/">Музыка</a>
+  <a href="/творчество/">Творчество</a>
 </nav>
 <h1>Аккаунт</h1>
-<p id="lead">Регистрация привязывает генерации в AI Studio к тебе, а не к общему гостевому режиму.</p>
+<p class="lead">Регистрация привязывает генерации в AI Studio к тебе и открывает историю и лимиты.</p>
 <div id="panel"></div>
 <p id="msg" role="status"></p>
 </div>
 <script>
-const API="https://api.kirillovec.ru";
-const panel=document.getElementById("panel");
-const msg=document.getElementById("msg");
-const resetToken=new URLSearchParams(location.search).get("reset")||"";
-function say(text){msg.textContent=text||""}
-async function post(path, body){
-  const r=await fetch(API+path,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-  const data=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(data.message||"Не получилось.");
+const API = "https://api.kirillovec.ru";
+const panel = document.getElementById("panel");
+const msg = document.getElementById("msg");
+const params = new URLSearchParams(location.search);
+const resetToken = params.get("reset") || "";
+const verifyToken = params.get("verify") || "";
+const oauthErr = params.get("oauth_error") || "";
+function say(text, kind) { msg.textContent = text || ""; msg.className = kind || ""; }
+async function post(path, body) {
+  const r = await fetch(API + path, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.message || "Не получилось.");
   return data;
 }
-function loginForm(){
-  panel.innerHTML='<form id="f"><label>Почта</label><input name="email" type="email" autocomplete="username" required><label>Пароль</label><input name="password" type="password" minlength="8" autocomplete="current-password" required><div class="row"><button type="submit">Войти</button><button class="ghost" type="button" id="reg">Создать аккаунт</button></div><div class="row"><button class="link" type="button" id="forgot">Забыли пароль?</button></div></form>';
-  document.getElementById("f").onsubmit=e=>{e.preventDefault();auth("/api/v1/auth/login")};
-  document.getElementById("reg").onclick=()=>auth("/api/v1/auth/register");
-  document.getElementById("forgot").onclick=forgotForm;
+async function get(path) {
+  const r = await fetch(API + path, { credentials: "include", cache: "no-store" });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.message || "Не получилось.");
+  return data;
 }
-function forgotForm(){
-  panel.innerHTML='<form id="f"><label>Почта</label><input name="email" type="email" autocomplete="username" required><div class="row"><button type="submit">Прислать ссылку</button><button class="ghost" type="button" id="back">Назад</button></div></form>';
-  document.getElementById("back").onclick=()=>{say("");loginForm()};
-  document.getElementById("f").onsubmit=async e=>{
-    e.preventDefault(); say("Отправка…");
-    try{const data=await post("/api/v1/auth/forgot",{email:e.target.email.value}); say(data.message||"Готово.");}
-    catch(err){say(err.message)}
-  };
+function oauthStart(provider) {
+  window.location.href = API + "/api/v1/auth/oauth/" + provider + "/start?redirect=" + encodeURIComponent("https://kirillovec.ru/account/");
 }
-function resetForm(){
-  panel.innerHTML='<form id="f"><label>Новый пароль</label><input name="password" type="password" minlength="8" autocomplete="new-password" required><div class="row"><button type="submit">Сохранить пароль</button></div></form>';
-  document.getElementById("f").onsubmit=async e=>{
-    e.preventDefault(); say("Сохраняем…");
-    try{
-      const data=await post("/api/v1/auth/reset",{token:resetToken,password:e.target.password.value});
-      history.replaceState({}, "", "/account/");
-      say("Пароль обновлён.");
-      logged(data.user);
-    }catch(err){say(err.message)}
-  };
+function loginForm(mode) {
+  const isReg = mode === "register";
+  panel.innerHTML = `<form id="f"><label>Почта</label><input name="email" type="email" autocomplete="username" required><label>Пароль</label><input name="password" type="password" minlength="8" autocomplete="${isReg ? "new-password" : "current-password"}" required>${isReg ? '<p class="hint">Пароль от 8 символов. После регистрации пришлём письмо для подтверждения.</p>' : ""}<div class="row"><button class="primary" type="submit">${isReg ? "Создать аккаунт" : "Войти"}</button><button class="ghost" type="button" id="toggle">${isReg ? "Уже есть аккаунт" : "Создать аккаунт"}</button></div>${!isReg ? '<div class="row"><button class="link" type="button" id="forgot">Забыли пароль?</button></div>' : ""}</form><div class="divider">или</div><div class="oauth"><button type="button" data-oauth="google">Войти через Google</button><button type="button" data-oauth="yandex">Войти через Яндекс</button><button type="button" data-oauth="vk">Войти через VK</button></div><p class="hint">OAuth заработает после секретов Worker: GOOGLE/YANDEX/VK_CLIENT_ID и _SECRET.</p>`;
+  document.getElementById("f").onsubmit = async (e) => { e.preventDefault(); say("Отправка…"); try { const path = isReg ? "/api/v1/auth/register" : "/api/v1/auth/login"; const data = await post(path, { email: e.target.email.value, password: e.target.password.value }); say(isReg ? (data.message || "Аккаунт создан. Проверь почту.") : "Вход выполнен.", "ok"); logged(data.user); } catch (err) { say(err.message, "err"); } };
+  document.getElementById("toggle").onclick = () => loginForm(isReg ? "login" : "register");
+  const forgot = document.getElementById("forgot"); if (forgot) forgot.onclick = forgotForm;
+  panel.querySelectorAll("[data-oauth]").forEach((b) => { b.onclick = () => oauthStart(b.dataset.oauth); });
 }
-function logged(user){
-  panel.innerHTML='<div class="card"><div>'+user.email+'</div><form id="pw"><label>Текущий пароль</label><input name="current" type="password" autocomplete="current-password" required><label>Новый пароль</label><input name="next" type="password" minlength="8" autocomplete="new-password" required><div class="row"><button type="submit">Сменить пароль</button><button class="ghost" type="button" id="out">Выйти</button><a href="/studio/"><button class="ghost" type="button">AI Studio</button></a></div></form></div>';
-  document.getElementById("out").onclick=async()=>{await fetch(API+"/api/v1/auth/logout",{method:"POST",credentials:"include"}); say("Сессия закрыта."); loginForm()};
-  document.getElementById("pw").onsubmit=async e=>{
-    e.preventDefault(); say("Сохраняем…");
-    try{await post("/api/v1/auth/password",{currentPassword:e.target.current.value,password:e.target.next.value}); e.target.reset(); say("Пароль изменён.");}
-    catch(err){say(err.message)}
-  };
+function forgotForm() {
+  panel.innerHTML = `<form id="f"><label>Почта</label><input name="email" type="email" autocomplete="username" required><div class="row"><button class="primary" type="submit">Прислать ссылку</button><button class="ghost" type="button" id="back">Назад</button></div></form>`;
+  document.getElementById("back").onclick = () => { say(""); loginForm("login"); };
+  document.getElementById("f").onsubmit = async (e) => { e.preventDefault(); say("Отправка…"); try { const data = await post("/api/v1/auth/forgot", { email: e.target.email.value }); say(data.message || "Готово.", "ok"); } catch (err) { say(err.message, "err"); } };
 }
-async function auth(path){
-  const f=document.getElementById("f");
-  say("Отправка…");
-  try{
-    const data=await post(path,{email:f.email.value,password:f.password.value});
-    say(path.endsWith("register")?"Аккаунт создан.":"Вход выполнен.");
-    logged(data.user);
-  }catch(err){say(err.message)}
+function resetForm() {
+  panel.innerHTML = `<form id="f"><label>Новый пароль</label><input name="password" type="password" minlength="8" autocomplete="new-password" required><div class="row"><button class="primary" type="submit">Сохранить пароль</button></div></form>`;
+  document.getElementById("f").onsubmit = async (e) => { e.preventDefault(); say("Сохраняем…"); try { const data = await post("/api/v1/auth/reset", { token: resetToken, password: e.target.password.value }); history.replaceState({}, "", "/account/"); say("Пароль обновлён.", "ok"); logged(data.user); } catch (err) { say(err.message, "err"); } };
 }
-(async()=>{
-  if(resetToken){resetForm(); return}
-  try{
-    const r=await fetch(API+"/api/v1/auth/me",{credentials:"include"});
-    const data=await r.json();
-    if(data.user){logged(data.user); return}
-  }catch(e){say("API сейчас недоступен.")}
-  loginForm();
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;" }[c])); }
+function escapeAttr(s) { return escapeHtml(s); }
+function logged(user) {
+  const verified = !!user.email_verified;
+  const badge = verified ? '<span class="badge">почта подтверждена</span>' : '<span class="badge warn">нужно подтвердить почту</span>';
+  panel.innerHTML = `<div class="card"><div class="profile-email">${escapeHtml(user.email || "")}${badge}</div>${user.display_name ? `<div style="margin-top:6px;color:var(--muted);font-size:14px">${escapeHtml(user.display_name)}</div>` : ""}${!verified ? `<p class="hint">Без подтверждения почты действуют гостевые лимиты.</p><div class="row"><button class="ghost" type="button" id="resend">Отправить письмо снова</button></div>` : ""}<form id="profile" style="margin-top:16px;border:0;padding:0;background:transparent"><label>Имя / ник</label><input name="display_name" maxlength="40" value="${escapeAttr(user.display_name || "")}" placeholder="kirillovec"><div class="row"><button class="ghost" type="submit">Сохранить профиль</button></div></form><form id="pw" style="margin-top:8px;border:0;padding:0;background:transparent"><label>Текущий пароль</label><input name="current" type="password" autocomplete="current-password"><label>Новый пароль</label><input name="next" type="password" minlength="8" autocomplete="new-password"><div class="row"><button class="primary" type="submit">Сменить пароль</button><button class="ghost" type="button" id="out">Выйти</button><a class="btn ghost" href="/studio/">AI Studio</a></div></form></div>`;
+  document.getElementById("out").onclick = async () => { await fetch(API + "/api/v1/auth/logout", { method: "POST", credentials: "include" }); say("Сессия закрыта.", "ok"); loginForm("login"); };
+  document.getElementById("pw").onsubmit = async (e) => { e.preventDefault(); say("Сохраняем…"); try { await post("/api/v1/auth/password", { currentPassword: e.target.current.value, password: e.target.next.value }); e.target.reset(); say("Пароль изменён.", "ok"); } catch (err) { say(err.message, "err"); } };
+  document.getElementById("profile").onsubmit = async (e) => { e.preventDefault(); say("Сохраняем…"); try { const data = await post("/api/v1/auth/profile", { display_name: e.target.display_name.value }); say("Профиль обновлён.", "ok"); logged(data.user); } catch (err) { say(err.message, "err"); } };
+  const resend = document.getElementById("resend");
+  if (resend) resend.onclick = async () => { say("Отправка…"); try { const data = await post("/api/v1/auth/resend-verification", {}); say(data.message || "Письмо отправлено.", "ok"); } catch (err) { say(err.message, "err"); } };
+}
+(async () => {
+  if (oauthErr) say("OAuth: " + decodeURIComponent(oauthErr), "err");
+  if (resetToken) { resetForm(); return; }
+  if (verifyToken) { say("Подтверждаем почту…"); try { const data = await post("/api/v1/auth/verify", { token: verifyToken }); history.replaceState({}, "", "/account/"); say("Почта подтверждена.", "ok"); logged(data.user); return; } catch (err) { say(err.message, "err"); } }
+  try { const data = await get("/api/v1/auth/me"); if (data.user) { logged(data.user); return; } } catch (e) { say("API сейчас недоступен.", "err"); }
+  loginForm("login");
 })();
 </script>
 </body>
