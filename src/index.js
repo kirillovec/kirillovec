@@ -73,6 +73,22 @@ function sessionCookie(token,maxAge){return "ko_session="+encodeURIComponent(tok
 function clientIp(request){return request.headers.get("CF-Connecting-IP")||"unknown"}
 function validEmail(email){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)&&email.length<=120}
 async function userFromSession(request,env){if(!env.DB)return null;const token=readCookie(request,"ko_session");if(!token||token.length<20)return null;const hash=await sha256hex(token);const row=await env.DB.prepare("SELECT u.id, u.email FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?").bind(hash,now()).first();return row||null}
+
+async function sendResetMail(env,to,link){
+ const subject="Сброс пароля — kirillovec";
+ const text="Чтобы задать новый пароль, открой ссылку в течение 30 минут:\n"+link+"\n\nЕсли это был не ты, ничего делать не нужно.";
+ if(env.RESEND_API_KEY){
+  const r=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:"Bearer "+env.RESEND_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({from:"kirillovec <noreply@kirillovec.ru>",to:[to],subject,text})});
+  if(!r.ok){const e=new Error("MAIL_FAILED");e.detail="Почта не приняла письмо.";throw e}
+  return;
+ }
+ if(env.EMAIL&&typeof env.EMAIL.send==="function"){
+  await env.EMAIL.send({to,from:{email:"noreply@kirillovec.ru",name:"kirillovec"},subject,text});
+  return;
+ }
+ const e=new Error("MAIL_NOT_CONFIGURED");e.detail="Отправка писем ещё не подключена. Войди и смени пароль в аккаунте.";throw e;
+}
+
 async function issueSession(env,userId){const token=b64url(crypto.getRandomValues(new Uint8Array(32)));const exp=new Date(Date.now()+30*864e5).toISOString();await env.DB.prepare("INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)").bind(id(),userId,await sha256hex(token),exp,now()).run();return sessionCookie(token,30*86400)}
 async function handle(request,env){
  const url=new URL(request.url),path=url.pathname.replace(/\/$/,"")||"/";
@@ -91,6 +107,49 @@ async function handle(request,env){
    const user=await env.DB.prepare("SELECT id, email, password_hash FROM users WHERE email = ?").bind(email).first();
    if(!user||!(await verifyPassword(password,user.password_hash)))return response(request,env,{error:"INVALID_LOGIN",message:"Неверная почта или пароль."},401);
    const cookie=await issueSession(env,user.id);return json({user:{id:user.id,email:user.email}},200,{...corsHeaders(request,env),"Set-Cookie":cookie})
+  }
+  if(path==="/api/v1/auth/password"&&request.method==="POST"){
+   const session=await userFromSession(request,env);if(!session)return response(request,env,{error:"AUTH_REQUIRED",message:"Сначала войди."},401);
+   if(!(await rateLimit(env,{subject:session.id},"password",8,3600)))return response(request,env,{error:"RATE_LIMIT",message:"Слишком много попыток."},429);
+   let body;try{body=await request.json()}catch{return response(request,env,{error:"INVALID_JSON",message:"Ожидается JSON."},400)}
+   const current=String(body.currentPassword||""),password=String(body.password||"");
+   if(password.length<8||password.length>72)return response(request,env,{error:"INVALID_INPUT",message:"Новый пароль — от 8 до 72 символов."},400);
+   const row=await env.DB.prepare("SELECT password_hash FROM users WHERE id = ?").bind(session.id).first();
+   if(!row||!(await verifyPassword(current,row.password_hash)))return response(request,env,{error:"INVALID_LOGIN",message:"Текущий пароль неверный."},401);
+   await env.DB.prepare("UPDATE users SET password_hash = ? WHERE id = ?").bind(await hashPassword(password),session.id).run();
+   await env.DB.prepare("DELETE FROM password_resets WHERE user_id = ?").bind(session.id).run();
+   return response(request,env,{ok:true});
+  }
+  if(path==="/api/v1/auth/forgot"&&request.method==="POST"){
+   if(!(await rateLimit(env,{subject:clientIp(request)},"forgot",5,3600)))return response(request,env,{error:"RATE_LIMIT",message:"Слишком много попыток. Попробуй позже."},429);
+   let body;try{body=await request.json()}catch{return response(request,env,{error:"INVALID_JSON",message:"Ожидается JSON."},400)}
+   const email=String(body.email||"").trim().toLowerCase();
+   if(!validEmail(email))return response(request,env,{error:"INVALID_INPUT",message:"Укажи почту."},400);
+   if(!env.RESEND_API_KEY&&!(env.EMAIL&&typeof env.EMAIL.send==="function"))return response(request,env,{error:"MAIL_NOT_CONFIGURED",message:"Письма ещё не подключены. Если помнишь пароль, смени его после входа."},503);
+   const generic={ok:true,message:"Если почта зарегистрирована, отправили ссылку. Она действует 30 минут."};
+   const user=await env.DB.prepare("SELECT id, email FROM users WHERE email = ?").bind(email).first();
+   if(!user)return response(request,env,generic);
+   const token=b64url(crypto.getRandomValues(new Uint8Array(32)));
+   const exp=new Date(Date.now()+30*60*1000).toISOString();
+   await env.DB.prepare("DELETE FROM password_resets WHERE user_id = ?").bind(user.id).run();
+   await env.DB.prepare("INSERT INTO password_resets (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)").bind(id(),user.id,await sha256hex(token),exp,now()).run();
+   try{await sendResetMail(env,user.email,"https://kirillovec.ru/account/?reset="+encodeURIComponent(token))}
+   catch(e){await env.DB.prepare("DELETE FROM password_resets WHERE user_id = ?").bind(user.id).run();return response(request,env,{error:e.message==="MAIL_NOT_CONFIGURED"?"MAIL_NOT_CONFIGURED":"MAIL_FAILED",message:e.detail||"Не удалось отправить письмо."},e.message==="MAIL_NOT_CONFIGURED"?503:502)}
+   return response(request,env,generic);
+  }
+  if(path==="/api/v1/auth/reset"&&request.method==="POST"){
+   if(!(await rateLimit(env,{subject:clientIp(request)},"reset",10,3600)))return response(request,env,{error:"RATE_LIMIT",message:"Слишком много попыток."},429);
+   let body;try{body=await request.json()}catch{return response(request,env,{error:"INVALID_JSON",message:"Ожидается JSON."},400)}
+   const token=String(body.token||""),password=String(body.password||"");
+   if(token.length<20||password.length<8||password.length>72)return response(request,env,{error:"INVALID_INPUT",message:"Нужны ссылка из письма и новый пароль от 8 символов."},400);
+   const row=await env.DB.prepare("SELECT id, user_id FROM password_resets WHERE token_hash = ? AND expires_at > ?").bind(await sha256hex(token),now()).first();
+   if(!row)return response(request,env,{error:"INVALID_TOKEN",message:"Ссылка недействительна или устарела."},400);
+   await env.DB.prepare("UPDATE users SET password_hash = ? WHERE id = ?").bind(await hashPassword(password),row.user_id).run();
+   await env.DB.prepare("DELETE FROM password_resets WHERE user_id = ?").bind(row.user_id).run();
+   await env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(row.user_id).run();
+   const user=await env.DB.prepare("SELECT id, email FROM users WHERE id = ?").bind(row.user_id).first();
+   const cookie=await issueSession(env,row.user_id);
+   return json({user:{id:user.id,email:user.email}},200,{...corsHeaders(request,env),"Set-Cookie":cookie});
   }
   return response(request,env,{error:"NOT_FOUND",message:"Маршрут не найден."},404)
  }

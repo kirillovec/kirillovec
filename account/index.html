@@ -17,9 +17,10 @@ p{color:var(--muted);margin:0 0 18px}
 form, .card{border:1px solid var(--line);border-radius:16px;padding:18px;background:#12141c}
 label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
 input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0c0d12;color:var(--text);font:16px system-ui}
-.row{display:flex;gap:10px;margin-top:16px}
+.row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
 button{border:0;border-radius:999px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--gold);color:#111}
 button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+button.link{background:none;color:var(--gold);padding:0;font-weight:600}
 #msg{min-height:1.4em;margin-top:14px;font-size:14px}
 </style>
 </head>
@@ -39,35 +40,67 @@ button.ghost{background:transparent;color:var(--text);border:1px solid var(--lin
 const API="https://api.kirillovec.ru";
 const panel=document.getElementById("panel");
 const msg=document.getElementById("msg");
-function form(){
-  panel.innerHTML='<form id="f"><label>Почта</label><input name="email" type="email" autocomplete="username" required><label>Пароль</label><input name="password" type="password" minlength="8" autocomplete="current-password" required><div class="row"><button type="submit">Войти</button><button class="ghost" type="button" id="reg">Создать аккаунт</button></div></form>';
-  document.getElementById("f").onsubmit=e=>{e.preventDefault();send("/api/v1/auth/login")};
-  document.getElementById("reg").onclick=()=>send("/api/v1/auth/register");
+const resetToken=new URLSearchParams(location.search).get("reset")||"";
+function say(text){msg.textContent=text||""}
+async function post(path, body){
+  const r=await fetch(API+path,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(data.message||"Не получилось.");
+  return data;
 }
-function logged(user){
-  panel.innerHTML='<div class="card"><div>'+user.email+'</div><div class="row"><button type="button" id="out">Выйти</button><a href="/studio/"><button class="ghost" type="button">AI Studio</button></a></div></div>';
-  document.getElementById("out").onclick=async()=>{
-    await fetch(API+"/api/v1/auth/logout",{method:"POST",credentials:"include"});
-    msg.textContent="Сессия закрыта.";
-    form();
+function loginForm(){
+  panel.innerHTML='<form id="f"><label>Почта</label><input name="email" type="email" autocomplete="username" required><label>Пароль</label><input name="password" type="password" minlength="8" autocomplete="current-password" required><div class="row"><button type="submit">Войти</button><button class="ghost" type="button" id="reg">Создать аккаунт</button></div><div class="row"><button class="link" type="button" id="forgot">Забыли пароль?</button></div></form>';
+  document.getElementById("f").onsubmit=e=>{e.preventDefault();auth("/api/v1/auth/login")};
+  document.getElementById("reg").onclick=()=>auth("/api/v1/auth/register");
+  document.getElementById("forgot").onclick=forgotForm;
+}
+function forgotForm(){
+  panel.innerHTML='<form id="f"><label>Почта</label><input name="email" type="email" autocomplete="username" required><div class="row"><button type="submit">Прислать ссылку</button><button class="ghost" type="button" id="back">Назад</button></div></form>';
+  document.getElementById("back").onclick=()=>{say("");loginForm()};
+  document.getElementById("f").onsubmit=async e=>{
+    e.preventDefault(); say("Отправка…");
+    try{const data=await post("/api/v1/auth/forgot",{email:e.target.email.value}); say(data.message||"Готово.");}
+    catch(err){say(err.message)}
   };
 }
-async function send(path){
+function resetForm(){
+  panel.innerHTML='<form id="f"><label>Новый пароль</label><input name="password" type="password" minlength="8" autocomplete="new-password" required><div class="row"><button type="submit">Сохранить пароль</button></div></form>';
+  document.getElementById("f").onsubmit=async e=>{
+    e.preventDefault(); say("Сохраняем…");
+    try{
+      const data=await post("/api/v1/auth/reset",{token:resetToken,password:e.target.password.value});
+      history.replaceState({}, "", "/account/");
+      say("Пароль обновлён.");
+      logged(data.user);
+    }catch(err){say(err.message)}
+  };
+}
+function logged(user){
+  panel.innerHTML='<div class="card"><div>'+user.email+'</div><form id="pw"><label>Текущий пароль</label><input name="current" type="password" autocomplete="current-password" required><label>Новый пароль</label><input name="next" type="password" minlength="8" autocomplete="new-password" required><div class="row"><button type="submit">Сменить пароль</button><button class="ghost" type="button" id="out">Выйти</button><a href="/studio/"><button class="ghost" type="button">AI Studio</button></a></div></form></div>';
+  document.getElementById("out").onclick=async()=>{await fetch(API+"/api/v1/auth/logout",{method:"POST",credentials:"include"}); say("Сессия закрыта."); loginForm()};
+  document.getElementById("pw").onsubmit=async e=>{
+    e.preventDefault(); say("Сохраняем…");
+    try{await post("/api/v1/auth/password",{currentPassword:e.target.current.value,password:e.target.next.value}); e.target.reset(); say("Пароль изменён.");}
+    catch(err){say(err.message)}
+  };
+}
+async function auth(path){
   const f=document.getElementById("f");
-  msg.textContent="Отправка…";
-  const r=await fetch(API+path,{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:f.email.value,password:f.password.value})});
-  const data=await r.json().catch(()=>({}));
-  if(!r.ok){msg.textContent=data.message||"Не получилось.";return}
-  msg.textContent=path.endsWith("register")?"Аккаунт создан.":"Вход выполнен.";
-  logged(data.user);
+  say("Отправка…");
+  try{
+    const data=await post(path,{email:f.email.value,password:f.password.value});
+    say(path.endsWith("register")?"Аккаунт создан.":"Вход выполнен.");
+    logged(data.user);
+  }catch(err){say(err.message)}
 }
 (async()=>{
+  if(resetToken){resetForm(); return}
   try{
     const r=await fetch(API+"/api/v1/auth/me",{credentials:"include"});
     const data=await r.json();
-    if(data.user){logged(data.user);return}
-  }catch(e){msg.textContent="API сейчас недоступен."}
-  form();
+    if(data.user){logged(data.user); return}
+  }catch(e){say("API сейчас недоступен.")}
+  loginForm();
 })();
 </script>
 </body>
