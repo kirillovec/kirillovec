@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   const $ = (s) => document.querySelector(s);
-  const prompt = $("#prompt"), config = window.AI_STUDIO_CONFIG || {};
+  const promptEl = $("#prompt"), config = window.AI_STUDIO_CONFIG || {};
   const apiBase = String(config.apiBaseUrl || "").replace(/\/$/, "");
   const historyKey = "kirillovec-ai-studio-history-v2";
   let mode = "image", selectedFile = null, history = [];
@@ -11,7 +11,7 @@
     if (!t) return;
     t.textContent = msg;
     t.style.display = "block";
-    setTimeout(() => (t.style.display = "none"), 2800);
+    setTimeout(() => (t.style.display = "none"), 3200);
   }
 
   function setMode(m) {
@@ -26,7 +26,6 @@
     if (caption) caption.textContent = m === "image" ? "Текст → изображение" : m === "audio" ? "Style + Lyrics для Suno" : "Видео-промпты";
   }
 
-  // Prompt presets
   const PRESETS = {
     music: "Square album cover, Russian underground rap aesthetic, night city lights through window, cigarette smoke, dark minimalism, moody lighting, cinematic, high detail",
     cover: "Album cover \"НИЗКО\", dark minimal window overlooking night city, typography, smoke atmosphere, cold blue and amber tones, Russian rap album art",
@@ -40,21 +39,20 @@
   document.querySelectorAll("[data-prompt]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const key = btn.getAttribute("data-prompt");
-      if (PRESETS[key] && prompt) {
-        prompt.value = PRESETS[key];
-        prompt.dispatchEvent(new Event("input"));
+      if (PRESETS[key] && promptEl) {
+        promptEl.value = PRESETS[key];
+        promptEl.dispatchEvent(new Event("input"));
       }
     });
   });
 
-  if (prompt) {
-    prompt.addEventListener("input", () => {
+  if (promptEl) {
+    promptEl.addEventListener("input", () => {
       const c = $("#prompt-count");
-      if (c) c.textContent = prompt.value.length + " / 2000";
+      if (c) c.textContent = promptEl.value.length + " / 2000";
     });
   }
 
-  // File upload
   const fileInput = $("#file-input");
   const filePreview = $("#file-preview");
   if (fileInput) {
@@ -85,12 +83,10 @@
     });
   }
 
-  // Mode switch
   document.querySelectorAll("[data-mode]").forEach((b) => {
     b.addEventListener("click", () => setMode(b.getAttribute("data-mode")));
   });
 
-  // View navigation
   document.querySelectorAll("[data-view]").forEach((b) => {
     b.addEventListener("click", () => {
       document.querySelectorAll("[data-view]").forEach((x) => x.classList.remove("active"));
@@ -100,7 +96,6 @@
     });
   });
 
-  // Suno Style builder
   const pillars = {};
   document.querySelectorAll("[data-pillar]").forEach((row) => {
     const name = row.getAttribute("data-pillar");
@@ -138,7 +133,6 @@
     });
   }
 
-  // Lyrics tags
   document.querySelectorAll("[data-tag]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const tag = btn.getAttribute("data-tag");
@@ -165,7 +159,6 @@
     });
   }
 
-  // Audio presets
   const AUDIO_PRESETS = {
     nizko: {
       genre: ["southern hip hop", "lo-fi hip hop"],
@@ -202,7 +195,6 @@
       const key = btn.getAttribute("data-audio-preset");
       const p = AUDIO_PRESETS[key];
       if (!p) return;
-      // clear
       document.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
       Object.keys(pillars).forEach((k) => pillars[k].clear());
       Object.entries(p).forEach(([pillar, values]) => {
@@ -219,36 +211,88 @@
     });
   });
 
-  // Generate button (image)
+  function showResult(dataUrl, promptText) {
+    const stage = $("#result-stage");
+    const status = $("#result-status");
+    if (!stage) return;
+    stage.innerHTML = "";
+    const img = document.createElement("img");
+    img.src = dataUrl;
+    img.alt = promptText || "result";
+    img.style.cssText = "max-width:100%;max-height:420px;border-radius:12px;display:block;margin:0 auto";
+    stage.appendChild(img);
+    if (status) status.textContent = "Готово";
+
+    history.unshift({ prompt: promptText, dataUrl, ts: Date.now() });
+    history = history.slice(0, 30);
+    try { localStorage.setItem(historyKey, JSON.stringify(history)); } catch (_) {}
+    renderHistory();
+  }
+
+  function fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
   const generateBtn = $("#generate");
   if (generateBtn) {
     generateBtn.addEventListener("click", async () => {
-      const p = (prompt && prompt.value.trim()) || "";
+      const p = (promptEl && promptEl.value.trim()) || "";
       if (!p) {
         toast("Напиши промпт");
         return;
       }
       if (!apiBase) {
-        toast("API не настроен. Скопируй промпт и используй внешний сервис.");
+        toast("API не настроен");
         return;
       }
       generateBtn.disabled = true;
       const status = $("#result-status");
       if (status) status.textContent = "Генерация...";
+      const stage = $("#result-stage");
+      if (stage) stage.innerHTML = '<div class="empty"><h3>Генерация...</h3><p>FLUX · Workers AI</p></div>';
+
       try {
-        // Placeholder for real API call
-        toast("Запрос отправлен (если backend доступен)");
-        // In real implementation: POST to apiBase + /jobs
+        const payload = { mode: "image", prompt: p };
+        if (selectedFile) {
+          payload.inputImage = await fileToDataUrl(selectedFile);
+        }
+        const res = await fetch(apiBase + "/api/v1/jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data.message || data.error || ("HTTP " + res.status);
+          toast(msg);
+          if (status) status.textContent = "Ошибка";
+          if (stage) stage.innerHTML = '<div class="empty"><h3>Не удалось</h3><p>' + msg + '</p></div>';
+          return;
+        }
+        const dataUrl = data.result && data.result.dataUrl;
+        if (!dataUrl) {
+          toast("Нет изображения в ответе");
+          if (status) status.textContent = "Ошибка";
+          return;
+        }
+        showResult(dataUrl, p);
+        toast("Готово");
       } catch (e) {
-        toast("Ошибка: " + (e.message || "unknown"));
+        toast("Ошибка сети: " + (e.message || "unknown"));
+        if (status) status.textContent = "Ошибка";
+        if (stage) stage.innerHTML = '<div class="empty"><h3>Ошибка сети</h3><p>Проверь API</p></div>';
       } finally {
         generateBtn.disabled = false;
-        if (status) status.textContent = "Ожидание";
       }
     });
   }
 
-  // History load
   try {
     history = JSON.parse(localStorage.getItem(historyKey) || "[]");
   } catch {
@@ -265,15 +309,23 @@
     }
     list.innerHTML = history
       .slice(0, 20)
-      .map(
-        (h, i) =>
-          `<div class="history-item" data-i="${i}"><div class="history-thumb">▧</div><div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(h.prompt || "").slice(0, 60)}</div></div>`
-      )
+      .map((h, i) => {
+        const thumb = h.dataUrl
+          ? `<img src="${h.dataUrl}" alt="" style="width:38px;height:38px;object-fit:cover;border-radius:8px">`
+          : `<div class="history-thumb">▧</div>`;
+        return `<div class="history-item" data-i="${i}">${thumb}<div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${(h.prompt || "").slice(0, 60)}</div></div>`;
+      })
       .join("");
+    list.querySelectorAll(".history-item").forEach((el) => {
+      el.addEventListener("click", () => {
+        const i = Number(el.getAttribute("data-i"));
+        const h = history[i];
+        if (h && h.dataUrl) showResult(h.dataUrl, h.prompt);
+      });
+    });
   }
   renderHistory();
 
-  // Init
   setMode("image");
-  console.log("[kirillovec AI Studio] ready");
+  console.log("[kirillovec AI Studio] ready, api=", apiBase);
 })();
