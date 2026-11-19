@@ -4,13 +4,14 @@ compatibility_date = "2026-10-15"
 workers_dev = false
 
 [vars]
-# Cloudflare Access protects the custom API hostname; Worker JWT validation is optional.
-# Keep false unless ACCESS_TEAM_DOMAIN and ACCESS_AUD are configured in Production.
 ACCESS_REQUIRED = "false"
 MAX_JOBS_PER_HOUR = "10"
+MAX_MUSIC_PER_HOUR = "5"
 ALLOWED_ORIGINS = "https://kirillovec.ru,https://www.kirillovec.ru"
+SUNO_API_BASE = "https://api.sunoapi.org"
 
-# Runtime secrets are not vars: set REPLICATE_API_TOKEN, RESEND_API_KEY and SELF_HOSTED_API_TOKEN with `wrangler secret put`.
+# Secrets (wrangler secret put):
+# SUNO_API_KEY, REPLICATE_API_TOKEN, RESEND_API_KEY, SELF_HOSTED_API_TOKEN
 
 [ai]
 binding = "AI"
@@ -21,8 +22,11 @@ database_name = "kirillovec-ai-studio"
 database_id = "REPLACE_WITH_D1_DATABASE_ID"
 migrations_dir = "migrations"
 
-# Add a KV namespace binding named JWKS_CACHE to cache Access signing keys.
-# Configure secrets and variables in Cloudflare Worker settings. See docs/AI-STUDIO-DEPLOYMENT.md.
+# Optional: create bucket first — npx wrangler r2 bucket create kirillovec-music
+# Then uncomment:
+# [[r2_buckets]]
+# binding = "R2"
+# bucket_name = "kirillovec-music"
 
 [[send_email]]
 name = "EMAIL"
