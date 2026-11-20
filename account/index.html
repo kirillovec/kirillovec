@@ -104,12 +104,14 @@ const GOOGLE_ICON =
   "</svg>";
 
 function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, """)
-    .replace(/'/g, "&#39;");
+  var map = {
+    "&": String.fromCharCode(38) + "amp;",
+    "<": String.fromCharCode(38) + "lt;",
+    ">": String.fromCharCode(38) + "gt;",
+    '"': String.fromCharCode(38) + "quot;",
+    "'": "&#39;"
+  };
+  return String(s).replace(/[&<>"']/g, function (c) { return map[c]; });
 }
 
 function escapeAttr(s) {
