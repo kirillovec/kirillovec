@@ -1,0 +1,1 @@
+PLACEHOLDER_USE_ARTIFACT_src_auth_js
