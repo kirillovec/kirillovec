@@ -70,6 +70,11 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:inherit;
 .history-thumb{width:38px;height:38px;display:grid;place-items:center;background:#201b29;border-radius:8px;color:var(--accent)}
 .toast{position:fixed;bottom:20px;right:20px;max-width:360px;background:#201a29;border:1px solid #47375b;border-radius:12px;padding:14px 16px;display:none;z-index:10;font-size:13px}
 .mobile-nav{display:none}
+.auth-banner{display:none;margin:0 0 18px;padding:12px 14px;border-radius:12px;border:1px solid #3a3228;background:linear-gradient(135deg,#1a1620,#15131a);font-size:13px;color:#d8cfc0;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.auth-banner strong{color:#f0e6d8}
+.auth-banner a{color:#c4a77d;font-weight:700}
+.auth-banner.logged{border-color:#2a3a2a;background:#121a14;color:#c8d8c4}
+#account-chip.user{border-color:#4a3f5c;color:#e6d8ff;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .audio-only{display:none}
 body.mode-audio .image-only{display:none}
 body.mode-audio .audio-only{display:block}
@@ -115,6 +120,10 @@ body.mode-audio .audio-only{display:block}
 <h1 id="page-title">Преврати идею в визуал</h1>
 <p id="page-subtitle">Обложки, изображения и Style/Lyrics промпты для Suno.</p>
 </div>
+<div class="auth-banner" id="auth-banner" style="display:none">
+  <div id="auth-banner-text"><strong>Гостевой режим.</strong> Регистрация сохраняет историю и поднимает лимиты.</div>
+  <a href="/account/" id="auth-banner-cta">Создать аккаунт →</a>
+</div>
 <div class="workspace">
 <section class="panel">
 <div class="panel-head"><h2 id="panel-title">Новая генерация</h2><span id="mode-caption">Текст → изображение</span></div>
@@ -147,7 +156,7 @@ body.mode-audio .audio-only{display:block}
 </div>
 
 <div class="audio-only">
-<p style="color:var(--muted);font-size:12px;margin:0 0 16px">Конструктор Style + Lyrics для <strong>Suno</strong> (как usesuno Prompt Builder). Локально — копируй на suno.com.</p>
+<p style="color:var(--muted);font-size:12px;margin:0 0 16px">Конструктор Style + Lyrics для <strong>Suno</strong>. Генерация через API или копируй на suno.com.</p>
 
 <div class="pillar"><strong>Жанр / стиль</strong>
 <div class="chip-row" data-pillar="genre">
@@ -228,8 +237,9 @@ body.mode-audio .audio-only{display:block}
 <button type="button" data-audio-preset="melodic">🌙 Melodic night</button>
 </div>
 
+<button type="button" class="generate" id="generate-audio-btn" style="display:none">✦ Создать трек</button>
 <a class="generate" id="open-suno" href="https://suno.com/create" target="_blank" rel="noopener">Открыть Suno Create →</a>
-<p class="disclaimer">Неофициальный helper. Генерация — на suno.com. Вдохновлено usesuno.com.</p>
+<p class="disclaimer">Генерация через API (Suno V6) или копируй Style/Lyrics на suno.com.</p>
 </div>
 
 <div id="video-providers" style="display:none;margin-top:12px;padding:12px;border:1px solid #493761;border-radius:12px;color:var(--muted);font-size:12px">Скопируй промпт и открой внешний видеосервис.</div>
@@ -239,7 +249,7 @@ body.mode-audio .audio-only{display:block}
 <section class="panel">
 <div class="panel-head"><h2>Результат / превью</h2><span id="result-status">Ожидание</span></div>
 <div class="result-stage" id="result-stage">
-<div class="empty" id="result-empty"><h3>Здесь будет результат</h3><p>Фото — через API. Аудио — скопируй Style/Lyrics в Suno.</p></div>
+<div class="empty" id="result-empty"><h3>Здесь будет результат</h3><p>Фото — через API. Аудио — генерация через Suno API.</p></div>
 </div>
 <div class="notice" id="notice"></div>
 <div class="panel-head"><h2>История</h2><span id="history-count">0</span></div>
@@ -252,5 +262,6 @@ body.mode-audio .audio-only{display:block}
 <div class="toast" id="toast"></div>
 <script src="config.js"></script>
 <script src="app.js"></script>
+<script src="auth-banner.js"></script>
 </body>
 </html>
