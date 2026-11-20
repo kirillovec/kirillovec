@@ -5,13 +5,16 @@ workers_dev = false
 
 [vars]
 ACCESS_REQUIRED = "false"
-MAX_JOBS_PER_HOUR = "10"
-MAX_MUSIC_PER_HOUR = "5"
+MAX_JOBS_PER_HOUR = "20"
+MAX_MUSIC_PER_HOUR = "10"
 ALLOWED_ORIGINS = "https://kirillovec.ru,https://www.kirillovec.ru"
 SUNO_API_BASE = "https://api.sunoapi.org"
 
 # Secrets (wrangler secret put):
-# SUNO_API_KEY, REPLICATE_API_TOKEN, RESEND_API_KEY, SELF_HOSTED_API_TOKEN
+# SUNO_API_KEY, RESEND_API_KEY
+# GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+# YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET
+# VK_CLIENT_ID, VK_CLIENT_SECRET
 
 [ai]
 binding = "AI"
@@ -22,8 +25,7 @@ database_name = "kirillovec-ai-studio"
 database_id = "REPLACE_WITH_D1_DATABASE_ID"
 migrations_dir = "migrations"
 
-# Optional: create bucket first — npx wrangler r2 bucket create kirillovec-music
-# Then uncomment:
+# Optional R2 for image history:
 # [[r2_buckets]]
 # binding = "R2"
 # bucket_name = "kirillovec-music"
