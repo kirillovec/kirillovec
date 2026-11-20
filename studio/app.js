@@ -91,10 +91,10 @@
 
   document.querySelectorAll("[data-view]").forEach((b) => {
     b.addEventListener("click", () => {
-      document.querySelectorAll("[data-view]").forEach((x) => x.classList.remove("active"));
-      b.classList.add("active");
       const title = $("#crumb-title");
       if (title) title.textContent = b.textContent.trim() || b.getAttribute("data-view");
+      document.querySelectorAll("[data-view]").forEach((x) => x.classList.remove("active"));
+      b.classList.add("active");
     });
   });
 
@@ -369,7 +369,8 @@
       const thumb = h.dataUrl
         ? `<img src="${h.dataUrl}" alt="" style="width:38px;height:38px;object-fit:cover;border-radius:8px">`
         : `<div class="history-thumb">▧</div>`;
-      return `<div class="history-item" data-i="${i}">${thumb}<div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${(h.prompt || "").slice(0, 60)}</div></div>`;
+      const extra = h.audioUrl ? ` · <a href="${h.audioUrl}" target="_blank" rel="noopener" style="color:#c9a7ff">MP3</a>` : "";
+      return `<div class="history-item" data-i="${i}">${thumb}<div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${(h.prompt || "").slice(0, 60)}${extra}</div></div>`;
     }).join("");
     list.querySelectorAll(".history-item").forEach((el) => {
       el.addEventListener("click", () => {
@@ -379,7 +380,44 @@
       });
     });
   }
+
+  async function syncServerHistory() {
+    if (!apiBase) return;
+    try {
+      const res = await fetch(apiBase + "/api/v1/jobs", { credentials: "include", cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json().catch(() => ({}));
+      const remote = (data.jobs || []).map((j) => ({
+        id: j.id,
+        prompt: j.prompt || "",
+        dataUrl: null,
+        resultUrl: j.result_url || null,
+        ts: Date.parse(j.created_at) || Date.now(),
+        remote: true
+      }));
+      const music = (data.music || []).map((m) => ({
+        id: m.id || m.task_id,
+        prompt: (m.title || m.style || "трек") + (m.audio_url ? "" : " (ожидание)"),
+        dataUrl: null,
+        audioUrl: m.audio_url || m.stream_url || null,
+        ts: Date.parse(m.created_at) || Date.now(),
+        remote: true,
+        music: true
+      }));
+      if (!remote.length && !music.length) return;
+      const byId = new Map(history.filter((h) => h.id).map((h) => [h.id, h]));
+      remote.concat(music).forEach((item) => {
+        const prev = byId.get(item.id) || {};
+        byId.set(item.id, { ...prev, ...item, dataUrl: prev.dataUrl || item.dataUrl });
+      });
+      const localOnly = history.filter((h) => !h.id);
+      history = [...localOnly, ...byId.values()].sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 30);
+      try { localStorage.setItem(historyKey, JSON.stringify(history)); } catch (_) {}
+      renderHistory();
+    } catch (_) {}
+  }
   renderHistory();
   setMode("image");
+  syncServerHistory();
   console.log("[kirillovec AI Studio] ready, api=", apiBase);
 })();
