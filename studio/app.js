@@ -15,17 +15,21 @@
   }
 
   function setMode(m) {
-    mode = m;
-    document.body.classList.toggle("mode-audio", m === "audio");
+    mode = ["image", "audio", "video", "text"].includes(m) ? m : "image";
+    ["image", "audio", "video", "text"].forEach((name) => document.body.classList.toggle("mode-" + name, name === mode));
     document.querySelectorAll("[data-mode]").forEach((b) => {
-      const on = b.getAttribute("data-mode") === m;
+      const on = b.getAttribute("data-mode") === mode;
       b.classList.toggle("active", on);
       b.setAttribute("aria-pressed", on ? "true" : "false");
     });
+    const labels = { image: "Генерация и редактирование изображений", audio: "Музыка и промпты для Suno", video: "Видео-конструктор", text: "Текстовая мастерская" };
     const caption = $("#mode-caption");
-    if (caption) caption.textContent = m === "image" ? "Текст → изображение" : m === "audio" ? "Style + Lyrics для Suno" : "Видео-промпты";
+    if (caption) caption.textContent = labels[mode];
+    const crumb = $("#crumb-title");
+    if (crumb) crumb.textContent = ({ image: "Изображения", audio: "Аудио", video: "Видео", text: "Тексты" })[mode];
     const gen = $("#generate");
-    if (gen) gen.textContent = m === "audio" ? "✦ Создать трек" : "✦ Создать изображение";
+    if (gen) gen.textContent = mode === "audio" ? "✦ Создать трек" : "✦ Создать изображение";
+    try { history.replaceState(null, "", "?mode=" + mode); } catch (_) {}
   }
 
   const PRESETS = {
@@ -305,6 +309,11 @@
   }
 
   const generateBtn = $("#generate");
+  const audioGenerateBtn = $("#generate-audio-btn");
+  if (audioGenerateBtn && generateBtn) audioGenerateBtn.addEventListener("click", () => {
+    setMode("audio");
+    generateBtn.click();
+  });
   if (generateBtn) {
     generateBtn.addEventListener("click", async () => {
       if (!apiBase) { toast("API не настроен"); return; }
@@ -463,8 +472,67 @@
       renderHistory();
     } catch (_) {}
   }
+
+  const TEXT_TEMPLATES = {
+    song: "Напиши оригинальный текст песни на тему: [тема].\nЖанр и настроение: [жанр / эмоция].\nВокал: [тип голоса].\nСтруктура: [Intro] / [Verse 1] / [Chorus] / [Verse 2] / [Bridge] / [Final Chorus] / [Outro].\nИзбегай клише, сохраняй естественную речь и сильные образы.",
+    poem: "Создай оригинальное стихотворение на тему [тема]. Используй конкретные образы, естественную интонацию, цельное развитие мысли и сильную финальную строку.",
+    script: "Разработай сценарий музыкального клипа. Укажи открывающий кадр, развитие действия, кульминацию и финал. Для каждого эпизода опиши действие, план камеры, движение, свет и переход.",
+    ad: "Создай рекламный текст для [продукт / проект]. Укажи аудиторию, главное преимущество, заголовок, основное сообщение и призыв к действию.",
+    prompt: "Создай подробный AI-промпт. Укажи объект, действие, окружение, композицию, освещение, стиль, камеру, детали и negative prompt.",
+    description: "Создай ясное и выразительное описание. Подготовь заголовок, краткое описание, ключевые особенности и заключение."
+  };
+  const TEXT_KINDS = { song:"ТЕКСТ ПЕСНИ", poem:"СТИХОТВОРЕНИЕ", script:"СЦЕНАРИЙ", ad:"РЕКЛАМНЫЙ ТЕКСТ", prompt:"AI-ПРОМПТ", description:"ОПИСАНИЕ" };
+  function downloadText(filename, content) {
+    if (!content || !content.trim()) { toast("Сначала подготовь текст"); return; }
+    const blob = new Blob([content], { type:"text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href=url; a.download=filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function buildTextDraft() {
+    const kind = $("#text-kind")?.value || "song";
+    const brief = $("#text-brief")?.value.trim() || "[Опиши идею]";
+    const structures = {
+      song:"[Intro]\n\n[Verse 1]\n\n[Chorus]\n\n[Verse 2]\n\n[Bridge]\n\n[Final Chorus]\n\n[Outro]",
+      poem:"Образный центр:\nРитм и рифмовка:\nРазвитие мысли:\nФинальная строка:",
+      script:"1. Открывающий кадр\n2. Развитие действия\n3. Кульминация\n4. Финальный кадр\nДля каждого кадра: план, движение камеры, свет и действие.",
+      ad:"Заголовок:\nОсновное сообщение:\nПреимущество:\nПризыв к действию:",
+      prompt:"SUBJECT:\nACTION:\nSETTING:\nCOMPOSITION:\nLIGHTING:\nSTYLE:\nCAMERA:\nDETAILS:\nNEGATIVE PROMPT:",
+      description:"Заголовок:\nКраткое описание:\nКлючевые особенности:\nЗаключение:"
+    };
+    const output = "ЗАДАЧА: " + TEXT_KINDS[kind] + "\n\nИСХОДНАЯ ИДЕЯ:\n" + brief + "\n\nШАБЛОН / СТРУКТУРА:\n" + structures[kind] + "\n\nИНСТРУКЦИЯ ДЛЯ AI:\n" + TEXT_TEMPLATES[kind];
+    if ($("#text-output")) $("#text-output").value=output;
+  }
+  $("#build-text-draft")?.addEventListener("click", buildTextDraft);
+  $("#copy-text-draft")?.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("#text-output")?.value || ""); toast("Текст скопирован"); }
+    catch (_) { toast("Не удалось скопировать"); }
+  });
+  $("#download-text-draft")?.addEventListener("click", () => downloadText("kirillovec-text-" + Date.now() + ".txt", $("#text-output")?.value || ""));
+  document.querySelectorAll("[data-text-template]").forEach((b) => b.addEventListener("click", () => {
+    const key=b.getAttribute("data-text-template");
+    if ($("#text-kind")) $("#text-kind").value=key==="clip"?"script":key==="image"?"prompt":key;
+    buildTextDraft(); toast("Шаблон добавлен");
+  }));
+
+  function buildVideoPrompt() {
+    const kind=$("#video-type")?.value || "text";
+    const brief=$("#video-brief")?.value.trim() || "";
+    if (!brief) { toast("Опиши сцену"); return; }
+    const prefix=kind==="image"?"IMAGE TO VIDEO. Preserve the source image identity, composition and key visual details.":"TEXT TO VIDEO. Create a coherent cinematic video from the description.";
+    const output=prefix+"\nSCENE: "+brief+"\nCAMERA: deliberate cinematic camera movement, stable motion, intentional framing.\nMOTION: natural continuous movement, physically plausible actions.\nLIGHTING: consistent cinematic lighting and color grade.\nTEMPORAL CONSISTENCY: preserve subject appearance, clothing, environment and object continuity across frames.\nQUALITY: detailed, realistic motion, no flicker, no morphing, no unintended text or logos.";
+    if ($("#video-output")) $("#video-output").value=output;
+  }
+  $("#build-video-prompt")?.addEventListener("click", buildVideoPrompt);
+  $("#copy-video-prompt")?.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("#video-output")?.value || ""); toast("Видеопромпт скопирован"); }
+    catch (_) { toast("Не удалось скопировать"); }
+  });
+  $("#download-video-prompt")?.addEventListener("click", () => downloadText("kirillovec-video-prompt-" + Date.now() + ".txt", $("#video-output")?.value || ""));
+
   renderHistory();
-  setMode("image");
+  const requestedMode = new URLSearchParams(location.search).get("mode") || "image";
+  setMode(requestedMode);
   syncServerHistory();
   console.log("[kirillovec AI Studio] ready, api=", apiBase);
 })();
