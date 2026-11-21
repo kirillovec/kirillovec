@@ -14,11 +14,16 @@
 - https://kirillovec.ru/referrals/ — External creative-service referrals.
 
 ## Product priorities
-1. Audio and Suno-oriented music workflows.
-2. Image generation and image editing.
-3. Video concepts and prompts.
-4. Text drafting and prompt templates.
-5. Saving local projects and downloading generated assets.
+1. Audio workshop: Suno-ready Style/Lyrics builder, song structure, vocal and production presets, copy/open handoff and downloadable prompt packs. Audio API generation remains disabled unless separately approved for cost.
+2. Image generation and image editing with reference uploads, aspect-ratio workflows and direct result downloads.
+3. Video concepts, storyboard prompts and transparent handoff to external video services; in-site rendering is not currently enabled.
+4. Text workshop for lyrics, poems, scripts, ads, descriptions and reusable AI prompts.
+5. Unified browser-local project library, editable drafts, JSON backup and downloads.
+
+## Product positioning
+- This is an AI Creative Studio first, not an artist portfolio.
+- Audio and image creation are the two lead tools; video and text are supporting creation tools.
+- Artist releases and portfolio pages are secondary destinations.
 
 ## Capability and cost transparency
 - Suno handoff mode copies Style, Lyrics, title and settings into the clipboard and opens Suno. This does not require a Suno API key; Suno account limits and terms apply.

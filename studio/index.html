@@ -43,6 +43,14 @@ a{color:var(--accent)}
 .history-item:hover{border-color:var(--line);background:#14141a}
 .history-thumb{width:38px;height:38px;border-radius:8px;background:#1a1a22;display:flex;align-items:center;justify-content:center;color:var(--muted)}
 .history-empty{color:var(--muted);font-size:13px;padding:8px}
+.project-list{display:flex;flex-direction:column;gap:9px;max-height:420px;overflow:auto}
+.project-item{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:11px;background:#101015}
+.project-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.project-info strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-info span{font-size:10px;color:var(--muted)}
+.project-actions{display:flex;gap:7px}
+.project-actions button{border:1px solid var(--line);background:#191820;color:#ded6ed;border-radius:8px;padding:6px 9px;font-size:11px;cursor:pointer}
+.project-actions button:first-child{border-color:#4a3f5c;color:#e6d8ff}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .chip{border:1px solid var(--line);background:#15151b;color:#c7c3d1;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer}
 .chip.active{border-color:#6b4fd6;background:#221b35;color:#e6d8ff}
@@ -94,6 +102,11 @@ body.mode-audio #audio-panel{display:block}
     <div class="history-list" id="history-list"><div class="history-empty">История изображений</div></div>
     <div class="action-row"><button type="button" id="save-project">Сохранить текущий проект</button><button type="button" id="export-projects">Экспорт проектов JSON</button></div>
     <p class="mode-note">Проекты сохраняются локально в браузере. Не очищай данные сайта, если хочешь сохранить локальную библиотеку.</p>
+  </div>
+  <div class="panel">
+    <h2>Мои проекты <span id="project-count" style="color:var(--muted)">0</span></h2>
+    <div class="project-list" id="project-list"><div class="history-empty">Сохраняй аудио, фото, видео и текстовые проекты</div></div>
+    <p class="mode-note">Открывай сохранённые черновики, продолжай работу или удаляй ненужные. Библиотека хранится в этом браузере.</p>
   </div>
 </aside>
 
