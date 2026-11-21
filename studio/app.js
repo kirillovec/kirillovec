@@ -61,7 +61,7 @@
     fileInput.addEventListener("change", () => {
       const f = fileInput.files && fileInput.files[0];
       if (!f) return;
-      if (!/^image\/(jpeg|png|webp)$/.test(f.type)) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(f.type)) {
         toast("Поддерживаются только JPG, PNG и WEBP");
         fileInput.value = "";
         return;
