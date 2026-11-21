@@ -44,3 +44,26 @@
 - GitHub Pages — статический хостинг, сам по себе не запускает backend или GPU-модели.
 - Функции face swap, клонирования голоса и работа с изображениями людей требуют проверки прав пользователя, согласия и политики провайдера.
 - Нельзя заявлять, что генерация работает, пока успешный реальный запрос к модели не прошёл end-to-end.
+
+
+## Product direction (21.11.2026)
+The primary product is AI Creative Studio, not the artist portfolio. Main tools:
+1. Audio: Suno-oriented Style/Lyrics builder, prompt pack handoff to Suno, optional API generation only when explicitly configured.
+2. Images: text-to-image and image-to-image using the existing Workers AI binding.
+3. Video: prompt builder and handoff to external services; no claim of in-site video rendering until a provider is actually integrated.
+4. Text: local editable templates and structured briefs. Server-side LLM generation is not enabled yet.
+
+## Cost and storage rules
+- Keep the manual Suno handoff as the default no-provider-key workflow.
+- The optional Suno API integration is third-party and may be paid. Do not describe it as free or trigger it implicitly.
+- Do not add R2 or other paid object storage without a separate approval.
+- Save small project metadata and editable drafts in browser-local storage; provide export so users can back up their work.
+- Image outputs remain downloadable from the inline response; no persistent asset bucket is required for the current path.
+
+## Frontend modes
+- `/studio/?mode=audio`
+- `/studio/?mode=image`
+- `/studio/?mode=video`
+- `/studio/?mode=text`
+
+The homepage prioritizes Audio and Images, with Video and Text as first-class tools. Artist and portfolio pages remain secondary destinations.
