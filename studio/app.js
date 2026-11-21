@@ -322,30 +322,6 @@
     try { await navigator.clipboard.writeText(packet); toast("Пакет скопирован. Вставь Style и Lyrics в Suno."); }
     catch (_) { toast("Suno открыт. Скопируй Style и Lyrics вручную."); }
   });
-  const audioApiBtn = $("#generate-audio-api-btn");
-  if (audioApiBtn && generateBtn) audioApiBtn.addEventListener("click", () => {
-    setMode("audio");
-    generateBtn.click();
-  });
-  ["suno-weirdness", "suno-influence"].forEach((id) => {
-    const input = $("#" + id), output = id === "suno-weirdness" ? $("#weirdness-value") : $("#influence-value");
-    input?.addEventListener("input", () => { if (output) output.textContent = input.value; });
-  });
-  if (apiBase && audioApiBtn) fetch(apiBase + "/api/v1/capabilities", { credentials: "include", cache: "no-store" })
-    .then((r) => r.ok ? r.json() : null)
-    .then((caps) => {
-      if (caps && caps.music && caps.music.enabled) {
-        audioApiBtn.textContent = "Запустить Suno API";
-        audioApiBtn.title = "API-провайдер настроен; перед запуском учитывай его тарифы и лимиты.";
-      } else {
-        audioApiBtn.disabled = true;
-        audioApiBtn.textContent = "API-генерация не настроена";
-        audioApiBtn.title = "Используй бесплатный режим: копирование промпта в Suno.";
-      }
-    }).catch(() => {
-      audioApiBtn.disabled = true;
-      audioApiBtn.textContent = "API-генерация недоступна";
-    });
   if (generateBtn) {
     generateBtn.addEventListener("click", async () => {
       if (!apiBase) { toast("API не настроен"); return; }
