@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b0b0d">
-<title>AI Studio — kirillovec</title>
-<meta name="description" content="kirillovec AI Studio: обложки, изображения и промпты для Suno.">
+<title>AI Creative Studio — kirillovec | Аудио, изображения, видео, тексты</title>
+<meta name="description" content="kirillovec AI Creative Studio: музыка под Suno, генерация изображений, видео и тексты.">
 <link rel="canonical" href="https://kirillovec.ru/studio/">
 <style>
 :root{color-scheme:dark;--bg:#0b0b0d;--panel:#121216;--line:#292930;--muted:#92929e;--text:#e8e6ef;--accent:#c9a7ff;--accent2:#7c5cff}
@@ -54,6 +54,19 @@ a{color:var(--accent)}
 .auth-banner.logged{border-color:#2a3a2a;background:#121a14;color:#c8d8c4}
 #account-chip.user{border-color:#4a3f5c;color:#e6d8ff;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .disclaimer{font-size:12px;color:var(--muted);margin-top:10px}
+.field{width:100%;border:1px solid var(--line);background:#0f0f13;color:var(--text);padding:11px 12px;border-radius:10px;font:inherit}
+.workspace textarea{width:100%;min-height:130px;resize:vertical;border-radius:12px;border:1px solid var(--line);background:#0f0f13;color:var(--text);padding:12px;font:inherit}
+.action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.action-row button,.soft-button{border:1px solid var(--line);background:#191820;color:#ded6ed;border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;font-size:12px}
+#video-panel,#text-panel{display:none}
+body.mode-video #image-panel,body.mode-video #audio-panel,body.mode-video #text-panel{display:none}
+body.mode-video #video-panel{display:block}
+body.mode-text #image-panel,body.mode-text #audio-panel,body.mode-text #video-panel{display:none}
+body.mode-text #text-panel{display:block}
+body.mode-audio #video-panel,body.mode-audio #text-panel{display:none}
+body.mode-image #audio-panel,body.mode-image #video-panel,body.mode-image #text-panel{display:none}
+.mode-note{font-size:12px;color:var(--muted);line-height:1.55}
+.provider-links{display:flex;gap:8px;flex-wrap:wrap}.provider-links a{border:1px solid var(--line);padding:8px 11px;border-radius:9px;text-decoration:none;font-size:12px;color:#d8c9f5}
+@media(max-width:720px){.side,.main,.right{padding:12px}.layout{display:block}.side{border-right:0;border-bottom:1px solid var(--line)}.modes button{flex:1}.result-stage{min-height:220px}}
 #toast{display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1c1a24;border:1px solid #3a3550;color:#efeaf8;padding:10px 14px;border-radius:12px;z-index:50;font-size:13px}
 body.mode-audio #image-panel,body.mode-audio #video-providers{display:none}
 body.mode-audio #audio-panel{display:block}
@@ -62,7 +75,7 @@ body.mode-audio #audio-panel{display:block}
 <script src="config.js"></script>
 </head>
 <body>
-<header class="topbar"><div class="crumb"><span>AI Studio</span>　/　<b id="crumb-title">Создать</b></div><a id="account-chip" href="/account/" style="font-size:13px;color:#c4a77d;text-decoration:none;border:1px solid #3a3228;border-radius:999px;padding:8px 12px">Войти</a></header>
+<header class="topbar"><div class="crumb"><span><a href="/" style="text-decoration:none;color:inherit">AI Studio</a></span>　/　<b id="crumb-title">Изображения</b></div><a id="account-chip" href="/account/" style="font-size:13px;color:#c4a77d;text-decoration:none;border:1px solid #3a3228;border-radius:999px;padding:8px 12px">Войти</a></header>
 
 <div class="layout">
 <aside class="side">
@@ -179,12 +192,42 @@ body.mode-audio #audio-panel{display:block}
       <button type="button" id="copy-lyrics" style="border:1px solid var(--line);background:#15151b;color:#c7c3d1;border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer">Скопировать Lyrics</button>
     </div>
   </div>
-  <button type="button" class="generate" id="generate-audio-btn" style="display:none">✦ Создать трек</button>
+  <button type="button" class="generate" id="generate-audio-btn">✦ Создать трек через Suno API</button>
   <p class="disclaimer" style="margin-top:12px">Трек создаётся кнопкой «✦ Создать трек» выше (Suno V6 API). Style/Lyrics можно также скопировать.</p>
   <a href="https://suno.com/create" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Открыть suno.com вручную ↗</a>
 </div>
 
-<div id="video-providers" style="display:none;margin-top:12px;padding:12px;border:1px solid #493761;border-radius:12px;color:var(--muted);font-size:12px">Скопируй промпт и открой внешний видеосервис.</div>
+
+<div id="video-panel">
+  <div class="panel workspace">
+    <h2>Видео-конструктор</h2>
+    <p class="mode-note">Подготовь концепцию для Text to Video или Image to Video. Сам рендеринг выполняется выбранным внешним сервисом — встроенная генерация видео пока не подключена.</p>
+    <label class="mode-note" for="video-type">Тип задачи</label>
+    <select id="video-type" class="field"><option value="text">Text to Video</option><option value="image">Image to Video</option></select>
+    <label class="mode-note" for="video-brief" style="display:block;margin-top:12px">Идея / описание сцены</label>
+    <textarea id="video-brief" placeholder="Опиши сцену, героя, действие, окружение, настроение и движение камеры..."></textarea>
+    <div class="action-row"><button type="button" id="build-video-prompt">Собрать видеопромпт</button><button type="button" id="copy-video-prompt">Копировать</button><button type="button" id="download-video-prompt">Скачать TXT</button></div>
+    <h2 style="margin-top:18px">Готовый промпт</h2><textarea id="video-output" placeholder="Здесь появится структурированный видеопромпт"></textarea>
+  </div>
+  <div class="panel"><h2>Видеосервисы</h2><div class="provider-links"><a href="https://klingai.com/" target="_blank" rel="noopener">Kling ↗</a><a href="https://pixverse.ai/" target="_blank" rel="noopener">PixVerse ↗</a><a href="https://hailuoai.video/" target="_blank" rel="noopener">Hailuo ↗</a></div><p class="mode-note">Бесплатные лимиты и доступность определяются самими платформами. Перед загрузкой исходников проверь условия сервиса.</p></div>
+</div>
+
+<div id="text-panel">
+  <div class="panel workspace">
+    <h2>Текстовая мастерская</h2>
+    <p class="mode-note">Собирай структуру песни, стихотворения, сценария или рекламного текста. Инструмент помогает оформить материал и подготовить задание для выбранной AI-модели; генерация языковой моделью на сервере пока не подключена.</p>
+    <label class="mode-note" for="text-kind">Тип материала</label>
+    <select id="text-kind" class="field">
+      <option value="song">Текст песни</option><option value="poem">Стихотворение</option><option value="script">Сценарий клипа</option><option value="ad">Рекламный текст</option><option value="prompt">AI-промпт</option><option value="description">Описание / пост</option>
+    </select>
+    <label class="mode-note" for="text-brief" style="display:block;margin-top:12px">Тема, идея и пожелания</label>
+    <textarea id="text-brief" placeholder="Например: меланхоличный рэп о воспоминаниях, низкий мужской голос, без пафоса..."></textarea>
+    <div class="action-row"><button type="button" id="build-text-draft">Собрать структуру</button><button type="button" id="copy-text-draft">Копировать</button><button type="button" id="download-text-draft">Скачать TXT</button></div>
+    <h2 style="margin-top:18px">Рабочий текст</h2><textarea id="text-output" placeholder="Здесь появится шаблон / рабочая структура. Можно редактировать вручную."></textarea>
+  </div>
+  <div class="panel"><h2>Быстрые шаблоны</h2><div class="action-row"><button type="button" data-text-template="song">Песня</button><button type="button" data-text-template="clip">Клип</button><button type="button" data-text-template="ad">Реклама</button><button type="button" data-text-template="image">Промпт изображения</button></div></div>
+</div>
+
 </main>
 
 <aside class="right">
