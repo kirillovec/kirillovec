@@ -348,38 +348,6 @@
         return;
       }
 
-      if (mode === "audio") {
-        const styleOut = $("#style-out");
-        const style = (styleOut && styleOut.textContent && !styleOut.textContent.includes("Выбери")) ? styleOut.textContent.trim() : "";
-        const lyrics = ($("#lyrics") && $("#lyrics").value.trim()) || "";
-        const title = ($("#track-title") && $("#track-title").value.trim()) || "kirillovec";
-        if (!style && !lyrics) { toast("Собери Style чипами или вставь lyrics"); generateBtn.disabled = false; return; }
-        if (status) status.textContent = "Отправка в Suno...";
-        if (stage) stage.innerHTML = '<div class="empty"><h3>Генерация трека...</h3><p>Suno V6 · 30–90 сек</p></div>';
-        try {
-          const res = await fetch(apiBase + "/api/v1/music/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ style, lyrics, title, prompt: style, instrumental: !lyrics })
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.message || data.error || ("HTTP " + res.status));
-          if (!data.taskId) throw new Error("Нет taskId");
-          toast("Задача создана, ждём...");
-          const tracks = await pollMusic(data.taskId, status);
-          showMusicResult(tracks);
-          toast("Трек готов");
-        } catch (e) {
-          toast(e.message || "Ошибка");
-          if (status) status.textContent = "Ошибка";
-          if (stage) stage.innerHTML = '<div class="empty"><h3>Ошибка</h3><p>' + (e.message || "") + '</p></div>';
-        } finally {
-          generateBtn.disabled = false;
-        }
-        return;
-      }
-
       const p = (promptEl && promptEl.value.trim()) || "";
       if (!p) { toast("Напиши промпт"); generateBtn.disabled = false; return; }
       if (status) status.textContent = "Генерация...";
