@@ -48,14 +48,14 @@
 
 ## Product direction (21.11.2026)
 The primary product is AI Creative Studio, not the artist portfolio. Main tools:
-1. Audio: Suno-oriented Style/Lyrics builder, prompt pack handoff to Suno, optional API generation only when explicitly configured.
+1. Audio: Suno-oriented Style/Lyrics builder, prompt pack handoff to Suno. The third-party Suno API path remains disabled in the UI to avoid unexpected charges.
 2. Images: text-to-image and image-to-image using the existing Workers AI binding.
 3. Video: prompt builder and handoff to external services; no claim of in-site video rendering until a provider is actually integrated.
 4. Text: local editable templates and structured briefs. Server-side LLM generation is not enabled yet.
 
 ## Cost and storage rules
 - Keep the manual Suno handoff as the default no-provider-key workflow.
-- The optional Suno API integration is third-party and may be paid. Do not describe it as free or trigger it implicitly.
+- The backend Suno API integration is third-party and may be paid; the frontend button is disabled by default. Do not enable or call it without a separate cost decision.
 - Do not add R2 or other paid object storage without a separate approval.
 - Save small project metadata and editable drafts in browser-local storage; provide export so users can back up their work.
 - Image outputs remain downloadable from the inline response; no persistent asset bucket is required for the current path.
