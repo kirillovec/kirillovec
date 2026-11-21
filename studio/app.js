@@ -29,7 +29,7 @@
     if (crumb) crumb.textContent = ({ image: "Изображения", audio: "Аудио", video: "Видео", text: "Тексты" })[mode];
     const gen = $("#generate");
     if (gen) gen.textContent = mode === "audio" ? "✦ Создать трек" : "✦ Создать изображение";
-    try { history.replaceState(null, "", "?mode=" + mode); } catch (_) {}
+    try { window.history.replaceState(null, "", "?mode=" + mode); } catch (_) {}
   }
 
   const PRESETS = {
