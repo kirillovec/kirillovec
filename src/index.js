@@ -45,7 +45,7 @@ function resultToDataUrl(result) {
   throw new Error("UNSUPPORTED_RESULT");
 }
 function decodeImageDataUrl(value) {
-  const match = /^data:(image\\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(String(value || ""));
+  const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(String(value || ""));
   if (!match) throw new Error("INVALID_INPUT_IMAGE");
   const binary = atob(match[2]);
   if (!binary.length || binary.length > 4 * 1024 * 1024) throw new Error("INPUT_IMAGE_TOO_LARGE");
@@ -152,7 +152,7 @@ export default {
         if ((body.mode || "image") !== "image") return response(request, env, { error: "UNSUPPORTED_MODE", message: "Только image." }, 400);
 
         const inputImage = typeof body.inputImage === "string" ? body.inputImage : "";
-        if (inputImage && !/^data:image\\/(?:jpeg|png|webp);base64,/.test(inputImage)) {
+        if (inputImage && !/^data:image\/(?:jpeg|png|webp);base64,/.test(inputImage)) {
           return response(request, env, { error: "INVALID_INPUT_IMAGE", message: "Поддерживаются только JPEG, PNG и WEBP." }, 400);
         }
         let dataUrl;
