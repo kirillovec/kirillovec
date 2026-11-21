@@ -624,7 +624,7 @@
   $("#download-creative-pack")?.addEventListener("click", () => downloadText("kirillovec-creative-pack-" + Date.now() + ".txt", $("#creative-pack-output")?.value || ""));
 
   renderHistory();
-  const requestedMode = new URLSearchParams(location.search).get("mode") || "image";
+  const requestedMode = new URLSearchParams(location.search).get("mode") || "audio";
   setMode(requestedMode);
   syncServerHistory();
   console.log("[kirillovec AI Studio] ready, api=", apiBase);
