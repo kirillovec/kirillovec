@@ -251,17 +251,30 @@
 
   async function fileToDataUrl(file) {
     const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
-    const width = Math.max(1, Math.round(bitmap.width * scale));
-    const height = Math.max(1, Math.round(bitmap.height * scale));
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) throw new Error("Не удалось обработать исходное фото");
-    ctx.drawImage(bitmap, 0, 0, width, height);
-    bitmap.close();
-    return canvas.toDataURL("image/jpeg", 0.88);
+    const maxEdge = 2048;
+    let scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+    let dataUrl = "";
+    try {
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const width = Math.max(1, Math.round(bitmap.width * scale));
+        const height = Math.max(1, Math.round(bitmap.height * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d", { alpha: false });
+        if (!ctx) throw new Error("Не удалось обработать исходное фото");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(bitmap, 0, 0, width, height);
+        dataUrl = canvas.toDataURL("image/jpeg", attempt < 2 ? 0.9 : 0.82);
+        if (dataUrl.length <= 4 * 1024 * 1024) break;
+        scale *= 0.78;
+      }
+    } finally {
+      bitmap.close();
+    }
+    if (!dataUrl || dataUrl.length > 4 * 1024 * 1024) throw new Error("Не удалось сжать фото до допустимого размера");
+    return dataUrl;
   }
 
   async function pollMusic(taskId, statusEl) {
@@ -328,6 +341,12 @@
       generateBtn.disabled = true;
       const status = $("#result-status");
       const stage = $("#result-stage");
+
+      if (mode === "audio") {
+        generateBtn.disabled = false;
+        toast("Режим Suno работает без платного API: используй «Скопировать пакет и открыть Suno».");
+        return;
+      }
 
       if (mode === "audio") {
         const styleOut = $("#style-out");
@@ -543,6 +562,63 @@
   function readProjects() {
     try { return JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]"); } catch (_) { return []; }
   }
+  function renderProjects() {
+    const list = $("#project-list");
+    const count = $("#project-count");
+    const projects = readProjects();
+    if (count) count.textContent = String(projects.length);
+    if (!list) return;
+    list.replaceChildren();
+    if (!projects.length) {
+      const empty = document.createElement("div");
+      empty.className = "history-empty";
+      empty.textContent = "Сохранённых проектов пока нет";
+      list.appendChild(empty);
+      return;
+    }
+    projects.slice(0, 12).forEach((project) => {
+      const row = document.createElement("div");
+      row.className = "project-item";
+      const info = document.createElement("div");
+      info.className = "project-info";
+      const title = document.createElement("strong");
+      title.textContent = project.title || ({audio:"Аудиопроект",image:"Изображение",video:"Видеопроект",text:"Текстовый проект"}[project.mode] || "Проект");
+      const meta = document.createElement("span");
+      meta.textContent = (project.mode || "project").toUpperCase() + " · " + new Date(project.createdAt || Date.now()).toLocaleDateString("ru-RU");
+      info.append(title, meta);
+      const actions = document.createElement("div");
+      actions.className = "project-actions";
+      const open = document.createElement("button");
+      open.type = "button";
+      open.textContent = "Открыть";
+      open.addEventListener("click", () => {
+        if ($("#track-title")) $("#track-title").value = project.title === "Без названия" ? "" : project.title || "";
+        if ($("#prompt")) $("#prompt").value = project.prompt || "";
+        if ($("#style-out")) $("#style-out").textContent = project.style || "";
+        if ($("#lyrics")) $("#lyrics").value = project.lyrics || "";
+        if ($("#video-brief")) $("#video-brief").value = project.videoBrief || "";
+        if ($("#video-output")) $("#video-output").value = project.videoPrompt || "";
+        if ($("#text-brief")) $("#text-brief").value = project.textBrief || "";
+        if ($("#text-output")) $("#text-output").value = project.textDraft || "";
+        if ($("#creative-brief")) $("#creative-brief").value = project.creativeBrief || "";
+        if ($("#creative-pack-output")) $("#creative-pack-output").value = project.creativePack || "";
+        setMode(project.mode || "audio");
+        toast("Проект открыт");
+      });
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Удалить";
+      remove.addEventListener("click", () => {
+        const next = readProjects().filter((item) => item.id !== project.id);
+        try { localStorage.setItem(PROJECTS_KEY, JSON.stringify(next)); renderProjects(); toast("Проект удалён"); }
+        catch (_) { toast("Не удалось обновить библиотеку"); }
+      });
+      actions.append(open, remove);
+      row.append(info, actions);
+      list.appendChild(row);
+    });
+  }
+
   function currentProject() {
     return {
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
@@ -565,6 +641,7 @@
     projects.unshift(currentProject());
     try {
       localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects.slice(0, 50)));
+      renderProjects();
       toast("Проект сохранён в этом браузере");
     } catch (_) { toast("Недостаточно места в браузере. Экспортируй или удали старые данные."); }
   });
@@ -604,6 +681,15 @@
   });
 
   renderHistory();
+  renderProjects();
+  ["suno-weirdness", "suno-influence"].forEach((id) => {
+    const input = $("#" + id);
+    const output = $("#" + (id === "suno-weirdness" ? "weirdness-value" : "influence-value"));
+    if (input && output) {
+      output.textContent = input.value;
+      input.addEventListener("input", () => { output.textContent = input.value; });
+    }
+  });
   const requestedMode = new URLSearchParams(location.search).get("mode") || "audio";
   setMode(requestedMode);
   syncServerHistory();
