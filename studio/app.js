@@ -310,10 +310,42 @@
 
   const generateBtn = $("#generate");
   const audioGenerateBtn = $("#generate-audio-btn");
-  if (audioGenerateBtn && generateBtn) audioGenerateBtn.addEventListener("click", () => {
+  if (audioGenerateBtn) audioGenerateBtn.addEventListener("click", async () => {
+    setMode("audio");
+    const style = $("#style-out")?.textContent || "";
+    const lyrics = $("#lyrics")?.value || "";
+    const title = $("#track-title")?.value || "";
+    const weirdness = $("#suno-weirdness")?.value || "50";
+    const influence = $("#suno-influence")?.value || "75";
+    const packet = "TITLE: " + title + "\n\nSTYLE:\n" + style + "\n\nLYRICS:\n" + lyrics + "\n\nSUNO SETTINGS\nWeirdness: " + weirdness + "\nStyle Influence: " + influence;
+    window.open("https://suno.com/create", "_blank", "noopener");
+    try { await navigator.clipboard.writeText(packet); toast("Пакет скопирован. Вставь Style и Lyrics в Suno."); }
+    catch (_) { toast("Suno открыт. Скопируй Style и Lyrics вручную."); }
+  });
+  const audioApiBtn = $("#generate-audio-api-btn");
+  if (audioApiBtn && generateBtn) audioApiBtn.addEventListener("click", () => {
     setMode("audio");
     generateBtn.click();
   });
+  ["suno-weirdness", "suno-influence"].forEach((id) => {
+    const input = $("#" + id), output = id === "suno-weirdness" ? $("#weirdness-value") : $("#influence-value");
+    input?.addEventListener("input", () => { if (output) output.textContent = input.value; });
+  });
+  if (apiBase && audioApiBtn) fetch(apiBase + "/api/v1/capabilities", { credentials: "include", cache: "no-store" })
+    .then((r) => r.ok ? r.json() : null)
+    .then((caps) => {
+      if (caps && caps.music && caps.music.enabled) {
+        audioApiBtn.textContent = "Запустить Suno API";
+        audioApiBtn.title = "API-провайдер настроен; перед запуском учитывай его тарифы и лимиты.";
+      } else {
+        audioApiBtn.disabled = true;
+        audioApiBtn.textContent = "API-генерация не настроена";
+        audioApiBtn.title = "Используй бесплатный режим: копирование промпта в Suno.";
+      }
+    }).catch(() => {
+      audioApiBtn.disabled = true;
+      audioApiBtn.textContent = "API-генерация недоступна";
+    });
   if (generateBtn) {
     generateBtn.addEventListener("click", async () => {
       if (!apiBase) { toast("API не настроен"); return; }
@@ -529,6 +561,67 @@
     catch (_) { toast("Не удалось скопировать"); }
   });
   $("#download-video-prompt")?.addEventListener("click", () => downloadText("kirillovec-video-prompt-" + Date.now() + ".txt", $("#video-output")?.value || ""));
+
+
+  const PROJECTS_KEY = "kirillovec-creative-projects-v1";
+  function readProjects() {
+    try { return JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]"); } catch (_) { return []; }
+  }
+  function currentProject() {
+    return {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+      createdAt: new Date().toISOString(),
+      mode,
+      title: $("#track-title")?.value || "Без названия",
+      prompt: $("#prompt")?.value || "",
+      style: $("#style-out")?.textContent || "",
+      lyrics: $("#lyrics")?.value || "",
+      videoBrief: $("#video-brief")?.value || "",
+      videoPrompt: $("#video-output")?.value || "",
+      textBrief: $("#text-brief")?.value || "",
+      textDraft: $("#text-output")?.value || "",
+      creativeBrief: $("#creative-brief")?.value || "",
+      creativePack: $("#creative-pack-output")?.value || ""
+    };
+  }
+  $("#save-project")?.addEventListener("click", () => {
+    const projects = readProjects();
+    projects.unshift(currentProject());
+    try {
+      localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects.slice(0, 50)));
+      toast("Проект сохранён в этом браузере");
+    } catch (_) { toast("Недостаточно места в браузере. Экспортируй или удали старые данные."); }
+  });
+  $("#export-projects")?.addEventListener("click", () => {
+    const payload = { exportedAt: new Date().toISOString(), projects: readProjects(), imageHistory: history.map(({ dataUrl, ...item }) => item) };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href=url; a.download="kirillovec-projects-" + Date.now() + ".json"; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  $("#build-creative-pack")?.addEventListener("click", () => {
+    const brief = $("#creative-brief")?.value.trim() || "";
+    if (!brief) { toast("Сначала опиши идею"); return; }
+    const pack = [
+      "KIRILLOVEC CREATIVE PACK",
+      "ОБЩАЯ ИДЕЯ: " + brief,
+      "",
+      "1. AUDIO / SUNO",
+      "Create an original song based on this concept. Define genre, tempo, instrumentation, vocal character, mood, arrangement and production. Keep lyrics and Style separate.",
+      "",
+      "2. IMAGE",
+      "Create a coherent key visual for this concept. Define subject, composition, camera angle, lighting, palette, texture and aspect ratio. Preserve a consistent visual identity.",
+      "",
+      "3. VIDEO",
+      "Develop a short cinematic sequence from this concept. Provide scene-by-scene action, camera movement, transitions, lighting and temporal continuity.",
+      "",
+      "4. TEXT",
+      "Develop a concise creative description, tagline and supporting narrative for this concept. Use a distinctive voice and avoid generic clichés."
+    ].join("\n");
+    if ($("#creative-pack-output")) $("#creative-pack-output").value=pack;
+    toast("Пакет из четырёх направлений готов");
+  });
+  $("#download-creative-pack")?.addEventListener("click", () => downloadText("kirillovec-creative-pack-" + Date.now() + ".txt", $("#creative-pack-output")?.value || ""));
 
   renderHistory();
   const requestedMode = new URLSearchParams(location.search).get("mode") || "image";
