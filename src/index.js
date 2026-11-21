@@ -91,6 +91,12 @@ export default {
       if (path.startsWith("/api/v1/auth/")) return handleAuth(request, env, path);
 
       if (path === "/api/v1/music/generate" && request.method === "POST") {
+        if (env.ENABLE_PAID_SUNO_API !== "true") {
+          return response(request, env, {
+            error: "SUNO_API_DISABLED",
+            message: "API-генерация Suno отключена, чтобы исключить неожиданные расходы. Используй бесплатный ручной режим: скопируй Style + Lyrics и открой Suno."
+          }, 503);
+        }
         const identity = await getIdentity(request, env);
         const lim = musicLimits(env, identity);
         if (!(await rateLimit(env, identity, "music", lim.max, lim.window))) {
@@ -110,7 +116,7 @@ export default {
 
       if (path === "/api/v1/capabilities" && request.method === "GET") {
         const workersAI = Boolean(env.AI);
-        const suno = Boolean(secret(env, "SUNO_API_KEY").present);
+        const suno = env.ENABLE_PAID_SUNO_API === "true" && Boolean(secret(env, "SUNO_API_KEY").present);
         const identity = await getIdentity(request, env);
         const jLim = jobLimits(env, identity);
         const mLim = musicLimits(env, identity);
