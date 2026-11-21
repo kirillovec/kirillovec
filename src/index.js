@@ -49,7 +49,8 @@ function decodeImageDataUrl(value) {
   const prefix = prefixes.find((item) => String(value || "").startsWith(item));
   if (!prefix) throw new Error("INVALID_INPUT_IMAGE");
   const encoded = String(value).slice(prefix.length);
-  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) throw new Error("INVALID_INPUT_IMAGE");
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  if (!encoded || [...encoded].some((char) => !alphabet.includes(char))) throw new Error("INVALID_INPUT_IMAGE");
   const binary = atob(encoded);
   if (!binary.length || binary.length > 4 * 1024 * 1024) throw new Error("INPUT_IMAGE_TOO_LARGE");
   const bytes = new Uint8Array(binary.length);
