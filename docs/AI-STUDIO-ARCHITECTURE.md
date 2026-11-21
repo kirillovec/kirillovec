@@ -6,10 +6,10 @@
 - API: Cloudflare Worker `kirillovec-ai-studio-api`, публичный health-check `/health`.
 - Метаданные задач и лимиты хранятся в Cloudflare D1 `kirillovec-ai-studio`.
 - Text-to-image: Cloudflare Workers AI `@cf/black-forest-labs/flux-1-schnell`.
-- Редактирование по референсу: Cloudflare Workers AI `@cf/black-forest-labs/flux-2-klein-4b`; браузер уменьшает изображение до 512 px по длинной стороне и передаёт его inline.
+- Редактирование по референсу: Cloudflare Workers AI `@cf/black-forest-labs/flux-2-klein-4b`; браузер подготавливает JPEG-референс с размером до 2048 px по длинной стороне и адаптивным сжатием в пределах лимита API.
 - Поддерживаемые входные форматы: JPEG, PNG, WEBP; лимит исходного файла — 4 МБ.
-- Результат показывается в Studio и доступен для скачивания; локальная история хранит последние несколько изображений в браузере.
-- Музыкальный режим использует Suno V6 API при наличии runtime-секрета.
+- Результат показывается в Studio и доступен для скачивания; локальная история изображений и библиотека сохранённых проектов хранятся в браузере; проекты можно экспортировать в JSON.
+- Музыкальный режим по умолчанию работает как ручной Suno-пакет (Style + Lyrics + настройки + переход в Suno). API-генерация дополнительно защищена флагом `ENABLE_PAID_SUNO_API=true` и секретом `SUNO_API_KEY`; без явного включения endpoint возвращает `SUNO_API_DISABLED`.
 - Встроенная генерация видео отключена; режим видео пока служит для подготовки промптов и перехода к внешнему сервису.
 - R2 не требуется для текущего inline-потока изображений и не должен создаваться без отдельного согласования.
 - Реальный end-to-end тест генерации с расходованием суточной квоты должен выполняться отдельно; зелёный CI подтверждает синтаксис и публикацию, но сам по себе не доказывает успешный инференс модели.
@@ -48,14 +48,14 @@
 
 ## Product direction (21.11.2026)
 The primary product is AI Creative Studio, not the artist portfolio. Main tools:
-1. Audio: Suno-oriented Style/Lyrics builder, prompt pack handoff to Suno. The third-party Suno API path remains disabled in the UI to avoid unexpected charges.
+1. Audio: Suno-oriented Style/Lyrics builder, prompt pack handoff to Suno. The third-party Suno API path is disabled in the UI and guarded server-side; it requires the explicit Worker variable `ENABLE_PAID_SUNO_API=true` plus `SUNO_API_KEY`.
 2. Images: text-to-image and image-to-image using the existing Workers AI binding.
 3. Video: prompt builder and handoff to external services; no claim of in-site video rendering until a provider is actually integrated.
 4. Text: local editable templates and structured briefs. Server-side LLM generation is not enabled yet.
 
 ## Cost and storage rules
 - Keep the manual Suno handoff as the default no-provider-key workflow.
-- The backend Suno API integration is third-party and may be paid; the frontend button is disabled by default. Do not enable or call it without a separate cost decision.
+- The backend Suno API integration is third-party and may be paid; it is disabled by default in both frontend and backend. Only enable it after a separate cost decision by setting `ENABLE_PAID_SUNO_API=true` in the Worker environment.
 - Do not add R2 or other paid object storage without a separate approval.
 - Save small project metadata and editable drafts in browser-local storage; provide export so users can back up their work.
 - Image outputs remain downloadable from the inline response; no persistent asset bucket is required for the current path.
