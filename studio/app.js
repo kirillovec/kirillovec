@@ -61,8 +61,14 @@
     fileInput.addEventListener("change", () => {
       const f = fileInput.files && fileInput.files[0];
       if (!f) return;
+      if (!/^image\\/(jpeg|png|webp)$/.test(f.type)) {
+        toast("Поддерживаются только JPG, PNG и WEBP");
+        fileInput.value = "";
+        return;
+      }
       if (f.size > 4 * 1024 * 1024) {
         toast("Файл больше 4 МБ");
+        fileInput.value = "";
         return;
       }
       selectedFile = f;
@@ -224,19 +230,34 @@
     img.style.cssText = "max-width:100%;max-height:420px;border-radius:12px;display:block;margin:0 auto";
     stage.appendChild(img);
     if (status) status.textContent = "Готово";
+    const download = document.createElement("a");
+    download.href = dataUrl;
+    download.download = "kirillovec-ai-studio-" + new Date().toISOString().slice(0, 10) + ".jpg";
+    download.textContent = "Скачать изображение";
+    download.style.cssText = "display:inline-block;margin-top:12px;padding:9px 13px;border:1px solid #493761;border-radius:10px;color:#d9c8ff;text-decoration:none;font-size:13px";
+    stage.appendChild(download);
     history.unshift({ prompt: promptText, dataUrl, ts: Date.now() });
-    history = history.slice(0, 30);
-    try { localStorage.setItem(historyKey, JSON.stringify(history)); } catch (_) {}
+    history = history.slice(0, 4);
+    try { localStorage.setItem(historyKey, JSON.stringify(history)); } catch (_) {
+      history = history.slice(0, 2);
+      try { localStorage.setItem(historyKey, JSON.stringify(history)); } catch (_) {}
+    }
     renderHistory();
   }
 
-  function fileToDataUrl(file) {
-    return new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result);
-      r.onerror = reject;
-      r.readAsDataURL(file);
-    });
+  async function fileToDataUrl(file) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) throw new Error("Не удалось обработать исходное фото");
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+    return canvas.toDataURL("image/jpeg", 0.88);
   }
 
   async function pollMusic(taskId, statusEl) {
@@ -329,7 +350,10 @@
       if (stage) stage.innerHTML = '<div class="empty"><h3>Генерация...</h3><p>FLUX · Workers AI</p></div>';
       try {
         const payload = { mode: "image", prompt: p };
-        if (selectedFile) payload.inputImage = await fileToDataUrl(selectedFile);
+        if (selectedFile) {
+          if (status) status.textContent = "Подготовка фото...";
+          payload.inputImage = await fileToDataUrl(selectedFile);
+        }
         const res = await fetch(apiBase + "/api/v1/jobs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -341,7 +365,16 @@
           const msg = data.message || data.error || ("HTTP " + res.status);
           toast(msg);
           if (status) status.textContent = "Ошибка";
-          if (stage) stage.innerHTML = '<div class="empty"><h3>Не удалось</h3><p>' + msg + '</p></div>';
+          if (stage) {
+            const card = document.createElement("div");
+            card.className = "empty";
+            const heading = document.createElement("h3");
+            heading.textContent = "Не удалось";
+            const detail = document.createElement("p");
+            detail.textContent = msg;
+            card.append(heading, detail);
+            stage.replaceChildren(card);
+          }
           return;
         }
         const dataUrl = data.result && data.result.dataUrl;
@@ -365,19 +398,33 @@
     if (count) count.textContent = history.length;
     if (!list) return;
     if (!history.length) { list.innerHTML = '<div class="history-empty">История изображений</div>'; return; }
-    list.innerHTML = history.slice(0, 20).map((h, i) => {
-      const thumb = h.dataUrl
-        ? `<img src="${h.dataUrl}" alt="" style="width:38px;height:38px;object-fit:cover;border-radius:8px">`
-        : `<div class="history-thumb">▧</div>`;
-      const extra = h.audioUrl ? ` · <a href="${h.audioUrl}" target="_blank" rel="noopener" style="color:#c9a7ff">MP3</a>` : "";
-      return `<div class="history-item" data-i="${i}">${thumb}<div style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${(h.prompt || "").slice(0, 60)}${extra}</div></div>`;
-    }).join("");
-    list.querySelectorAll(".history-item").forEach((el) => {
-      el.addEventListener("click", () => {
-        const i = Number(el.getAttribute("data-i"));
-        const h = history[i];
-        if (h && h.dataUrl) showResult(h.dataUrl, h.prompt);
-      });
+    list.textContent = "";
+    history.slice(0, 20).forEach((h, i) => {
+      const item = document.createElement("div");
+      item.className = "history-item";
+      item.setAttribute("role", "button");
+      item.tabIndex = 0;
+      const thumb = document.createElement("div");
+      thumb.className = "history-thumb";
+      if (h.dataUrl) {
+        const img = document.createElement("img");
+        img.src = h.dataUrl;
+        img.alt = "";
+        img.style.cssText = "width:38px;height:38px;object-fit:cover;border-radius:8px";
+        thumb.replaceWith(img);
+        item.appendChild(img);
+      } else {
+        thumb.textContent = "▧";
+        item.appendChild(thumb);
+      }
+      const label = document.createElement("div");
+      label.style.cssText = "font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1";
+      label.textContent = (h.prompt || "Без названия").slice(0, 60);
+      item.appendChild(label);
+      const open = () => { if (h.dataUrl) showResult(h.dataUrl, h.prompt); };
+      item.addEventListener("click", open);
+      item.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); } });
+      list.appendChild(item);
     });
   }
 
