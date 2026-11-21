@@ -194,7 +194,18 @@ body.mode-audio #audio-panel{display:block}
       <button type="button" id="copy-lyrics" style="border:1px solid var(--line);background:#15151b;color:#c7c3d1;border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer">Скопировать Lyrics</button>
     </div>
   </div>
-  <button type="button" class="generate" id="generate-audio-btn">✦ Создать трек через Suno API</button>
+  <div class="action-row">
+    <button type="button" class="soft-button" id="generate-audio-btn">Скопировать пакет и открыть Suno</button>
+    <button type="button" class="soft-button" id="generate-audio-api-btn">API-генерация (если подключена)</button>
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <h2>Параметры Suno</h2>
+    <label class="mode-note" for="suno-weirdness">Weirdness <span id="weirdness-value">50</span></label>
+    <input id="suno-weirdness" type="range" min="0" max="100" value="50" style="width:100%">
+    <label class="mode-note" for="suno-influence" style="display:block;margin-top:10px">Style Influence <span id="influence-value">75</span></label>
+    <input id="suno-influence" type="range" min="0" max="100" value="75" style="width:100%">
+    <p class="mode-note">Значения входят в копируемую памятку. При ручной генерации перенеси их в настройки Suno; API-режим может не поддерживать эти параметры.</p>
+  </div>
   <p class="disclaimer" style="margin-top:12px">Трек создаётся кнопкой «✦ Создать трек» выше (Suno V6 API). Style/Lyrics можно также скопировать.</p>
   <a href="https://suno.com/create" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Открыть suno.com вручную ↗</a>
 </div>
