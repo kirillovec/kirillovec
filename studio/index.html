@@ -56,7 +56,7 @@ a{color:var(--accent)}
 .disclaimer{font-size:12px;color:var(--muted);margin-top:10px}
 .field{width:100%;border:1px solid var(--line);background:#0f0f13;color:var(--text);padding:11px 12px;border-radius:10px;font:inherit}
 .workspace textarea{width:100%;min-height:130px;resize:vertical;border-radius:12px;border:1px solid var(--line);background:#0f0f13;color:var(--text);padding:12px;font:inherit}
-.action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.action-row button,.soft-button{border:1px solid var(--line);background:#191820;color:#ded6ed;border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;font-size:12px}
+.action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.action-row button,.soft-button{border:1px solid var(--line);background:#191820;color:#ded6ed;border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;font-size:12px}.action-row button:disabled,.soft-button:disabled{opacity:.45;cursor:not-allowed}
 #video-panel,#text-panel{display:none}
 body.mode-video #image-panel,body.mode-video #audio-panel,body.mode-video #text-panel{display:none}
 body.mode-video #video-panel{display:block}
@@ -198,7 +198,7 @@ body.mode-audio #audio-panel{display:block}
   <div class="action-row">
     <button type="button" class="soft-button" id="generate-audio-btn">Скопировать пакет и открыть Suno</button>
     <button type="button" class="soft-button" id="download-audio-pack">Скачать Style + Lyrics TXT</button>
-    <button type="button" class="soft-button" id="generate-audio-api-btn">API-генерация (если подключена)</button>
+    <button type="button" class="soft-button" id="generate-audio-api-btn" disabled title="Отключено, чтобы не вызывать потенциально платный API">API-генерация отключена · возможна оплата</button>
   </div>
   <div class="panel" style="margin-top:12px">
     <h2>Параметры Suno</h2>
