@@ -560,7 +560,7 @@
       open.type = "button";
       open.textContent = "Открыть";
       open.addEventListener("click", () => {
-        if ($("#track-title")) $("#track-title").value = project.title === "Без названия" ? "" : project.title || "";
+        if ($("#track-title") && project.mode === "audio") $("#track-title").value = project.title || "";
         if ($("#prompt")) $("#prompt").value = project.prompt || "";
         if ($("#style-out")) $("#style-out").textContent = project.style || "";
         if ($("#lyrics")) $("#lyrics").value = project.lyrics || "";
@@ -592,7 +592,7 @@
       id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       createdAt: new Date().toISOString(),
       mode,
-      title: $("#track-title")?.value || "Без названия",
+      title: (mode === "audio" ? $("#track-title")?.value : mode === "image" ? $("#prompt")?.value : mode === "video" ? $("#video-brief")?.value : $("#text-brief")?.value || $("#creative-brief")?.value) || ({audio:"Аудиопроект",image:"Изображение",video:"Видеопроект",text:"Текстовый проект"}[mode] || "Проект"),
       prompt: $("#prompt")?.value || "",
       style: $("#style-out")?.textContent || "",
       lyrics: $("#lyrics")?.value || "",
