@@ -44,9 +44,33 @@ function resultToDataUrl(result) {
   if (typeof result === "string" && result.length > 100) return "data:image/jpeg;base64," + result;
   throw new Error("UNSUPPORTED_RESULT");
 }
+function decodeImageDataUrl(value) {
+  const match = /^data:(image\\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(String(value || ""));
+  if (!match) throw new Error("INVALID_INPUT_IMAGE");
+  const binary = atob(match[2]);
+  if (!binary.length || binary.length > 4 * 1024 * 1024) throw new Error("INPUT_IMAGE_TOO_LARGE");
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return { bytes, mime: match[1] };
+}
 async function generateTextToImage(env, prompt) {
   if (!env.AI) throw new Error("WORKERS_AI_NOT_CONFIGURED");
   const result = await env.AI.run("@cf/black-forest-labs/flux-1-schnell", { prompt: String(prompt).slice(0, 2048), steps: 4 });
+  return resultToDataUrl(result);
+}
+async function generateImageToImage(env, prompt, inputImage) {
+  if (!env.AI) throw new Error("WORKERS_AI_NOT_CONFIGURED");
+  const source = decodeImageDataUrl(inputImage);
+  const form = new FormData();
+  form.append("prompt", String(prompt).slice(0, 2048));
+  form.append("input_image_0", new Blob([source.bytes], { type: source.mime }), "reference." + source.mime.split("/")[1]);
+  form.append("width", "1024");
+  form.append("height", "1024");
+  const encoded = new Response(form);
+  const contentType = encoded.headers.get("content-type");
+  const result = await env.AI.run("@cf/black-forest-labs/flux-2-klein-4b", {
+    multipart: { body: encoded.body, contentType }
+  });
   return resultToDataUrl(result);
 }
 
@@ -87,7 +111,7 @@ export default {
         const jLim = jobLimits(env, identity);
         const mLim = musicLimits(env, identity);
         return response(request, env, {
-          image: { enabled: workersAI, model: workersAI ? "@cf/black-forest-labs/flux-1-schnell" : null, provider: workersAI ? "workers-ai" : null, imageToImage: false },
+          image: { enabled: workersAI, model: workersAI ? "@cf/black-forest-labs/flux-1-schnell" : null, provider: workersAI ? "workers-ai" : null, imageToImage: workersAI, imageToImageModel: workersAI ? "@cf/black-forest-labs/flux-2-klein-4b" : null },
           music: { enabled: suno, provider: suno ? "sunoapi.org" : null, model: "V6" },
           video: { enabled: false },
           upload: { enabled: true, maxBytes: 4 * 1024 * 1024 },
@@ -127,10 +151,19 @@ export default {
         if (!prompt) return response(request, env, { error: "INVALID_INPUT", message: "Промпт обязателен." }, 400);
         if ((body.mode || "image") !== "image") return response(request, env, { error: "UNSUPPORTED_MODE", message: "Только image." }, 400);
 
+        const inputImage = typeof body.inputImage === "string" ? body.inputImage : "";
+        if (inputImage && !/^data:image\\/(?:jpeg|png|webp);base64,/.test(inputImage)) {
+          return response(request, env, { error: "INVALID_INPUT_IMAGE", message: "Поддерживаются только JPEG, PNG и WEBP." }, 400);
+        }
         let dataUrl;
-        try { dataUrl = await generateTextToImage(env, prompt); }
-        catch (e) {
+        try {
+          dataUrl = inputImage
+            ? await generateImageToImage(env, prompt, inputImage)
+            : await generateTextToImage(env, prompt);
+        } catch (e) {
           if (e.message === "WORKERS_AI_NOT_CONFIGURED") return response(request, env, { error: "PROVIDER_NOT_CONFIGURED", message: "Workers AI не подключён." }, 503);
+          if (e.message === "INVALID_INPUT_IMAGE") return response(request, env, { error: "INVALID_INPUT_IMAGE", message: "Не удалось прочитать фото. Загрузи JPEG, PNG или WEBP." }, 400);
+          if (e.message === "INPUT_IMAGE_TOO_LARGE") return response(request, env, { error: "INPUT_IMAGE_TOO_LARGE", message: "Исходное фото слишком большое. Максимум 4 МБ." }, 413);
           return response(request, env, { error: "GENERATION_FAILED", message: redactSecrets(env, e.message || String(e)) }, 502);
         }
 
