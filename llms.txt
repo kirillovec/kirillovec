@@ -22,7 +22,7 @@
 
 ## Capability and cost transparency
 - Suno handoff mode copies Style, Lyrics, title and settings into the clipboard and opens Suno. This does not require a Suno API key; Suno account limits and terms apply.
-- Optional server-side Suno API generation is available only when the backend provider secret is configured. The provider may charge separately; it is not represented as free.
+- The server-side Suno API route exists in the backend, but the Studio UI keeps it disabled by default because the third-party provider may charge. The no-API-key manual handoff is the default workflow.
 - Image generation depends on Cloudflare Workers AI binding availability, model availability and account limits.
 - Image-to-image accepts JPEG, PNG and WEBP references subject to the site's upload limit.
 - Video generation is not rendered by the site at this time. The Studio prepares prompts and links to external video services; their pricing, credits and availability are controlled by those services.
