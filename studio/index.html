@@ -91,6 +91,8 @@ body.mode-audio #audio-panel{display:block}
   <div class="panel">
     <h2>История <span id="history-count" style="color:var(--muted)">0</span></h2>
     <div class="history-list" id="history-list"><div class="history-empty">История изображений</div></div>
+    <div class="action-row"><button type="button" id="save-project">Сохранить текущий проект</button><button type="button" id="export-projects">Экспорт проектов JSON</button></div>
+    <p class="mode-note">Проекты сохраняются локально в браузере. Не очищай данные сайта, если хочешь сохранить локальную библиотеку.</p>
   </div>
 </aside>
 
@@ -226,6 +228,13 @@ body.mode-audio #audio-panel{display:block}
     <h2 style="margin-top:18px">Рабочий текст</h2><textarea id="text-output" placeholder="Здесь появится шаблон / рабочая структура. Можно редактировать вручную."></textarea>
   </div>
   <div class="panel"><h2>Быстрые шаблоны</h2><div class="action-row"><button type="button" data-text-template="song">Песня</button><button type="button" data-text-template="clip">Клип</button><button type="button" data-text-template="ad">Реклама</button><button type="button" data-text-template="image">Промпт изображения</button></div></div>
+  <div class="panel workspace">
+    <h2>Одна идея — четыре формата</h2>
+    <p class="mode-note">Опиши одну идею и получи основу для музыкального задания, изображения, видеосцены и текста. Это локальный конструктор пакета промптов, без вызова платного API.</p>
+    <textarea id="creative-brief" placeholder="Опиши идею проекта, настроение, героя, аудиторию и желаемый результат..."></textarea>
+    <div class="action-row"><button type="button" id="build-creative-pack">Собрать творческий пакет</button><button type="button" id="download-creative-pack">Скачать пакет TXT</button></div>
+    <textarea id="creative-pack-output" style="margin-top:12px;min-height:220px" placeholder="Здесь появятся четыре связанных задания"></textarea>
+  </div>
 </div>
 
 </main>
@@ -233,7 +242,7 @@ body.mode-audio #audio-panel{display:block}
 <aside class="right">
   <div class="panel">
     <h2>Подсказки</h2>
-    <p style="font-size:13px;color:var(--muted);margin:0">Гостевой лимит: 1 изображение и 1 трек в сутки. Фото-референс автоматически уменьшается до 512 px для обработки. После регистрации лимиты выше.</p>
+    <p style="font-size:13px;color:var(--muted);margin:0">Изображения обрабатываются через подключённую модель. Ручной режим Suno не требует API-ключа. Встроенная API-генерация доступна только при наличии настроенного провайдера и может иметь отдельную стоимость. Видео пока готовится для внешних сервисов.</p>
   </div>
 </aside>
 </div>
