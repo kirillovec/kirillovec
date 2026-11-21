@@ -91,7 +91,7 @@ body.mode-audio #audio-panel{display:block}
   <div class="panel prompt-box">
     <h2>Промпт</h2>
     <textarea id="prompt" placeholder="Опиши обложку, кадр или атмосферу..." maxlength="2000"></textarea>
-    <div class="prompt-meta"><span id="prompt-count">0 / 2000</span><span>FLUX · Workers AI</span></div>
+    <div class="prompt-meta"><span id="prompt-count">0 / 2000</span><span>FLUX · Workers AI · reference edit</span></div>
     <div class="presets">
       <button type="button" data-prompt="music">Album cover</button>
       <button type="button" data-prompt="cover">НИЗКО</button>
@@ -103,7 +103,7 @@ body.mode-audio #audio-panel{display:block}
     </div>
     <label class="upload" for="file-input"><strong>JPG / PNG / WEBP · до 4 МБ</strong>
 <input id="file-input" type="file" accept="image/*" hidden>
-<span>Опционально: референс (пока text-to-image)</span></label>
+<span>Опционально: генерация и редактирование по референсу (FLUX.2 Klein)</span></label>
     <div id="file-preview"><img id="file-thumb" alt=""><div><div id="file-name"></div><div id="file-size" style="font-size:12px;color:var(--muted)"></div></div><button type="button" id="remove-file" style="margin-left:auto;border:0;background:transparent;color:var(--muted);cursor:pointer">×</button></div>
     <button type="button" class="generate" id="generate">✦ Создать изображение</button>
   </div>
@@ -190,7 +190,7 @@ body.mode-audio #audio-panel{display:block}
 <aside class="right">
   <div class="panel">
     <h2>Подсказки</h2>
-    <p style="font-size:13px;color:var(--muted);margin:0">Гостевой лимит: 1 изображение и 1 трек в сутки. После регистрации лимиты выше, история сохраняется на сервере.</p>
+    <p style="font-size:13px;color:var(--muted);margin:0">Гостевой лимит: 1 изображение и 1 трек в сутки. Фото-референс автоматически уменьшается до 512 px для обработки. После регистрации лимиты выше.</p>
   </div>
 </aside>
 </div>
