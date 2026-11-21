@@ -211,7 +211,7 @@ body.mode-audio #audio-panel{display:block}
   <div class="action-row">
     <button type="button" class="soft-button" id="generate-audio-btn">Скопировать пакет и открыть Suno</button>
     <button type="button" class="soft-button" id="download-audio-pack">Скачать Style + Lyrics TXT</button>
-    <button type="button" class="soft-button" id="generate-audio-api-btn" disabled title="Отключено, чтобы не вызывать потенциально платный API">API-генерация отключена · возможна оплата</button>
+    <button type="button" class="soft-button" id="generate-audio-api-btn" disabled title="Серверный Suno API отключён; платные запросы не отправляются">API-генерация отключена · без платных вызовов</button>
   </div>
   <div class="panel" style="margin-top:12px">
     <h2>Параметры Suno</h2>
@@ -221,7 +221,7 @@ body.mode-audio #audio-panel{display:block}
     <input id="suno-influence" type="range" min="0" max="100" value="75" style="width:100%">
     <p class="mode-note">Значения входят в копируемую памятку. При ручной генерации перенеси их в настройки Suno; API-режим может не поддерживать эти параметры.</p>
   </div>
-  <p class="disclaimer" style="margin-top:12px">Ручной режим: копирует Style, Lyrics, название и настройки, затем открывает Suno. API-генерация доступна отдельно и может тарифицироваться провайдером.</p>
+  <p class="disclaimer" style="margin-top:12px">Ручной режим: копирует Style, Lyrics, название и настройки, затем открывает Suno. Серверная API-генерация отключена и дополнительно защищена на backend от случайных платных запросов.</p>
   <a href="https://suno.com/create" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Открыть suno.com вручную ↗</a>
 </div>
 
