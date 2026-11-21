@@ -1,30 +1,38 @@
-# kirillovec
+# kirillovec AI Creative Studio
 
-> kirillovec is a Russian-language creative AI studio for musicians, independent artists and music releases.
+> kirillovec.ru is a Russian-language creative workspace focused on audio, image, video and text creation.
 
-## Main pages
-- https://kirillovec.ru/ — project homepage
-- https://kirillovec.ru/studio/ — AI Studio for image generation, image editing and prompt preparation
-- https://kirillovec.ru/artist/ — artist profile and music release information
-- https://kirillovec.ru/творчество/ — creative portfolio sections
-- https://kirillovec.ru/guides/ — practical guides for music visuals
-- https://kirillovec.ru/guides/rap-cover-prompt/ — guide to writing prompts for rap single and album covers
+## Main tools
+- https://kirillovec.ru/studio/?mode=audio — Audio workshop: lyrics structure, Style Builder, Suno prompt pack, Weirdness and Style Influence notes, copy-and-open workflow.
+- https://kirillovec.ru/studio/?mode=image — Image generation and reference-based editing through configured Cloudflare Workers AI models.
+- https://kirillovec.ru/studio/?mode=video — Video prompt builder for Text to Video and Image to Video with external provider handoff.
+- https://kirillovec.ru/studio/?mode=text — Text templates and structured prompt drafting for songs, poems, scripts, ads and descriptions.
+- https://kirillovec.ru/ — Main AI Creative Studio homepage.
+- https://kirillovec.ru/account/ — Account and user settings.
+- https://kirillovec.ru/artist/ — Secondary artist profile and music releases.
+- https://kirillovec.ru/творчество/ — Secondary creative portfolio.
+- https://kirillovec.ru/referrals/ — External creative-service referrals.
 
-## What the studio is for
-- Developing visual concepts for rap, hip-hop and independent music releases.
-- Preparing prompts for cover art, artist portraits and cinematic scenes.
-- Generating or editing images when the image model API is available.
-- Preparing video prompts and handing them off to external video platforms.
+## Product priorities
+1. Audio and Suno-oriented music workflows.
+2. Image generation and image editing.
+3. Video concepts and prompts.
+4. Text drafting and prompt templates.
+5. Saving local projects and downloading generated assets.
 
-## Important capability notes
-- Image generation depends on the availability and configuration of the site's Cloudflare Workers AI API.
-- Video generation is currently prepared through prompts and external services; the site does not claim to render video internally.
-- Availability, free credits and usage limits of external platforms are controlled by those platforms.
-- Users should only upload images they have permission to use.
+## Capability and cost transparency
+- Suno handoff mode copies Style, Lyrics, title and settings into the clipboard and opens Suno. This does not require a Suno API key; Suno account limits and terms apply.
+- Optional server-side Suno API generation is available only when the backend provider secret is configured. The provider may charge separately; it is not represented as free.
+- Image generation depends on Cloudflare Workers AI binding availability, model availability and account limits.
+- Image-to-image accepts JPEG, PNG and WEBP references subject to the site's upload limit.
+- Video generation is not rendered by the site at this time. The Studio prepares prompts and links to external video services; their pricing, credits and availability are controlled by those services.
+- Text workspace currently provides editable structures and prompt templates locally. It does not claim server-side AI text generation until a text model provider is configured.
+- Project saves and project export are browser-local. Clearing browser site data can remove local projects; users should export backups.
+- R2 is not required for current inline image processing and must not be enabled without a separate cost review.
 
 ## Language and audience
 - Primary language: Russian.
-- Audience: musicians, rappers, independent artists and creators who need visual assets for music releases.
+- Audience: musicians, creators, independent artists and people creating audio, images, video and text.
 
 ## Contact and ownership
 - Project name: kirillovec.
