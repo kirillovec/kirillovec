@@ -593,7 +593,7 @@
     } catch (_) { toast("Недостаточно места в браузере. Экспортируй или удали старые данные."); }
   });
   $("#export-projects")?.addEventListener("click", () => {
-    const payload = { exportedAt: new Date().toISOString(), projects: readProjects(), imageHistory: history.map(({ dataUrl, ...item }) => item) };
+    const payload = { exportedAt: new Date().toISOString(), projects: readProjects(), imageHistory: history };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob), a = document.createElement("a");
     a.href=url; a.download="kirillovec-projects-" + Date.now() + ".json"; a.click();
@@ -622,6 +622,10 @@
     toast("Пакет из четырёх направлений готов");
   });
   $("#download-creative-pack")?.addEventListener("click", () => downloadText("kirillovec-creative-pack-" + Date.now() + ".txt", $("#creative-pack-output")?.value || ""));
+  $("#download-audio-pack")?.addEventListener("click", () => {
+    const packet = "TITLE: " + ($("#track-title")?.value || "") + "\n\nSTYLE:\n" + ($("#style-out")?.textContent || "") + "\n\nLYRICS:\n" + ($("#lyrics")?.value || "") + "\n\nSUNO SETTINGS\nWeirdness: " + ($("#suno-weirdness")?.value || "50") + "\nStyle Influence: " + ($("#suno-influence")?.value || "75");
+    downloadText("kirillovec-suno-pack-" + Date.now() + ".txt", packet);
+  });
 
   renderHistory();
   const requestedMode = new URLSearchParams(location.search).get("mode") || "audio";
