@@ -45,13 +45,16 @@ function resultToDataUrl(result) {
   throw new Error("UNSUPPORTED_RESULT");
 }
 function decodeImageDataUrl(value) {
-  const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(String(value || ""));
-  if (!match) throw new Error("INVALID_INPUT_IMAGE");
-  const binary = atob(match[2]);
+  const prefixes = ["data:image/jpeg;base64,", "data:image/png;base64,", "data:image/webp;base64,"];
+  const prefix = prefixes.find((item) => String(value || "").startsWith(item));
+  if (!prefix) throw new Error("INVALID_INPUT_IMAGE");
+  const encoded = String(value).slice(prefix.length);
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) throw new Error("INVALID_INPUT_IMAGE");
+  const binary = atob(encoded);
   if (!binary.length || binary.length > 4 * 1024 * 1024) throw new Error("INPUT_IMAGE_TOO_LARGE");
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return { bytes, mime: match[1] };
+  return { bytes, mime: prefix.slice(5, prefix.indexOf(";")) };
 }
 async function generateTextToImage(env, prompt) {
   if (!env.AI) throw new Error("WORKERS_AI_NOT_CONFIGURED");
