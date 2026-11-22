@@ -2,12 +2,34 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AI Studio — kirillovec</title>
-<meta http-equiv="refresh" content="0;url=https://kirillovec.ru/studio/">
-<script>location.replace('/studio/?'+Date.now());</script>
+<meta name="theme-color" content="#0b0b0d">
+<style>body{margin:0;background:#0b0b0d;color:#aaa;font:14px system-ui;display:grid;place-items:center;min-height:100vh;padding:24px}a{color:#c9a7ff}</style>
 </head>
-<body style="background:#0b0b0d;color:#aaa;font:14px system-ui;padding:40px">
-<p>Обновление Studio… <a href="/studio/" style="color:#c9a7ff">открыть</a></p>
+<body>
+<p id="s">Загрузка Studio…</p>
+<script>
+(async function () {
+  var urls = [
+    "https://cdn.jsdelivr.net/gh/kirillovec/kirillovec@7944e1f9/studio/index.html",
+    "https://raw.githubusercontent.com/kirillovec/kirillovec/7944e1f9/studio/index.html"
+  ];
+  var html = null;
+  for (var i = 0; i < urls.length; i++) {
+    try {
+      var r = await fetch(urls[i] + (urls[i].indexOf("?") >= 0 ? "&" : "?") + "t=" + Date.now());
+      if (r.ok) { html = await r.text(); break; }
+    } catch (e) {}
+  }
+  if (!html) {
+    document.getElementById("s").innerHTML = "Не удалось загрузить Studio. Обнови страницу или открой <a href=https://github.com/kirillovec/kirillovec>GitHub</a>";
+    return;
+  }
+  document.open();
+  document.write(html);
+  document.close();
+})();
+</script>
 </body>
 </html>
