@@ -5,7 +5,7 @@ workers_dev = false
 
 [vars]
 ACCESS_REQUIRED = "false"
-MAX_JOBS_PER_HOUR = "20"
+MAX_JOBS_PER_HOUR = "1"
 MAX_MUSIC_PER_HOUR = "10"
 ALLOWED_ORIGINS = "https://kirillovec.ru,https://www.kirillovec.ru"
 SUNO_API_BASE = "https://api.sunoapi.org"
