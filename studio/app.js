@@ -251,7 +251,8 @@
 
   async function fileToDataUrl(file) {
     const bitmap = await createImageBitmap(file);
-    const maxEdge = 2048;
+    // FLUX.2 Klein requires reference images below 512x512. Resize before upload.
+    const maxEdge = 496;
     let scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
     let dataUrl = "";
     try {
