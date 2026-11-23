@@ -82,18 +82,27 @@
 
   const fileInput = $("#file-input");
   const filePreview = $("#file-preview");
+  function clearSelectedFile() {
+    selectedFile = null;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    const thumb = $("#file-thumb");
+    if (thumb) thumb.removeAttribute("src");
+    if (fileInput) fileInput.value = "";
+    if (filePreview) filePreview.style.display = "none";
+  }
   if (fileInput) {
     fileInput.addEventListener("change", () => {
       const f = fileInput.files && fileInput.files[0];
       if (!f) return;
       if (!["image/jpeg", "image/png", "image/webp"].includes(f.type)) {
         toast("Поддерживаются только JPG, PNG и WEBP");
-        fileInput.value = "";
+        clearSelectedFile();
         return;
       }
       if (f.size > 4 * 1024 * 1024) {
         toast("Файл больше 4 МБ");
-        fileInput.value = "";
+        clearSelectedFile();
         return;
       }
       selectedFile = f;
@@ -110,15 +119,7 @@
   }
   const removeFile = $("#remove-file");
   if (removeFile) {
-    removeFile.addEventListener("click", () => {
-      selectedFile = null;
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      previewUrl = null;
-      const thumb = $("#file-thumb");
-      if (thumb) thumb.removeAttribute("src");
-      if (fileInput) fileInput.value = "";
-      if (filePreview) filePreview.style.display = "none";
-    });
+    removeFile.addEventListener("click", clearSelectedFile);
   }
 
   document.querySelectorAll("[data-mode]").forEach((b) => {
