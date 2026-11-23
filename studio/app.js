@@ -719,10 +719,14 @@
       const limits = data.limits || {};
       const imageLimit = limits.image || {};
       if (usageStatus) {
-        const allowance = imageLimit.max ? imageLimit.max + " запрос(а) за " + Math.round((imageLimit.windowSeconds || 3600) / 3600 * 10) / 10 + " ч" : "Лимит не сообщён";
+        const max = Number(imageLimit.max || 0);
+        const hours = Math.round((imageLimit.windowSeconds || 3600) / 3600 * 10) / 10;
+        const unit = max === 1 ? "генерация" : (max > 1 && max < 5 ? "генерации" : "генераций");
+        const allowance = max ? "Лимит изображений: " + max + " " + unit + " за " + hours + " ч" : "Лимит не сообщён";
+        const videoState = data.video && data.video.enabled ? "видеогенерация доступна" : "видеорендеринг выключен, конструктор промптов доступен";
+        const musicState = data.music && data.music.enabled ? "Suno API доступен" : "ручной режим Suno доступен, API выключен";
         usageStatus.textContent = (limits.guest ? "Гостевой режим · " : "Аккаунт · ") + allowance +
-          " · Видео: " + (data.video && data.video.enabled ? "доступно" : "отключено") +
-          " · Suno API: " + (data.music && data.music.enabled ? "доступно" : "отключено");
+          " · " + videoState + " · " + musicState;
       }
     } catch (error) {
       if (apiStatus) {
