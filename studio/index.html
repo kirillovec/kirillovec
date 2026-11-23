@@ -250,14 +250,14 @@ body.mode-audio #audio-panel{display:block}
     <p class="mode-note">Собирай структуру песни, стихотворения, сценария или рекламного текста. Инструмент помогает оформить материал и подготовить задание для выбранной AI-модели; генерация языковой моделью на сервере пока не подключена.</p>
     <label class="mode-note" for="text-kind">Тип материала</label>
     <select id="text-kind" class="field">
-      <option value="song">Текст песни</option><option value="poem">Стихотворение</option><option value="script">Сценарий клипа</option><option value="ad">Рекламный текст</option><option value="prompt">AI-промпт</option><option value="description">Описание / пост</option>
+      <option value="song">Текст песни</option><option value="poem">Стихотворение</option><option value="script">Сценарий клипа</option><option value="ad">Рекламный текст</option><option value="social">Пост для соцсетей</option><option value="prompt">AI-промпт</option><option value="description">Описание</option>
     </select>
     <label class="mode-note" for="text-brief" style="display:block;margin-top:12px">Тема, идея и пожелания</label>
     <textarea id="text-brief" placeholder="Например: меланхоличный рэп о воспоминаниях, низкий мужской голос, без пафоса..."></textarea>
     <div class="action-row"><button type="button" id="build-text-draft">Собрать структуру</button><button type="button" id="copy-text-draft">Копировать</button><button type="button" id="download-text-draft">Скачать TXT</button></div>
     <h2 style="margin-top:18px">Рабочий текст</h2><textarea id="text-output" placeholder="Здесь появится шаблон / рабочая структура. Можно редактировать вручную."></textarea>
   </div>
-  <div class="panel"><h2>Быстрые шаблоны</h2><div class="action-row"><button type="button" data-text-template="song">Песня</button><button type="button" data-text-template="clip">Клип</button><button type="button" data-text-template="ad">Реклама</button><button type="button" data-text-template="image">Промпт изображения</button></div></div>
+  <div class="panel"><h2>Быстрые шаблоны</h2><div class="action-row"><button type="button" data-text-template="song">Песня</button><button type="button" data-text-template="clip">Клип</button><button type="button" data-text-template="ad">Реклама</button><button type="button" data-text-template="social">Соцсети</button><button type="button" data-text-template="image">Промпт изображения</button></div></div>
   <div class="panel workspace">
     <h2>Одна идея — четыре формата</h2>
     <p class="mode-note">Опиши одну идею и получи основу для музыкального задания, изображения, видеосцены и текста. Это локальный конструктор пакета промптов, без вызова платного API.</p>
