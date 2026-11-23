@@ -120,7 +120,7 @@ body.mode-audio #audio-panel{display:block}
   <div class="panel prompt-box">
     <h2>Промпт</h2>
     <textarea id="prompt" placeholder="Опиши обложку, кадр или атмосферу..." maxlength="2000"></textarea>
-    <div class="prompt-meta"><span id="prompt-count">0 / 2000</span><span>FLUX · Workers AI · reference edit</span></div>
+    <div class="prompt-meta"><span id="prompt-count">0 / 2000</span><span>FLUX · API generation / local prompt tools</span></div>
     <div class="presets">
       <button type="button" data-prompt="music">Album cover</button>
       <button type="button" data-prompt="cover">НИЗКО</button>
@@ -139,6 +139,7 @@ body.mode-audio #audio-panel{display:block}
     <div id="file-preview"><img id="file-thumb" alt=""><div><div id="file-name"></div><div id="file-size" style="font-size:12px;color:var(--muted)"></div></div><button type="button" id="remove-file" style="margin-left:auto;border:0;background:transparent;color:var(--muted);cursor:pointer">×</button></div>
     <div class="action-row"><button type="button" id="copy-image-prompt">Копировать промпт</button><button type="button" id="download-image-prompt">Скачать промпт TXT</button></div>
     <button type="button" class="generate" id="generate">✦ Создать изображение</button>
+    <div class="panel" style="margin-top:12px"><h2>Резервная генерация из России</h2><p class="mode-note">Если основной API недоступен из вашей сети, скопируй промпт и продолжи в российском сервисе. Вход может потребовать Яндекс ID или Сбер ID.</p><div class="provider-links"><a href="https://giga.chat/" target="_blank" rel="noopener">GigaChat / Kandinsky ↗</a><a href="https://shedevrum.ai/" target="_blank" rel="noopener">Шедеврум ↗</a></div></div>
   </div>
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h2 style="margin:0">Результат</h2><span id="result-status" style="font-size:12px;color:var(--muted)">—</span></div>
@@ -227,6 +228,7 @@ body.mode-audio #audio-panel{display:block}
   </div>
   <p class="disclaimer" style="margin-top:12px">Ручной режим: копирует Style, Lyrics, название и настройки, затем открывает Suno. Серверная API-генерация отключена и дополнительно защищена на backend от случайных платных запросов.</p>
   <a href="https://suno.com/create" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Открыть suno.com вручную ↗</a>
+  <div class="panel" style="margin-top:12px"><h2>Музыкальная альтернатива без VPN</h2><p class="mode-note">GigaChat поддерживает создание песен в своём интерфейсе. Скопируй туда идею или текст; для готового Style + Lyrics используй экспорт выше.</p><div class="provider-links"><a href="https://giga.chat/" target="_blank" rel="noopener">Создать песню в GigaChat ↗</a></div></div>
 </div>
 
 
@@ -241,7 +243,7 @@ body.mode-audio #audio-panel{display:block}
     <div class="action-row"><button type="button" id="build-video-prompt">Собрать видеопромпт</button><button type="button" id="copy-video-prompt">Копировать</button><button type="button" id="download-video-prompt">Скачать TXT</button></div>
     <h2 style="margin-top:18px">Готовый промпт</h2><textarea id="video-output" placeholder="Здесь появится структурированный видеопромпт"></textarea>
   </div>
-  <div class="panel"><h2>Видеосервисы</h2><div class="provider-links"><a href="https://klingai.com/" target="_blank" rel="noopener">Kling ↗</a><a href="https://pixverse.ai/" target="_blank" rel="noopener">PixVerse ↗</a><a href="https://hailuoai.video/" target="_blank" rel="noopener">Hailuo ↗</a></div><p class="mode-note">Бесплатные лимиты и доступность определяются самими платформами. Перед загрузкой исходников проверь условия сервиса.</p></div>
+  <div class="panel"><h2>Видеосервисы</h2><div class="provider-links"><a href="https://shedevrum.ai/" target="_blank" rel="noopener">Шедеврум ↗</a><a href="https://giga.chat/" target="_blank" rel="noopener">GigaChat / Kandinsky ↗</a></div><p class="mode-note">Российские альтернативы для коротких роликов и визуальных концепций. Также доступны внешние сервисы, но их доступность из РФ зависит от сети и условий самих платформ.</p><div class="provider-links" style="margin-top:8px"><a href="https://klingai.com/" target="_blank" rel="noopener">Kling ↗</a><a href="https://pixverse.ai/" target="_blank" rel="noopener">PixVerse ↗</a><a href="https://hailuoai.video/" target="_blank" rel="noopener">Hailuo ↗</a></div></div>
 </div>
 
 <div id="text-panel">
@@ -257,6 +259,7 @@ body.mode-audio #audio-panel{display:block}
     <div class="action-row"><button type="button" id="build-text-draft">Собрать структуру</button><button type="button" id="copy-text-draft">Копировать</button><button type="button" id="download-text-draft">Скачать TXT</button></div>
     <h2 style="margin-top:18px">Рабочий текст</h2><textarea id="text-output" placeholder="Здесь появится шаблон / рабочая структура. Можно редактировать вручную."></textarea>
   </div>
+  <div class="panel"><h2>AI-помощник без VPN</h2><p class="mode-note">Если нужен ответ модели прямо сейчас, используй российский GigaChat. Локальные шаблоны, копирование и скачивание на этой странице работают независимо от API.</p><div class="provider-links"><a href="https://giga.chat/" target="_blank" rel="noopener">Открыть GigaChat ↗</a></div></div>
   <div class="panel"><h2>Быстрые шаблоны</h2><div class="action-row"><button type="button" data-text-template="song">Песня</button><button type="button" data-text-template="clip">Клип</button><button type="button" data-text-template="ad">Реклама</button><button type="button" data-text-template="social">Соцсети</button><button type="button" data-text-template="image">Промпт изображения</button></div></div>
   <div class="panel workspace">
     <h2>Одна идея — четыре формата</h2>
