@@ -414,9 +414,30 @@
         showResult(dataUrl, p);
         toast("Готово");
       } catch (e) {
-        toast("Ошибка сети: " + (e.message || "unknown"));
-        if (status) status.textContent = "Ошибка";
-        if (stage) stage.innerHTML = '<div class="empty"><h3>Ошибка сети</h3></div>';
+        const networkMessage = "Основной API недоступен из этой сети. Промпт сохранён в поле выше: можно скопировать его и продолжить в GigaChat или Шедевруме.";
+        toast("Нет соединения с API. Доступны российские резервные сервисы.");
+        if (status) status.textContent = "API недоступен";
+        if (stage) {
+          const card = document.createElement("div");
+          card.className = "empty";
+          const heading = document.createElement("h3");
+          heading.textContent = "Нет соединения с генератором";
+          const detail = document.createElement("p");
+          detail.textContent = networkMessage;
+          const links = document.createElement("div");
+          links.className = "provider-links";
+          links.style.justifyContent = "center";
+          [["GigaChat / Kandinsky", "https://giga.chat/"], ["Шедеврум", "https://shedevrum.ai/"]].forEach(([label, href]) => {
+            const link = document.createElement("a");
+            link.href = href;
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.textContent = label + " ↗";
+            links.appendChild(link);
+          });
+          card.append(heading, detail, links);
+          stage.replaceChildren(card);
+        }
       } finally {
         generateBtn.disabled = false;
       }
