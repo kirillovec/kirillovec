@@ -129,11 +129,15 @@ body.mode-audio #audio-panel{display:block}
       <button type="button" data-prompt="low">Low angle</button>
       <button type="button" data-prompt="cinematic">Cinematic</button>
       <button type="button" data-prompt="portrait">Portrait</button>
+      <button type="button" data-prompt="restore">Photo restore</button>
+      <button type="button" data-prompt="product">Product photo</button>
+      <button type="button" data-prompt="character">Character</button>
     </div>
     <label class="upload" for="file-input"><strong>JPG / PNG / WEBP · до 4 МБ</strong>
 <input id="file-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Выбрать исходное изображение" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0)">
 <span>Нажми, чтобы выбрать фото для генерации или редактирования (FLUX.2 Klein)</span></label>
     <div id="file-preview"><img id="file-thumb" alt=""><div><div id="file-name"></div><div id="file-size" style="font-size:12px;color:var(--muted)"></div></div><button type="button" id="remove-file" style="margin-left:auto;border:0;background:transparent;color:var(--muted);cursor:pointer">×</button></div>
+    <div class="action-row"><button type="button" id="copy-image-prompt">Копировать промпт</button><button type="button" id="download-image-prompt">Скачать промпт TXT</button></div>
     <button type="button" class="generate" id="generate">✦ Создать изображение</button>
   </div>
   <div class="panel">
