@@ -29,6 +29,8 @@ jobs:
           grep -q 'maxEdge = 496' studio/app.js
           grep -q 'id="file-input"' studio/index.html
           grep -q 'id="generate"' studio/index.html
+          grep -q 'id="api-status"' studio/index.html
+          grep -q 'function loadCapabilities' studio/app.js
           ! grep -q 'fetch(apiBase + "/api/v1/music/generate"' studio/app.js
           test -s migrations/0001_initial.sql
           test -s wrangler.toml
