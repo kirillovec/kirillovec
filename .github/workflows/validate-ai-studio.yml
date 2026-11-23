@@ -31,6 +31,8 @@ jobs:
           grep -q 'id="generate"' studio/index.html
           grep -q 'id="api-status"' studio/index.html
           grep -q 'id="copy-image-prompt"' studio/index.html
+          grep -q 'id="import-projects"' studio/index.html
+          grep -q 'importProjectsInput' studio/app.js
           grep -q 'data-prompt="restore"' studio/index.html
           grep -q 'function loadCapabilities' studio/app.js
           grep -q 'function loadCapabilities' studio/app.js
