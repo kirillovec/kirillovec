@@ -6,7 +6,7 @@
 - API: Cloudflare Worker `kirillovec-ai-studio-api`, публичный health-check `/health`.
 - Метаданные задач и лимиты хранятся в Cloudflare D1 `kirillovec-ai-studio`.
 - Text-to-image: Cloudflare Workers AI `@cf/black-forest-labs/flux-1-schnell`.
-- Редактирование по референсу: Cloudflare Workers AI `@cf/black-forest-labs/flux-2-klein-4b`; браузер подготавливает JPEG-референс с размером до 2048 px по длинной стороне и адаптивным сжатием в пределах лимита API.
+- Редактирование по референсу: Cloudflare Workers AI `@cf/black-forest-labs/flux-2-klein-4b`; браузер подготавливает JPEG-референс с размером до 496 px по длинной стороне (каждая сторона меньше 512 px) и адаптивным сжатием в пределах лимита API.
 - Поддерживаемые входные форматы: JPEG, PNG, WEBP; лимит исходного файла — 4 МБ.
 - Результат показывается в Studio и доступен для скачивания; локальная история изображений и библиотека сохранённых проектов хранятся в браузере; проекты можно экспортировать в JSON.
 - Музыкальный режим по умолчанию работает как ручной Suno-пакет (Style + Lyrics + настройки + переход в Suno). API-генерация дополнительно защищена флагом `ENABLE_PAID_SUNO_API=true` и секретом `SUNO_API_KEY`; без явного включения endpoint возвращает `SUNO_API_DISABLED`.
