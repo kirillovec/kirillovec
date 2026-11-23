@@ -649,6 +649,68 @@
     downloadText("kirillovec-suno-pack-" + Date.now() + ".txt", packet);
   });
 
+  async function loadCapabilities() {
+    const apiStatus = $("#api-status");
+    const modelStatus = $("#model-status");
+    const usageStatus = $("#usage-status");
+    const refresh = $("#refresh-status");
+    if (!apiBase) {
+      if (apiStatus) apiStatus.textContent = "API не настроен в конфигурации.";
+      if (modelStatus) modelStatus.textContent = "Генерация недоступна.";
+      return;
+    }
+    if (refresh) refresh.disabled = true;
+    if (apiStatus) apiStatus.textContent = "Проверяем API…";
+    if (modelStatus) modelStatus.textContent = "Получаем список моделей…";
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 9000);
+      let res;
+      try {
+        res = await fetch(apiBase + "/api/v1/capabilities", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "HTTP " + res.status);
+      const image = data.image || {};
+      const models = [];
+      if (image.enabled && image.model) models.push("Текст → изображение: " + image.model);
+      if (image.imageToImage && image.imageToImageModel) models.push("Фото → фото: " + image.imageToImageModel);
+      if (apiStatus) {
+        apiStatus.textContent = "API доступен · HTTP " + res.status;
+        apiStatus.style.color = "#9bd6a8";
+      }
+      if (modelStatus) {
+        modelStatus.textContent = models.length ? models.join("\n") : "Генерация изображений сейчас отключена.";
+        modelStatus.style.whiteSpace = "pre-line";
+      }
+      const limits = data.limits || {};
+      const imageLimit = limits.image || {};
+      if (usageStatus) {
+        const allowance = imageLimit.max ? imageLimit.max + " запрос(а) за " + Math.round((imageLimit.windowSeconds || 3600) / 3600 * 10) / 10 + " ч" : "Лимит не сообщён";
+        usageStatus.textContent = (limits.guest ? "Гостевой режим · " : "Аккаунт · ") + allowance +
+          " · Видео: " + (data.video && data.video.enabled ? "доступно" : "отключено") +
+          " · Suno API: " + (data.music && data.music.enabled ? "доступно" : "отключено");
+      }
+    } catch (error) {
+      if (apiStatus) {
+        apiStatus.textContent = error.name === "AbortError" ? "API не ответил за 9 секунд." : "Не удалось проверить API: " + (error.message || "ошибка сети");
+        apiStatus.style.color = "#e2a0a0";
+      }
+      if (modelStatus) modelStatus.textContent = "Состояние моделей неизвестно. Проверка не запускает генерацию и не расходует лимит.";
+      if (usageStatus) usageStatus.textContent = "";
+    } finally {
+      if (refresh) refresh.disabled = false;
+    }
+  }
+  $("#refresh-status")?.addEventListener("click", loadCapabilities);
+
   renderHistory();
   renderProjects();
   ["suno-weirdness", "suno-influence"].forEach((id) => {
@@ -662,5 +724,6 @@
   const requestedMode = new URLSearchParams(location.search).get("mode") || "audio";
   setMode(requestedMode);
   syncServerHistory();
+  loadCapabilities();
   console.log("[kirillovec AI Studio] ready, api=", apiBase);
 })();
