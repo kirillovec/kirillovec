@@ -30,6 +30,10 @@ jobs:
           grep -q 'id="file-input"' studio/index.html
           grep -q 'id="generate"' studio/index.html
           grep -q 'id="api-status"' studio/index.html
+          grep -q 'giga.chat' studio/index.html
+          grep -q 'shedevrum.ai' studio/index.html
+          ! grep -q 'googletagmanager.com' index.html
+          grep -q 'Основной API недоступен' studio/app.js
           grep -q 'id="copy-image-prompt"' studio/index.html
           grep -q 'id="import-projects"' studio/index.html
           grep -q 'importProjectsInput' studio/app.js
