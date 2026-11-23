@@ -26,7 +26,9 @@ jobs:
           test -s studio/app.js
           grep -q 'id="project-list"' studio/index.html
           grep -q 'function renderProjects' studio/app.js
-          grep -q 'maxEdge = 2048' studio/app.js
+          grep -q 'maxEdge = 496' studio/app.js
+          grep -q 'id="file-input"' studio/index.html
+          grep -q 'id="generate"' studio/index.html
           ! grep -q 'fetch(apiBase + "/api/v1/music/generate"' studio/app.js
           test -s migrations/0001_initial.sql
           test -s wrangler.toml
