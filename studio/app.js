@@ -97,9 +97,10 @@
         return;
       }
       selectedFile = f;
-      const url = URL.createObjectURL(f);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = URL.createObjectURL(f);
       const img = $("#file-thumb");
-      if (img) img.src = url;
+      if (img) img.src = previewUrl;
       const name = $("#file-name");
       if (name) name.textContent = f.name;
       const size = $("#file-size");
@@ -111,6 +112,10 @@
   if (removeFile) {
     removeFile.addEventListener("click", () => {
       selectedFile = null;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+      const thumb = $("#file-thumb");
+      if (thumb) thumb.removeAttribute("src");
       if (fileInput) fileInput.value = "";
       if (filePreview) filePreview.style.display = "none";
     });
