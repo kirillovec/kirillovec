@@ -657,7 +657,7 @@
     const file = importProjectsInput.files && importProjectsInput.files[0];
     if (!file) return;
     importProjectsInput.value = "";
-    if (file.size > 5 * 1024 * 1024) { toast("JSON-файл больше 5 МБ"); return; }
+    if (file.size > 20 * 1024 * 1024) { toast("JSON-файл больше 20 МБ"); return; }
     try {
       const payload = JSON.parse(await file.text());
       const incoming = Array.isArray(payload) ? payload : payload.projects;
@@ -684,8 +684,22 @@
       clean.forEach((project) => merged.set(project.id, project));
       readProjects().forEach((project) => { if (!merged.has(project.id)) merged.set(project.id, project); });
       localStorage.setItem(PROJECTS_KEY, JSON.stringify(Array.from(merged.values()).slice(0, 50)));
+      let restoredImages = 0;
+      const importedHistory = Array.isArray(payload.imageHistory)
+        ? payload.imageHistory.filter((item) => item && typeof item.dataUrl === "string" &&
+            /^data:image\/(?:jpeg|png|webp);base64,/.test(item.dataUrl) && item.dataUrl.length <= 1200000).slice(0, 4)
+        : [];
+      if (importedHistory.length) {
+        const combinedHistory = importedHistory.concat(history).slice(0, 4);
+        try {
+          localStorage.setItem(historyKey, JSON.stringify(combinedHistory));
+          history = combinedHistory;
+          restoredImages = importedHistory.length;
+          renderHistory();
+        } catch (_) {}
+      }
       renderProjects();
-      toast("Импортировано проектов: " + clean.length);
+      toast("Импортировано проектов: " + clean.length + (restoredImages ? " · изображений: " + restoredImages : ""));
     } catch (error) {
       toast("Не удалось импортировать: " + (error.message || "ошибка JSON"));
     }
