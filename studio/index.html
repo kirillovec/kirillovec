@@ -270,6 +270,13 @@ body.mode-audio #audio-panel{display:block}
     <h2>Подсказки</h2>
     <p style="font-size:13px;color:var(--muted);margin:0">Изображения обрабатываются через подключённую модель. Ручной режим Suno не требует API-ключа; серверная API-генерация отключена. Видео пока готовится для внешних сервисов.</p>
   </div>
+  <div class="panel" aria-live="polite">
+    <h2>Состояние студии</h2>
+    <div id="api-status" class="mode-note">Проверяем подключение к API…</div>
+    <div id="model-status" class="mode-note" style="margin-top:8px">Проверка доступности моделей…</div>
+    <div id="usage-status" class="mode-note" style="margin-top:8px"></div>
+    <button type="button" id="refresh-status" class="soft-button" style="margin-top:10px">Обновить статус</button>
+  </div>
 </aside>
 </div>
 
