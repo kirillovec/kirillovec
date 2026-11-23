@@ -650,6 +650,46 @@
     a.href=url; a.download="kirillovec-projects-" + Date.now() + ".json"; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
+
+  const importProjectsInput = $("#import-projects-file");
+  $("#import-projects")?.addEventListener("click", () => importProjectsInput?.click());
+  importProjectsInput?.addEventListener("change", async () => {
+    const file = importProjectsInput.files && importProjectsInput.files[0];
+    if (!file) return;
+    importProjectsInput.value = "";
+    if (file.size > 5 * 1024 * 1024) { toast("JSON-файл больше 5 МБ"); return; }
+    try {
+      const payload = JSON.parse(await file.text());
+      const incoming = Array.isArray(payload) ? payload : payload.projects;
+      if (!Array.isArray(incoming)) throw new Error("В файле не найден список проектов");
+      const allowedModes = ["audio", "image", "video", "text"];
+      const fields = {
+        title: 180, prompt: 2000, style: 4000, lyrics: 30000,
+        videoBrief: 4000, videoPrompt: 10000, textBrief: 4000,
+        textDraft: 20000, creativeBrief: 4000, creativePack: 20000
+      };
+      const clean = incoming.slice(0, 100).filter((item) => item && typeof item === "object").map((item) => {
+        const project = {
+          id: String(item.id || (crypto.randomUUID ? crypto.randomUUID() : Date.now())),
+          createdAt: String(item.createdAt || new Date().toISOString()),
+          mode: allowedModes.includes(item.mode) ? item.mode : "text"
+        };
+        Object.entries(fields).forEach(([key, max]) => {
+          if (typeof item[key] === "string") project[key] = item[key].slice(0, max);
+        });
+        return project;
+      });
+      if (!clean.length) throw new Error("В файле нет проектов для импорта");
+      const merged = new Map();
+      clean.forEach((project) => merged.set(project.id, project));
+      readProjects().forEach((project) => { if (!merged.has(project.id)) merged.set(project.id, project); });
+      localStorage.setItem(PROJECTS_KEY, JSON.stringify(Array.from(merged.values()).slice(0, 50)));
+      renderProjects();
+      toast("Импортировано проектов: " + clean.length);
+    } catch (error) {
+      toast("Не удалось импортировать: " + (error.message || "ошибка JSON"));
+    }
+  });
   $("#build-creative-pack")?.addEventListener("click", () => {
     const brief = $("#creative-brief")?.value.trim() || "";
     if (!brief) { toast("Сначала опиши идею"); return; }
