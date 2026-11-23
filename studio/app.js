@@ -4,7 +4,7 @@
   const promptEl = $("#prompt"), config = window.AI_STUDIO_CONFIG || {};
   const apiBase = String(config.apiBaseUrl || "").replace(/\/$/, "");
   const historyKey = "kirillovec-ai-studio-history-v2";
-  let mode = "image", selectedFile = null, history = [];
+  let mode = "image", selectedFile = null, previewUrl = null, history = [];
 
   function toast(msg) {
     const t = $("#toast");
@@ -39,8 +39,29 @@
     window: "Looking out of a rainy apartment window at night, city lights blurred, condensation on glass, melancholic mood, cinematic photography",
     low: "Low angle shot, dark room, window with night city view, silhouette, smoke rising, album cover composition for \"НИЗКО\"",
     cinematic: "Cinematic frame for music video, night street, neon reflections, rain, moody color grade, 35mm film look",
-    portrait: "Atmospheric portrait of a young man, night city background, soft rim light, smoke, introspective expression, cinematic photography"
+    portrait: "Atmospheric portrait of a young man, night city background, soft rim light, smoke, introspective expression, cinematic photography",
+    restore: "Carefully restore the uploaded old photograph. Preserve the exact identity, facial features, age, expression, clothing, pose and original composition. Repair scratches, dust, fading and visible damage; recover natural detail and balanced contrast. Keep the result photorealistic and historically faithful. Do not beautify, redesign, add objects or change the person.",
+    product: "Create a premium commercial product photograph of the uploaded subject. Preserve the exact product identity, shape, proportions, labels, text and material details. Use a clean studio background, controlled softbox lighting, realistic shadows, precise focus and professional e-commerce art direction. Do not invent logos or alter packaging.",
+    character: "Use the uploaded image as the identity reference. Preserve the same person or character, recognizable facial structure, hairstyle, age, skin details and defining features. Create a new cinematic composition while keeping identity consistent. Do not change facial proportions or substitute another person."
   };
+
+  $("#copy-image-prompt")?.addEventListener("click", async () => {
+    const value = promptEl?.value.trim() || "";
+    if (!value) { toast("Сначала напиши промпт"); return; }
+    try { await navigator.clipboard.writeText(value); toast("Промпт скопирован"); }
+    catch (_) { toast("Не удалось скопировать промпт"); }
+  });
+  $("#download-image-prompt")?.addEventListener("click", () => {
+    const value = promptEl?.value.trim() || "";
+    if (!value) { toast("Сначала напиши промпт"); return; }
+    const blob = new Blob([value], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "kirillovec-image-prompt-" + Date.now() + ".txt";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
 
   document.querySelectorAll("[data-prompt]").forEach((btn) => {
     btn.addEventListener("click", () => {
