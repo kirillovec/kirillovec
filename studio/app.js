@@ -857,10 +857,10 @@
         annotations: { readOnlyHint: false, consequentialHint: false, untrustedContentHint: true },
         execute: async ({ prompt }) => {
           const value = String(prompt || "").trim();
-          if (!value) throw new Error("Введите описание изображения.");
-          if (value.length > 2000) throw new Error("Промпт должен быть не длиннее 2000 символов.");
+          if (!value) return { error: "Введите описание изображения." };
+          if (value.length > 2000) return { error: "Промпт должен быть не длиннее 2000 символов." };
           setMode("image");
-          if (!promptEl) throw new Error("Поле промпта изображений не найдено.");
+          if (!promptEl) return { error: "Поле промпта изображений не найдено." };
           promptEl.value = value;
           promptEl.dispatchEvent(new Event("input", { bubbles: true }));
           return { prepared: true, generated: false, message: "Промпт заполнен. Проверь его и нажми «Создать изображение», чтобы запустить генерацию вручную." };
@@ -886,8 +886,8 @@
           const titleValue = String(title || "").trim();
           const styleValue = String(style || "").trim();
           const lyricsValue = String(lyrics || "");
-          if (!titleValue || !styleValue || !lyricsValue.trim()) throw new Error("Укажите название, Style и Lyrics.");
-          if (titleValue.length > 160 || styleValue.length > 2000 || lyricsValue.length > 12000) throw new Error("Превышена допустимая длина одного из музыкальных полей.");
+          if (!titleValue || !styleValue || !lyricsValue.trim()) return { error: "Укажите название, Style и Lyrics." };
+          if (titleValue.length > 160 || styleValue.length > 2000 || lyricsValue.length > 12000) return { error: "Превышена допустимая длина одного из музыкальных полей." };
           setMode("audio");
           if ($("#track-title")) $("#track-title").value = titleValue;
           if ($("#style-out")) $("#style-out").textContent = styleValue;
@@ -920,8 +920,8 @@
         annotations: { readOnlyHint: false, consequentialHint: false, untrustedContentHint: true },
         execute: async ({ scene, sourceType }) => {
           const value = String(scene || "").trim();
-          if (!value) throw new Error("Опишите сцену для видео.");
-          if (value.length > 6000) throw new Error("Описание сцены должно быть не длиннее 6000 символов.");
+          if (!value) return { error: "Опишите сцену для видео." };
+          if (value.length > 6000) return { error: "Описание сцены должно быть не длиннее 6000 символов." };
           setMode("video");
           if ($("#video-type")) $("#video-type").value = sourceType === "image" ? "image" : "text";
           if ($("#video-brief")) $("#video-brief").value = value;
@@ -945,9 +945,9 @@
         execute: async ({ kind, brief }) => {
           const value = String(brief || "").trim();
           const allowedKinds = ["song", "poem", "script", "ad", "social", "prompt", "description"];
-          if (!allowedKinds.includes(kind)) throw new Error("Неизвестный тип текста.");
-          if (!value) throw new Error("Опишите тему или задачу.");
-          if (value.length > 6000) throw new Error("Описание задачи должно быть не длиннее 6000 символов.");
+          if (!allowedKinds.includes(kind)) return { error: "Неизвестный тип текста." };
+          if (!value) return { error: "Опишите тему или задачу." };
+          if (value.length > 6000) return { error: "Описание задачи должно быть не длиннее 6000 символов." };
           setMode("text");
           if ($("#text-kind")) $("#text-kind").value = kind;
           if ($("#text-brief")) $("#text-brief").value = value;
@@ -980,7 +980,7 @@
         console.warn("[kirillovec WebMCP] Could not register " + tool.name, error);
       }
     }
-    console.info("[kirillovec AI Studio] WebMCP registration attempted");
+    console.info("[kirillovec AI Studio] WebMCP tools registered where supported");
   }
   registerWebMCPTools();
 
