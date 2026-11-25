@@ -27,6 +27,6 @@ The user reviews the prepared content and clicks the existing page controls to c
 
 ## Compatibility
 
-WebMCP is an experimental browser feature and is not required for normal site operation. The registration code checks for `document.modelContext.registerTool` and exits silently when the API is unavailable. The normal buttons and workflows continue to work in browsers without WebMCP.
+WebMCP remains an experimental browser feature / preview and is not required for normal site operation. Chrome's current guidance uses `document.modelContext` (not the older `navigator.modelContext`) and requires a secure context (HTTPS). Availability depends on browser version, feature or Origin Trial configuration, and the user's environment. The site does not ship a polyfill or force-enable browser flags. The registration code checks for `document.modelContext.registerTool` and exits silently when the API is unavailable. The normal buttons and workflows continue to work in browsers without WebMCP.
 
-See the [Chrome for Developers WebMCP guide](https://developer.chrome.com/docs/ai/webmcp/) and [Imperative API reference](https://developer.chrome.com/docs/ai/webmcp/imperative-api).
+See the [Chrome for Developers WebMCP guide](https://developer.chrome.com/docs/ai/webmcp/), [current Agentic JavaScript Tools guidance](https://developer.chrome.com/docs/modern-web-guidance/guides/webmcp/agentic-javascript-tools) and [Imperative API reference](https://developer.chrome.com/docs/ai/webmcp/imperative-api).
