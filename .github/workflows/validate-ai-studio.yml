@@ -41,6 +41,15 @@ jobs:
           grep -q 'id="import-projects"' studio/index.html
           grep -q 'importProjectsInput' studio/app.js
           grep -q 'data-prompt="restore"' studio/index.html
+          grep -q 'document.modelContext' studio/app.js
+          grep -q 'name: "set_image_prompt"' studio/app.js
+          grep -q 'name: "prepare_music_prompt"' studio/app.js
+          grep -q 'name: "build_video_prompt"' studio/app.js
+          grep -q 'name: "build_text_draft"' studio/app.js
+          grep -q 'name: "get_studio_capabilities"' studio/app.js
+          grep -q 'consequentialHint: false' studio/app.js
+          grep -q 'return { error:' studio/app.js
+          ! grep -q 'modelContext.executeTool' studio/app.js
           grep -q 'function loadCapabilities' studio/app.js
           grep -q 'function loadCapabilities' studio/app.js
           ! grep -q 'fetch(apiBase + "/api/v1/music/generate"' studio/app.js
