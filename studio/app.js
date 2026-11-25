@@ -14,6 +14,18 @@
     setTimeout(() => (t.style.display = "none"), 3200);
   }
 
+  // Warn before opening external generation platforms that may restrict Russian IPs.
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("a[href]");
+    if (!link) return;
+    let host = "";
+    try { host = new URL(link.href, window.location.href).hostname.toLowerCase(); } catch (_) {}
+    const externalGenerators = ["suno.com", "klingai.com", "pixverse.ai", "hailuoai.video"];
+    if (externalGenerators.some((domain) => host === domain || host.endsWith("." + domain))) {
+      toast("Внимание: генератор может быть недоступен из РФ. Если не открывается или не запускает генерацию, включи VPN и выбери доступную локацию. Без VPN попробуй GigaChat или Шедеврум.");
+    }
+  });
+
   function setMode(m) {
     mode = ["image", "audio", "video", "text"].includes(m) ? m : "image";
     ["image", "audio", "video", "text"].forEach((name) => document.body.classList.toggle("mode-" + name, name === mode));
