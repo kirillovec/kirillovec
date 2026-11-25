@@ -34,6 +34,9 @@ jobs:
           grep -q 'shedevrum.ai' studio/index.html
           ! grep -q 'googletagmanager.com' index.html
           grep -q 'Основной API недоступен' studio/app.js
+          grep -q 'включить VPN' studio/app.js
+          grep -q 'Доступность из России' studio/index.html
+          grep -q 'Сам сайт, конструкторы промптов' studio/index.html
           grep -q 'id="copy-image-prompt"' studio/index.html
           grep -q 'id="import-projects"' studio/index.html
           grep -q 'importProjectsInput' studio/app.js
