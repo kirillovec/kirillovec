@@ -232,6 +232,7 @@ body.mode-audio #audio-panel{display:block}
     <p class="mode-note">Значения входят в копируемую памятку. При ручной генерации перенеси их в настройки Suno; серверная API-генерация отключена.</p>
   </div>
   <p class="disclaimer" style="margin-top:12px">Ручной режим: копирует Style, Lyrics, название и настройки, затем открывает Suno. Серверная API-генерация отключена и дополнительно защищена на backend от случайных платных запросов.</p>
+  <p class="mode-note" role="note">Перед генерацией: если Suno не открывается или не принимает запрос из РФ, включи VPN и выбери доступную локацию. Если VPN не используешь, попробуй создание песни в GigaChat ниже.</p>
   <a href="https://suno.com/create" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Открыть suno.com вручную ↗</a>
   <div class="panel" style="margin-top:12px"><h2>Музыкальная альтернатива без VPN</h2><p class="mode-note">GigaChat поддерживает создание песен в своём интерфейсе. Скопируй туда идею или текст; для готового Style + Lyrics используй экспорт выше.</p><div class="provider-links"><a href="https://giga.chat/" target="_blank" rel="noopener">Создать песню в GigaChat ↗</a></div></div>
 </div>
@@ -248,7 +249,7 @@ body.mode-audio #audio-panel{display:block}
     <div class="action-row"><button type="button" id="build-video-prompt">Собрать видеопромпт</button><button type="button" id="copy-video-prompt">Копировать</button><button type="button" id="download-video-prompt">Скачать TXT</button></div>
     <h2 style="margin-top:18px">Готовый промпт</h2><textarea id="video-output" placeholder="Здесь появится структурированный видеопромпт"></textarea>
   </div>
-  <div class="panel"><h2>Видеосервисы</h2><div class="provider-links"><a href="https://shedevrum.ai/" target="_blank" rel="noopener">Шедеврум ↗</a><a href="https://giga.chat/" target="_blank" rel="noopener">GigaChat / Kandinsky ↗</a></div><p class="mode-note">Российские альтернативы для коротких роликов и визуальных концепций. Также доступны внешние сервисы, но их доступность из РФ зависит от сети и условий самих платформ.</p><div class="provider-links" style="margin-top:8px"><a href="https://klingai.com/" target="_blank" rel="noopener">Kling ↗</a><a href="https://pixverse.ai/" target="_blank" rel="noopener">PixVerse ↗</a><a href="https://hailuoai.video/" target="_blank" rel="noopener">Hailuo ↗</a></div></div>
+  <div class="panel"><h2>Видеосервисы</h2><div class="provider-links"><a href="https://shedevrum.ai/" target="_blank" rel="noopener">Шедеврум ↗</a><a href="https://giga.chat/" target="_blank" rel="noopener">GigaChat / Kandinsky ↗</a></div><p class="mode-note">Российские альтернативы для коротких роликов и визуальных концепций. Перед запуском Kling, PixVerse или Hailuo: если сервис не открывается или не запускает генерацию из РФ, включи VPN и выбери доступную локацию. Без VPN используй Шедеврум или GigaChat.</p><div class="provider-links" style="margin-top:8px"><a href="https://klingai.com/" target="_blank" rel="noopener">Kling ↗</a><a href="https://pixverse.ai/" target="_blank" rel="noopener">PixVerse ↗</a><a href="https://hailuoai.video/" target="_blank" rel="noopener">Hailuo ↗</a></div></div>
 </div>
 
 <div id="text-panel">
