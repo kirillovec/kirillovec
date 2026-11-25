@@ -832,6 +832,158 @@
   }
   $("#refresh-status")?.addEventListener("click", loadCapabilities);
 
+  // WebMCP: expose safe, user-visible studio preparation tools to compatible agents.
+  // This preview API is optional; browsers without document.modelContext continue normally.
+  async function registerWebMCPTools() {
+    const modelContext = document.modelContext;
+    if (!modelContext || typeof modelContext.registerTool !== "function") return;
+
+    const controller = new AbortController();
+    window.addEventListener("pagehide", () => controller.abort(), { once: true });
+    const registrationOptions = { signal: controller.signal };
+
+    const tools = [
+      {
+        name: "set_image_prompt",
+        title: "Prepare an image prompt",
+        description: "Fill the AI Studio image prompt and switch to the image workspace. Does not start generation or use the image quota.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            prompt: { type: "string", description: "Description of the image to create or the photo edit to prepare." }
+          },
+          required: ["prompt"]
+        },
+        annotations: { readOnlyHint: false, consequentialHint: false, untrustedContentHint: true },
+        execute: async ({ prompt }) => {
+          const value = String(prompt || "").trim();
+          if (!value) throw new Error("Введите описание изображения.");
+          if (value.length > 2000) throw new Error("Промпт должен быть не длиннее 2000 символов.");
+          setMode("image");
+          if (!promptEl) throw new Error("Поле промпта изображений не найдено.");
+          promptEl.value = value;
+          promptEl.dispatchEvent(new Event("input", { bubbles: true }));
+          return { prepared: true, generated: false, message: "Промпт заполнен. Проверь его и нажми «Создать изображение», чтобы запустить генерацию вручную." };
+        }
+      },
+      {
+        name: "prepare_music_prompt",
+        title: "Prepare a music prompt",
+        description: "Fill the Suno title, style, lyrics and settings in the audio workspace. Does not open Suno, copy data or start paid/API generation.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Working title of the track." },
+            style: { type: "string", description: "Musical style prompt describing genre, sound, instruments, mood and vocals." },
+            lyrics: { type: "string", description: "Song lyrics or draft text." },
+            weirdness: { type: "integer", minimum: 0, maximum: 100, description: "Suno Weirdness setting." },
+            styleInfluence: { type: "integer", minimum: 0, maximum: 100, description: "Suno Style Influence setting." }
+          },
+          required: ["title", "style", "lyrics"]
+        },
+        annotations: { readOnlyHint: false, consequentialHint: false, untrustedContentHint: true },
+        execute: async ({ title, style, lyrics, weirdness, styleInfluence }) => {
+          const titleValue = String(title || "").trim();
+          const styleValue = String(style || "").trim();
+          const lyricsValue = String(lyrics || "");
+          if (!titleValue || !styleValue || !lyricsValue.trim()) throw new Error("Укажите название, Style и Lyrics.");
+          if (titleValue.length > 160 || styleValue.length > 2000 || lyricsValue.length > 12000) throw new Error("Превышена допустимая длина одного из музыкальных полей.");
+          setMode("audio");
+          if ($("#track-title")) $("#track-title").value = titleValue;
+          if ($("#style-out")) $("#style-out").textContent = styleValue;
+          if ($("#lyrics")) $("#lyrics").value = lyricsValue;
+          const weirdnessInput = $("#suno-weirdness");
+          const influenceInput = $("#suno-influence");
+          if (weirdnessInput && Number.isFinite(Number(weirdness))) {
+            weirdnessInput.value = String(Math.max(0, Math.min(100, Math.round(Number(weirdness)))));
+            weirdnessInput.dispatchEvent(new Event("input", { bubbles: true }));
+          }
+          if (influenceInput && Number.isFinite(Number(styleInfluence))) {
+            influenceInput.value = String(Math.max(0, Math.min(100, Math.round(Number(styleInfluence)))));
+            influenceInput.dispatchEvent(new Event("input", { bubbles: true }));
+          }
+          return { prepared: true, generated: false, message: "Музыкальный пакет заполнен. Проверь поля; копирование и открытие Suno запускаются только вручную кнопкой на странице." };
+        }
+      },
+      {
+        name: "build_video_prompt",
+        title: "Build a video prompt",
+        description: "Create a structured Text-to-Video or Image-to-Video prompt in the video workspace. Does not upload media or open an external generator.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            scene: { type: "string", description: "Scene, subject, action, environment, mood and desired movement." },
+            sourceType: { type: "string", enum: ["text", "image"], description: "Use text for Text to Video or image for Image to Video." }
+          },
+          required: ["scene"]
+        },
+        annotations: { readOnlyHint: false, consequentialHint: false, untrustedContentHint: true },
+        execute: async ({ scene, sourceType }) => {
+          const value = String(scene || "").trim();
+          if (!value) throw new Error("Опишите сцену для видео.");
+          if (value.length > 6000) throw new Error("Описание сцены должно быть не длиннее 6000 символов.");
+          setMode("video");
+          if ($("#video-type")) $("#video-type").value = sourceType === "image" ? "image" : "text";
+          if ($("#video-brief")) $("#video-brief").value = value;
+          buildVideoPrompt();
+          return { prepared: true, prompt: $("#video-output")?.value || "", message: "Видеопромпт собран. Проверь его и самостоятельно выбери внешний видеосервис." };
+        }
+      },
+      {
+        name: "build_text_draft",
+        title: "Build a text draft",
+        description: "Prepare a structured writing brief in the text workspace for a song, poem, video script, advertisement, social post, AI prompt or description.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            kind: { type: "string", enum: ["song", "poem", "script", "ad", "social", "prompt", "description"], description: "Type of text to prepare." },
+            brief: { type: "string", description: "Topic, idea, audience, tone and requirements." }
+          },
+          required: ["kind", "brief"]
+        },
+        annotations: { readOnlyHint: false, consequentialHint: false, untrustedContentHint: true },
+        execute: async ({ kind, brief }) => {
+          const value = String(brief || "").trim();
+          const allowedKinds = ["song", "poem", "script", "ad", "social", "prompt", "description"];
+          if (!allowedKinds.includes(kind)) throw new Error("Неизвестный тип текста.");
+          if (!value) throw new Error("Опишите тему или задачу.");
+          if (value.length > 6000) throw new Error("Описание задачи должно быть не длиннее 6000 символов.");
+          setMode("text");
+          if ($("#text-kind")) $("#text-kind").value = kind;
+          if ($("#text-brief")) $("#text-brief").value = value;
+          buildTextDraft();
+          return { prepared: true, draft: $("#text-output")?.value || "", message: "Структура подготовлена в редакторе. Проверь и отредактируй результат перед использованием." };
+        }
+      },
+      {
+        name: "get_studio_capabilities",
+        title: "Get AI Studio capabilities",
+        description: "Describe the available AI Studio workspaces and which actions require an explicit user click.",
+        inputSchema: { type: "object", properties: {} },
+        annotations: { readOnlyHint: true, consequentialHint: false, untrustedContentHint: false },
+        execute: async () => ({
+          workspaces: [
+            { mode: "image", capabilities: ["prepare image prompt", "manual image generation", "download generated image"] },
+            { mode: "audio", capabilities: ["build Suno style and lyrics", "prepare Suno settings", "manual copy/open Suno", "download text package"] },
+            { mode: "video", capabilities: ["build Text-to-Video and Image-to-Video prompts", "download prompt"] },
+            { mode: "text", capabilities: ["prepare song, poem, script, ad, social post, AI prompt and description", "download draft"] }
+          ],
+          safeguards: ["WebMCP tools prepare visible fields only", "image generation, external navigation and downloads require a user click", "server-side Suno API generation is disabled"]
+        })
+      }
+    ];
+
+    for (const tool of tools) {
+      try {
+        await modelContext.registerTool(tool, registrationOptions);
+      } catch (error) {
+        console.warn("[kirillovec WebMCP] Could not register " + tool.name, error);
+      }
+    }
+    console.info("[kirillovec AI Studio] WebMCP registration attempted");
+  }
+  registerWebMCPTools();
+
   renderHistory();
   renderProjects();
   ["suno-weirdness", "suno-influence"].forEach((id) => {
