@@ -360,8 +360,8 @@
     const influence = $("#suno-influence")?.value || "75";
     const packet = "TITLE: " + title + "\n\nSTYLE:\n" + style + "\n\nLYRICS:\n" + lyrics + "\n\nSUNO SETTINGS\nWeirdness: " + weirdness + "\nStyle Influence: " + influence;
     window.open("https://suno.com/create", "_blank", "noopener");
-    try { await navigator.clipboard.writeText(packet); toast("Пакет скопирован. Вставь Style и Lyrics в Suno."); }
-    catch (_) { toast("Suno открыт. Скопируй Style и Lyrics вручную."); }
+    try { await navigator.clipboard.writeText(packet); toast("Пакет скопирован. Если Suno недоступен из РФ, включи VPN и выбери доступную локацию."); }
+    catch (_) { toast("Suno открыт. Если сервис недоступен из РФ, включи VPN и выбери доступную локацию."); }
   });
   if (generateBtn) {
     generateBtn.addEventListener("click", async () => {
@@ -379,7 +379,8 @@
       const p = (promptEl && promptEl.value.trim()) || "";
       if (!p) { toast("Напиши промпт"); generateBtn.disabled = false; return; }
       if (status) status.textContent = "Генерация...";
-      if (stage) stage.innerHTML = '<div class="empty"><h3>Генерация...</h3><p>FLUX · Workers AI</p></div>';
+      toast("Если основной генератор не отвечает из РФ, смени сетевую локацию: включи VPN и выбери доступный регион.");
+      if (stage) stage.innerHTML = '<div class="empty"><h3>Генерация...</h3><p>FLUX · Workers AI</p><p>Если соединение из РФ блокируется, может потребоваться VPN и другая локация.</p></div>';
       try {
         const payload = { mode: "image", prompt: p };
         if (selectedFile) {
@@ -414,8 +415,8 @@
         showResult(dataUrl, p);
         toast("Готово");
       } catch (e) {
-        const networkMessage = "Основной API недоступен из этой сети. Промпт сохранён в поле выше: можно скопировать его и продолжить в GigaChat или Шедевруме.";
-        toast("Нет соединения с API. Доступны российские резервные сервисы.");
+        const networkMessage = "Основной API недоступен из этой сети. Если вы находитесь в РФ, попробуйте сменить сетевую локацию: включить VPN и выбрать регион, где сервис доступен. Сам сайт и ваши локальные проекты при этом не требуют VPN. Промпт остаётся в поле выше; без VPN можно продолжить в GigaChat или Шедевруме.";
+        toast("API недоступен. Для этого генератора из РФ может понадобиться VPN и смена локации.");
         if (status) status.textContent = "API недоступен";
         if (stage) {
           const card = document.createElement("div");
