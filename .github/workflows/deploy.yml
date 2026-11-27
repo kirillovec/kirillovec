@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - "src/**"
+      - "migrations/**"
+      - "wrangler.toml"
+      - ".github/workflows/deploy-ai-studio-api.yml"
+      - "docs/**"
   workflow_dispatch:
 
 permissions:
@@ -29,13 +35,22 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Prepare site files
+        run: |
+          mkdir -p _site
+          # Copy only what is needed for the public site
+          rsync -a --exclude='.git' --exclude='src' --exclude='migrations' \
+            --exclude='node_modules' --exclude='.github' --exclude='docs' \
+            --exclude='wrangler.toml' --exclude='*.md' --exclude='.tmp' \
+            ./ _site/
+
       - name: Upload site files
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Wait for Pages artifact indexing
-        run: sleep 15
+        run: sleep 10
 
       - name: Deploy to GitHub Pages
         id: deployment
