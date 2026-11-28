@@ -33,6 +33,11 @@ audio{display:block;width:100%;margin:18px 0 12px;accent-color:var(--accent)}
 footer{margin-top:36px;border-top:1px solid var(--border);padding-top:24px;display:flex;flex-wrap:wrap;gap:16px}
 footer a{color:var(--muted);text-decoration:none}
 footer a:hover{color:var(--accent)}
+
+/* Suno Toolkit */
+.toolkit{margin-top:34px}.toolkit-head{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin:0 0 16px}.toolkit-head h2{font:400 1.8rem Georgia,serif;margin:0}.toolkit-head p{color:var(--muted);margin:5px 0 0;font-size:.92rem}
+.tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.tool-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;min-width:0}.tool-card h3{font:400 1.2rem Georgia,serif;margin:0 0 8px}.tool-card p,.tool-help{color:var(--muted);font-size:.88rem;line-height:1.55}.tool-card label{display:block;color:var(--muted);font-size:.82rem;margin:12px 0 6px}.tool-card input[type=text],.tool-card input[type=url],.tool-card input[type=number],.tool-card textarea,.tool-card select{width:100%;background:#09090b;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px 12px;font:inherit;min-width:0}.tool-card textarea{min-height:110px;resize:vertical}.tool-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.tool-btn{border:1px solid rgba(196,167,125,.4);background:rgba(196,167,125,.1);color:var(--accent);border-radius:999px;padding:9px 14px;font:inherit;font-size:.86rem;cursor:pointer}.tool-btn.primary{background:var(--accent);color:#111;border-color:var(--accent);font-weight:650}.tool-btn:disabled{opacity:.45;cursor:not-allowed}.tool-status{min-height:1.3em;color:var(--muted);font-size:.82rem;margin:10px 0 0}.tool-file{display:block;width:100%;padding:12px;border:1px dashed rgba(196,167,125,.35);border-radius:10px;color:var(--muted)}.tool-preview{width:100%;margin-top:10px}.tool-preview audio{margin:8px 0}.tag-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.tag-chips button{border:1px solid var(--border);border-radius:99px;background:#09090b;color:var(--muted);padding:6px 10px;cursor:pointer;font-size:.8rem}.tool-note{border-left:2px solid var(--accent);padding:9px 12px;background:rgba(196,167,125,.06);color:var(--muted);font-size:.82rem;margin-top:12px}.tool-wide{grid-column:1/-1}
+@media(max-width:680px){.tool-grid{grid-template-columns:1fr}.tool-wide{grid-column:auto}.tool-card{padding:16px}.toolkit-head h2{font-size:1.55rem}}
 </style>
 </head>
 <body>
@@ -64,7 +69,69 @@ footer a:hover{color:var(--accent)}
 </div>
 <p class="note">Полный альбом (16 треков) — на стримингах. На сайте доступен демо-файл title track.</p>
 </section>
-<footer>
+
+<section class="toolkit" id="suno-toolkit" aria-labelledby="suno-toolkit-title">
+ <div class="toolkit-head"><div><h2 id="suno-toolkit-title">Suno Toolkit</h2><p>Инструменты для скачивания, подготовки текстов и оформления музыки. Бесплатно, обработка файлов — в браузере.</p></div><a class="download" href="https://suno.com" target="_blank" rel="noopener noreferrer">Открыть Suno ↗</a></div>
+ <div class="tool-grid">
+  <article class="tool-card">
+   <h3>⬇️ Загрузчик аудио</h3>
+   <p>Сохраняй собственные треки и файлы, к которым у тебя есть доступ.</p>
+   <label for="suno-audio-url">Прямая ссылка на аудиофайл (MP3/M4A/WAV)</label>
+   <input id="suno-audio-url" type="url" placeholder="https://cdn1.suno.ai/…mp3" autocomplete="url">
+   <div class="tool-actions"><button class="tool-btn primary" id="suno-url-download" type="button">Скачать файл</button></div>
+   <label for="suno-local-audio">Или выбери аудио на устройстве</label>
+   <input class="tool-file" id="suno-local-audio" type="file" accept="audio/*">
+   <div class="tool-preview" id="suno-audio-preview"></div>
+   <div class="tool-actions"><button class="tool-btn" id="suno-save-original" type="button" disabled>Скачать оригинал</button><button class="tool-btn" id="suno-convert-wav" type="button" disabled>Конвертировать в WAV</button></div>
+   <p class="tool-status" id="suno-download-status" role="status" aria-live="polite"></p>
+   <div class="tool-note">Ссылка вида suno.com/song/ или suno.com/s/ — это страница, а не прямой файл. Автоматическое получение аудио по публичной ссылке требует отдельного серверного загрузчика; мы не просим пароль, cookies или API-ключ Suno и не имитируем успешное скачивание.</div>
+  </article>
+  <article class="tool-card">
+   <h3>📝 Форматирование Lyrics</h3>
+   <p>Приведи текст к структуре Suno, добавь секции и экспортируй TXT.</p>
+   <label for="suno-lyrics">Текст песни</label>
+   <textarea id="suno-lyrics" placeholder="Вставь текст песни…"></textarea>
+   <div class="tag-chips" id="suno-structure-tags">
+    <button type="button" data-tag="[Intro]">[Intro]</button><button type="button" data-tag="[Verse 1]">[Verse 1]</button><button type="button" data-tag="[Pre-Chorus]">[Pre-Chorus]</button><button type="button" data-tag="[Chorus]">[Chorus]</button><button type="button" data-tag="[Verse 2]">[Verse 2]</button><button type="button" data-tag="[Bridge]">[Bridge]</button><button type="button" data-tag="[Outro]">[Outro]</button><button type="button" data-tag="[Instrumental]">[Instrumental]</button>
+   </div>
+   <div class="tool-actions"><button class="tool-btn" id="suno-clean-lyrics" type="button">Очистить форматирование</button><button class="tool-btn primary" id="suno-export-lyrics" type="button">Скачать TXT</button><button class="tool-btn" id="suno-copy-lyrics" type="button">Копировать</button></div>
+   <p class="tool-status" id="suno-lyrics-status" role="status" aria-live="polite"></p>
+  </article>
+  <article class="tool-card">
+   <h3>🎛️ Очистка Style Prompt</h3>
+   <p>Убери дубли, лишние пробелы и повторяющиеся теги, сохранив смысл.</p>
+   <label for="suno-style">Стиль и описание звучания</label>
+   <textarea id="suno-style" placeholder="Например: sad romantic hip hop, deep male bass vocals, atmospheric, lo-fi…"></textarea>
+   <div class="tool-actions"><button class="tool-btn primary" id="suno-clean-style" type="button">Очистить стиль</button><button class="tool-btn" id="suno-copy-style" type="button">Копировать</button></div>
+   <p class="tool-status" id="suno-style-status" role="status" aria-live="polite"></p>
+  </article>
+  <article class="tool-card">
+   <h3>🚫 Генератор исключаемых стилей</h3>
+   <p>Собери список нежелательных жанров и характеристик для поля Exclude Styles.</p>
+   <label for="suno-exclude">Выбери, чего избегать</label>
+   <div class="tag-chips" id="suno-exclude-tags">
+    <button type="button" data-value="metal">Metal</button><button type="button" data-value="screamo">Screamo</button><button type="button" data-value="heavy guitars">Heavy guitars</button><button type="button" data-value="aggressive vocals">Aggressive vocals</button><button type="button" data-value="female vocals">Female vocals</button><button type="button" data-value="fast tempo">Fast tempo</button><button type="button" data-value="distorted mix">Distorted mix</button><button type="button" data-value="EDM drops">EDM drops</button>
+   </div>
+   <textarea id="suno-exclude" placeholder="Список исключений через запятую…"></textarea>
+   <div class="tool-actions"><button class="tool-btn primary" id="suno-copy-exclude" type="button">Копировать Exclude Styles</button></div>
+   <p class="tool-status" id="suno-exclude-status" role="status" aria-live="polite"></p>
+  </article>
+  <article class="tool-card tool-wide">
+   <h3>⏱️ Оценка длительности песни</h3>
+   <p>Прикинь хронометраж текста по количеству слов и темпу исполнения. Это ориентир, а не точный таймкод.</p>
+   <label for="suno-duration-lyrics">Текст или Lyrics</label>
+   <textarea id="suno-duration-lyrics" placeholder="Вставь текст песни для расчёта…"></textarea>
+   <div class="tool-actions" style="align-items:end">
+    <label style="flex:1;min-width:130px;margin:0">Темп, BPM<input id="suno-bpm" type="number" min="50" max="220" value="90"></label>
+    <label style="flex:1;min-width:130px;margin:0">Подача<select id="suno-delivery"><option value="2.2">Рэп / плотная подача</option><option value="1.8">Певческий вокал</option><option value="2.8">Медленная лирика</option></select></label>
+    <button class="tool-btn primary" id="suno-estimate" type="button">Оценить длительность</button>
+   </div>
+   <p class="tool-status" id="suno-duration-status" role="status" aria-live="polite"></p>
+  </article>
+ </div>
+ <p class="note">Скачивай только собственные композиции или материалы, на использование которых у тебя есть разрешение. Для треков из своей библиотеки приоритетен официальный экспорт Suno: он сохраняет доступные форматы и условия твоего тарифа.</p>
+</section>
+\n<footer>
   <a href="/">← На главную</a>
   <a href="/artist/#links">Страница артиста</a>
   <a href="/творчество/">Творчество</a>
@@ -76,5 +143,30 @@ const status = document.getElementById("audio-status");
 player?.addEventListener("canplay", () => { status.textContent = "Трек готов к воспроизведению."; });
 player?.addEventListener("error", () => { status.textContent = "Браузер не смог загрузить MP3. Скачай файл или открой площадку."; });
 </script>
-</body>
+
+<script>
+(()=>{
+ const $=id=>document.getElementById(id);
+ const say=(id,msg)=>{const el=$(id);if(el)el.textContent=msg};
+ const save=(blob,name)=>{const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)};
+ const copy=async(text,id)=>{try{await navigator.clipboard.writeText(text);say(id,'Скопировано.')}catch{say(id,'Не удалось скопировать автоматически — выдели текст и скопируй вручную.')}};
+ const fileInput=$('suno-local-audio'),preview=$('suno-audio-preview'),saveOriginal=$('suno-save-original'),toWav=$('suno-convert-wav');
+ let selectedFile=null,objectUrl=null;
+ fileInput?.addEventListener('change',()=>{selectedFile=fileInput.files?.[0]||null;saveOriginal.disabled=toWav.disabled=!selectedFile;if(objectUrl)URL.revokeObjectURL(objectUrl);preview.innerHTML='';if(!selectedFile){say('suno-download-status','');return}objectUrl=URL.createObjectURL(selectedFile);const audio=document.createElement('audio');audio.controls=true;audio.preload='metadata';audio.src=objectUrl;preview.append(audio);say('suno-download-status',selectedFile.name+' · '+(selectedFile.size/1048576).toFixed(2)+' МБ');});
+ saveOriginal?.addEventListener('click',()=>{if(selectedFile)save(selectedFile,selectedFile.name)});
+ $('suno-convert-wav')?.addEventListener('click',async()=>{if(!selectedFile)return;try{say('suno-download-status','Конвертирую аудио в WAV в браузере…');const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw Error('Web Audio API не поддерживается этим браузером');const ctx=new AC();const buffer=await ctx.decodeAudioData(await selectedFile.arrayBuffer());const channels=buffer.numberOfChannels,length=buffer.length,rate=buffer.sampleRate;const out=new ArrayBuffer(44+length*channels*2),view=new DataView(out);const write=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i))};write(0,'RIFF');view.setUint32(4,36+length*channels*2,true);write(8,'WAVE');write(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels,true);view.setUint32(24,rate,true);view.setUint32(28,rate*channels*2,true);view.setUint16(32,channels*2,true);view.setUint16(34,16,true);write(36,'data');view.setUint32(40,length*channels*2,true);let offset=44;for(let i=0;i<length;i++)for(let c=0;c<channels;c++){let v=Math.max(-1,Math.min(1,buffer.getChannelData(c)[i]));view.setInt16(offset,v<0?v*32768:v*32767,true);offset+=2}save(new Blob([out],{type:'audio/wav'}),selectedFile.name.replace(/\.[^.]+$/,'')+'.wav');await ctx.close();say('suno-download-status','Готово: WAV сохранён. Это локальная конвертация, не мастер-файл Suno.');}catch(e){say('suno-download-status','Не удалось конвертировать: '+e.message)}});
+ $('suno-url-download')?.addEventListener('click',()=>{const raw=$('suno-audio-url').value.trim();try{const u=new URL(raw);if(!['http:','https:'].includes(u.protocol))throw Error();if(/(^|\.)suno\.com$/i.test(u.hostname)){say('suno-download-status','Это ссылка на страницу Suno, а не прямой аудиофайл. Открой её в Suno и используй официальный Download.');window.open(u.href,'_blank','noopener');return;}if(!/(^|\.)(cdn1\.suno\.ai|cdn2\.suno\.ai)$/i.test(u.hostname)){say('suno-download-status','Для безопасности поддерживаются прямые ссылки с cdn1.suno.ai или cdn2.suno.ai.');return;}const a=document.createElement('a');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';a.click();say('suno-download-status','Открыл прямую ссылку в новой вкладке. Если файл не сохранился автоматически, выбери «Скачать» в меню браузера.');}catch{say('suno-download-status','Вставь корректную HTTPS-ссылку на файл.');}});
+ const lyrics=$('suno-lyrics');
+ $('suno-structure-tags')?.addEventListener('click',e=>{const b=e.target.closest('[data-tag]');if(!b||!lyrics)return;const start=lyrics.selectionStart,end=lyrics.selectionEnd,v=lyrics.value;lyrics.value=v.slice(0,start)+(start&&v[start-1]!='\n'?'\n':'')+b.dataset.tag+'\n'+v.slice(end);lyrics.focus();});
+ $('suno-clean-lyrics')?.addEventListener('click',()=>{if(!lyrics)return;lyrics.value=lyrics.value.replace(/\r/g,'').replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n').trim();say('suno-lyrics-status','Форматирование очищено.');});
+ $('suno-export-lyrics')?.addEventListener('click',()=>{if(!lyrics.value.trim()){say('suno-lyrics-status','Сначала вставь текст.');return}save(new Blob([lyrics.value],{type:'text/plain;charset=utf-8'}),'suno-lyrics.txt');say('suno-lyrics-status','TXT сохранён.');});
+ $('suno-copy-lyrics')?.addEventListener('click',()=>copy(lyrics?.value||'','suno-lyrics-status'));
+ const style=$('suno-style');
+ $('suno-clean-style')?.addEventListener('click',()=>{const parts=(style.value||'').split(/[,;\n]+/).map(x=>x.trim().replace(/\s+/g,' ')).filter(Boolean);const seen=new Set();style.value=parts.filter(x=>{const k=x.toLowerCase();if(seen.has(k))return false;seen.add(k);return true}).join(', ');say('suno-style-status','Дубли удалены, порядок тегов сохранён.');});
+ $('suno-copy-style')?.addEventListener('click',()=>copy(style?.value||'','suno-style-status'));
+ $('suno-exclude-tags')?.addEventListener('click',e=>{const b=e.target.closest('[data-value]');if(!b)return;const area=$('suno-exclude'),vals=area.value.split(',').map(x=>x.trim()).filter(Boolean);if(!vals.some(x=>x.toLowerCase()===b.dataset.value.toLowerCase()))vals.push(b.dataset.value);area.value=vals.join(', ');});
+ $('suno-copy-exclude')?.addEventListener('click',()=>copy($('suno-exclude').value,'suno-exclude-status'));
+ $('suno-estimate')?.addEventListener('click',()=>{const words=($('suno-duration-lyrics').value.match(/[\p{L}\p{N}’'-]+/gu)||[]).length,bpm=Math.max(50,Math.min(220,Number($('suno-bpm').value)||90)),factor=Number($('suno-delivery').value)||2.2;if(!words){say('suno-duration-status','Добавь текст, чтобы рассчитать длительность.');return}const minutes=words*factor/bpm;const m=Math.floor(minutes),s=Math.round((minutes-m)*60);say('suno-duration-status',words+' слов · ориентировочно '+m+':'+String(s).padStart(2,'0')+' при '+bpm+' BPM. Инструментальные паузы и повторы могут увеличить длительность.');});
+})();
+</script></body>
 </html>
