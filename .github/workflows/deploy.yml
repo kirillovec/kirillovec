@@ -46,7 +46,7 @@ jobs:
           from pathlib import Path
           page = Path("studio/index.html")
           html = page.read_text(encoding="utf-8")
-          refs = re.findall(r'<script[^>]+src=["\\']([^"\\']+)', html)
+          refs = re.findall(r"<script[^>]+src=['\"]([^'\"]+)", html)
           missing = [src for src in refs if not src.startswith(("http://", "https://", "//")) and not (page.parent / src.split("?", 1)[0]).is_file()]
           if missing:
               raise SystemExit("Missing frontend scripts: " + ", ".join(missing))
