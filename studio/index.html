@@ -290,6 +290,19 @@ body.mode-audio #audio-panel{display:block}
       <div class="action-row"><button type="button" id="suno-caption-download-lrc">Скачать LRC</button><button type="button" id="suno-caption-download-srt">Скачать SRT</button></div>
       <p class="mode-note">Таймкоды выставляются вручную по воспроизведению. Это не автоматическое распознавание вокала.</p>
     </div>
+
+    <div style="margin-top:14px">
+      <h2>Подготовка обложки релиза</h2>
+      <p class="mode-note">Квадратная обрезка по центру и экспорт в высоком разрешении. Исходник остаётся на устройстве.</p>
+      <label class="upload"><strong>Выбрать обложку для подготовки</strong><input id="suno-cover-editor-file" type="file" accept="image/jpeg,image/png,image/webp" style="display:block;width:100%;margin-top:8px"><span id="suno-cover-editor-info">Файл не выбран</span></label>
+      <img id="suno-cover-editor-preview" alt="Предпросмотр квадратной обложки" style="display:none;width:min(100%,260px);aspect-ratio:1;object-fit:cover;border-radius:12px;margin:12px auto">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <label class="mode-note">Размер экспорта<select id="suno-cover-editor-size" class="field"><option value="3000">3000 × 3000</option><option value="1500">1500 × 1500</option><option value="1000">1000 × 1000</option></select></label>
+        <label class="mode-note">Формат<select id="suno-cover-editor-format" class="field"><option value="image/jpeg">JPG · качество 94%</option><option value="image/png">PNG</option></select></label>
+      </div>
+      <button type="button" class="soft-button" id="suno-cover-editor-export" style="margin-top:10px">Подготовить квадратную обложку</button>
+    </div>
+
     <div style="margin-top:14px">
       <h2>Пакетная загрузка треков</h2>
       <label class="upload"><strong>Выбрать несколько собственных аудиофайлов</strong><input id="suno-batch-files" type="file" accept="audio/*" multiple style="display:block;width:100%;margin-top:8px"><span id="suno-batch-status">Файлы не выбраны</span></label>
