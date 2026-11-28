@@ -35,6 +35,27 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Validate frontend JavaScript and script references
+        run: |
+          node --check studio/app.js
+          node --check studio/suno-tools.js
+          node --check studio/suno-pro-tools.js
+          node --check studio/auth-banner.js
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          page = Path("studio/index.html")
+          html = page.read_text(encoding="utf-8")
+          refs = re.findall(r'<script[^>]+src=["\\']([^"\\']+)', html)
+          missing = [src for src in refs if not src.startswith(("http://", "https://", "//")) and not (page.parent / src.split("?", 1)[0]).is_file()]
+          if missing:
+              raise SystemExit("Missing frontend scripts: " + ", ".join(missing))
+          for required in ("suno-tools.js", "suno-pro-tools.js", "app.js"):
+              if not any(src.split("?", 1)[0].endswith(required) for src in refs):
+                  raise SystemExit("Required script is not included: " + required)
+          print("Frontend syntax and script references are valid.")
+          PY
+
       - name: Prepare site files
         run: |
           mkdir -p _site
