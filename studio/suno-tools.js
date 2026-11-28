@@ -76,13 +76,13 @@
       const data = entry.bytes instanceof Uint8Array ? entry.bytes : new Uint8Array(entry.bytes);
       const crc = crc32(data);
       const header = new Uint8Array([
-        0x50,0x4b,0x03,0x04,20,0,0,0,0,0,0,0,0,0,
+        0x50,0x4b,0x03,0x04,20,0,0,8,0,0,0,0,0,0,
         ...u32(crc), ...u32(data.length), ...u32(data.length),
         ...u16(name.length),0,0
       ]);
       local.push(header, name, data);
       const centralHeader = new Uint8Array([
-        0x50,0x4b,0x01,0x02,20,0,20,0,0,0,0,0,0,0,
+        0x50,0x4b,0x01,0x02,20,0,20,0,0,8,0,0,0,0,0,0,
         ...u32(crc), ...u32(data.length), ...u32(data.length),
         ...u16(name.length),0,0,0,0,0,0,0,0,0,0,0,0,
         ...u32(offset)
