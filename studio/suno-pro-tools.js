@@ -26,9 +26,9 @@
     if(el===title && packTitle) packTitle.value=el.value;
     if(el===lyrics && packLyrics) packLyrics.value=el.value;
   }));
-  document.querySelectorAll("[data-pillar] .chip").forEach((el)=>el.addEventListener("click",()=>{
+  document.querySelectorAll("[data-pillar] .chip").forEach((el)=>el.addEventListener("click",()=>queueMicrotask(()=>{
     if(packStyle && style) packStyle.value=style.textContent.includes("Выбери чипы") ? "" : style.textContent;
-  }));
+  })));
   function attachAudio(file) {
     if(!file || !player) return;
     if(!file.type.startsWith("audio/")) { notify("Выбери аудиофайл"); return; }
