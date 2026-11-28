@@ -120,10 +120,11 @@
         download(blob,safe(title?.value||"track")+"-cover-"+size+"x"+size+"."+ext);
         notify("Квадратная обложка "+size+"×"+size+" подготовлена");
       },format,0.94);
-      URL.revokeObjectURL(img.src);
+      if (img.src !== coverUrl) URL.revokeObjectURL(img.src);
     };
     img.onerror=()=>notify("Не удалось открыть изображение");
-    img.src=coverUrl||URL.createObjectURL(file);
+    const sourceUrl=coverUrl||URL.createObjectURL(file);
+    img.src=sourceUrl;
   });
 
   $("#suno-caption-download-lrc")?.addEventListener("click",()=>{if(!subtitleRows.length)return notify("Добавь строки с таймкодами");download(new Blob([lrcText()],{type:"text/plain;charset=utf-8"}),safe(title?.value)+"-lyrics.lrc");});
