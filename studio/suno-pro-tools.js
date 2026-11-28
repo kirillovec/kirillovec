@@ -86,6 +86,46 @@
       return (i+1)+"\n"+fmt(start)+" --> "+fmt(end)+"\n"+x.text;
     }).join("\n\n")+"\n";
   }
+
+  window.KirillovecSunoTools = Object.freeze({
+    getSubtitleFiles: () => subtitleRows.length ? { lrc: lrcText(), srt: srtText() } : null
+  });
+  let coverUrl = "";
+  $("#suno-cover-editor-file")?.addEventListener("change",(event)=>{
+    const file=event.target.files?.[0],preview=$("#suno-cover-editor-preview");
+    if(!file||!file.type.startsWith("image/"))return notify("Выбери изображение JPG, PNG или WEBP");
+    if(coverUrl)URL.revokeObjectURL(coverUrl);
+    coverUrl=URL.createObjectURL(file);
+    if(preview){preview.src=coverUrl;preview.style.display="block";}
+    const info=$("#suno-cover-editor-info");
+    if(info)info.textContent=file.name+" · "+file.size.toLocaleString("ru-RU")+" байт · "+file.type;
+  });
+  $("#suno-cover-editor-export")?.addEventListener("click",()=>{
+    const file=$("#suno-cover-editor-file")?.files?.[0];
+    if(!file)return notify("Сначала выбери обложку");
+    const size=Number($("#suno-cover-editor-size")?.value||3000);
+    const format=$("#suno-cover-editor-format")?.value||"image/jpeg";
+    const img=new Image();
+    img.onload=()=>{
+      const side=Math.min(img.naturalWidth,img.naturalHeight);
+      const sx=(img.naturalWidth-side)/2,sy=(img.naturalHeight-side)/2;
+      const canvas=document.createElement("canvas");canvas.width=size;canvas.height=size;
+      const ctx=canvas.getContext("2d");
+      if(!ctx)return notify("Canvas недоступен в этом браузере");
+      ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+      ctx.drawImage(img,sx,sy,side,side,0,0,size,size);
+      canvas.toBlob(blob=>{
+        if(!blob)return notify("Не удалось подготовить обложку");
+        const ext=format==="image/png"?"png":"jpg";
+        download(blob,safe(title?.value||"track")+"-cover-"+size+"x"+size+"."+ext);
+        notify("Квадратная обложка "+size+"×"+size+" подготовлена");
+      },format,0.94);
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror=()=>notify("Не удалось открыть изображение");
+    img.src=coverUrl||URL.createObjectURL(file);
+  });
+
   $("#suno-caption-download-lrc")?.addEventListener("click",()=>{if(!subtitleRows.length)return notify("Добавь строки с таймкодами");download(new Blob([lrcText()],{type:"text/plain;charset=utf-8"}),safe(title?.value)+"-lyrics.lrc");});
   $("#suno-caption-download-srt")?.addEventListener("click",()=>{if(!subtitleRows.length)return notify("Добавь строки с таймкодами");download(new Blob([srtText()],{type:"text/plain;charset=utf-8"}),safe(title?.value)+"-subtitles.srt");});
   $("#suno-caption-import")?.addEventListener("click",()=>{
