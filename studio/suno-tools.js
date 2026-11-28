@@ -161,6 +161,9 @@
     if (files.video) entries.push({name:"video/" + safeName(files.video.name),bytes:await files.video.arrayBuffer()});
     if (meta.lyrics.trim()) entries.push({name:"lyrics/" + safeName(meta.title) + ".txt",bytes:new TextEncoder().encode(meta.lyrics)});
     entries.push({name:"metadata.json",bytes:new TextEncoder().encode(JSON.stringify(meta,null,2))});
+    const subtitleFiles = window.KirillovecSunoTools?.getSubtitleFiles?.();
+    if (subtitleFiles?.lrc) entries.push({name:"subtitles/" + safeName(meta.title) + ".lrc",bytes:new TextEncoder().encode(subtitleFiles.lrc)});
+    if (subtitleFiles?.srt) entries.push({name:"subtitles/" + safeName(meta.title) + ".srt",bytes:new TextEncoder().encode(subtitleFiles.srt)});
     entries.push({name:"README.txt",bytes:new TextEncoder().encode("KIRILLOVEC · SUNO ASSET PACK\n\nАрхив содержит только файлы, выбранные пользователем на этом устройстве, и введённые метаданные.\nПубличная ссылка Suno сама по себе не даёт прав на скачивание или коммерческое использование.\nСкачивайте и используйте только собственные или разрешённые материалы.\n")});
     if (!files.audio && !files.cover && !files.video && !meta.lyrics.trim()) return toast("Добавь хотя бы один файл или текст Lyrics.");
     button.disabled = true; button.textContent = "Собираю ZIP…";
