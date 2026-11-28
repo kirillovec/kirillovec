@@ -238,6 +238,38 @@ body.mode-audio #audio-panel{display:block}
 </div>
 
 
+
+<div class="panel" id="suno-downloader" style="margin-top:12px">
+  <h2>Загрузчик и экспорт Suno</h2>
+  <p class="mode-note">Подготовь архив своего трека: аудио, WAV, обложка, видео, Lyrics и метаданные. Обработка и ZIP выполняются прямо в браузере — без платного API и загрузки файлов на наш сервер.</p>
+  <label class="mode-note" for="suno-public-link">Публичная ссылка на песню или Hook Suno</label>
+  <input id="suno-public-link" type="url" placeholder="https://suno.com/song/... или https://suno.com/s/..." style="width:100%;box-sizing:border-box;margin:6px 0 8px;padding:11px;border:1px solid var(--line);border-radius:10px;background:#0f0f13;color:var(--text);font:inherit">
+  <div class="action-row"><button type="button" id="suno-check-public">Проверить ссылку</button><button type="button" id="suno-open-public">Открыть в Suno ↗</button></div>
+  <p id="suno-link-status" class="mode-note" role="status">Принимаются публичные ссылки /s/, /song/ и /hook/. Приватные песни и обход ограничений доступа не поддерживаются.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:12px">
+    <label class="mode-note">Название трека<input id="suno-pack-title" placeholder="Название" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:9px;border-radius:8px;border:1px solid var(--line);background:#0f0f13;color:var(--text)"></label>
+    <label class="mode-note">Автор / исполнитель<input id="suno-pack-creator" placeholder="Исполнитель" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:9px;border-radius:8px;border:1px solid var(--line);background:#0f0f13;color:var(--text)"></label>
+  </div>
+  <label class="mode-note" for="suno-pack-style" style="display:block;margin-top:10px">Style / описание звучания</label>
+  <textarea id="suno-pack-style" placeholder="Жанр, инструменты, настроение, вокал, продакшн..." style="width:100%;box-sizing:border-box;min-height:70px;margin-top:5px"></textarea>
+  <label class="mode-note" for="suno-pack-lyrics" style="display:block;margin-top:10px">Lyrics</label>
+  <textarea id="suno-pack-lyrics" placeholder="Вставь текст песни для экспорта в TXT..." style="width:100%;box-sizing:border-box;min-height:110px;margin-top:5px"></textarea>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:12px">
+    <label class="upload"><strong>Аудио · MP3 / M4A / WAV</strong><input id="suno-pack-audio" type="file" accept="audio/*" style="display:block;width:100%;margin-top:8px"><span id="suno-pack-audio-name">Файл не выбран</span></label>
+    <label class="upload"><strong>Обложка · JPG / PNG / WEBP</strong><input id="suno-pack-cover" type="file" accept="image/jpeg,image/png,image/webp" style="display:block;width:100%;margin-top:8px"><span id="suno-pack-cover-name">Файл не выбран</span></label>
+    <label class="upload"><strong>Видео · MP4 / WebM</strong><input id="suno-pack-video" type="file" accept="video/mp4,video/webm,video/*" style="display:block;width:100%;margin-top:8px"><span id="suno-pack-video-name">Файл не выбран</span></label>
+  </div>
+  <div class="action-row" style="margin-top:12px">
+    <button type="button" id="suno-download-original">Скачать аудио</button>
+    <button type="button" id="suno-download-wav">Конвертировать в WAV</button>
+    <button type="button" id="suno-download-cover">Скачать обложку</button>
+    <button type="button" id="suno-download-video">Скачать видео</button>
+    <button type="button" id="suno-download-lyrics">Скачать Lyrics TXT</button>
+  </div>
+  <button type="button" class="generate" id="suno-download-pack" style="margin-top:10px">Скачать всё одним ZIP</button>
+  <p class="disclaimer" style="margin-top:10px">Важно: по одной публичной ссылке нельзя гарантированно извлечь аудио из Suno — браузер ограничен политикой CORS и правилами доступа источника. Поэтому этот модуль не обещает автоматическое скачивание чужих файлов и не запрашивает пароль, cookies или API-ключи. Используй официальную кнопку Download в Suno либо добавляй сюда собственные файлы. Скачивание не предоставляет авторских или коммерческих прав.</p>
+</div>
+
 <div id="video-panel">
   <div class="panel workspace">
     <h2>Видео-конструктор</h2>
@@ -294,6 +326,7 @@ body.mode-audio #audio-panel{display:block}
 </div>
 
 <div id="toast"></div>
+<script src="suno-tools.js"></script>
 <script src="app.js"></script>
 <script src="auth-banner.js"></script>
 </body>
