@@ -235,10 +235,6 @@ body.mode-audio #audio-panel{display:block}
   <p class="mode-note" role="note">Перед генерацией: если Suno не открывается или не принимает запрос из РФ, включи VPN и выбери доступную локацию. Если VPN не используешь, попробуй создание песни в GigaChat ниже.</p>
   <a href="https://suno.com/create" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;font-size:12px;color:var(--muted)">Открыть suno.com вручную ↗</a>
   <div class="panel" style="margin-top:12px"><h2>Музыкальная альтернатива без VPN</h2><p class="mode-note">GigaChat поддерживает создание песен в своём интерфейсе. Скопируй туда идею или текст; для готового Style + Lyrics используй экспорт выше.</p><div class="provider-links"><a href="https://giga.chat/" target="_blank" rel="noopener">Создать песню в GigaChat ↗</a></div></div>
-</div>
-
-
-
 <div class="panel" id="suno-downloader" style="margin-top:12px">
   <h2>Загрузчик и экспорт Suno</h2>
   <p class="mode-note">Подготовь архив своего трека: аудио, WAV, обложка, видео, Lyrics и метаданные. Обработка и ZIP выполняются прямо в браузере — без платного API и загрузки файлов на наш сервер.</p>
@@ -269,6 +265,43 @@ body.mode-audio #audio-panel{display:block}
   <button type="button" class="generate" id="suno-download-pack" style="margin-top:10px">Скачать всё одним ZIP</button>
   <p class="disclaimer" style="margin-top:10px">Важно: по одной публичной ссылке нельзя гарантированно извлечь аудио из Suno — браузер ограничен политикой CORS и правилами доступа источника. Поэтому этот модуль не обещает автоматическое скачивание чужих файлов и не запрашивает пароль, cookies или API-ключи. Используй официальную кнопку Download в Suno либо добавляй сюда собственные файлы. Скачивание не предоставляет авторских или коммерческих прав.</p>
 </div>
+
+
+</div>
+
+
+
+
+  <div class="panel" id="suno-pro-tools" style="margin-top:12px">
+    <h2>Профессиональные инструменты релиза</h2>
+    <p class="mode-note">Перенеси название, Style и Lyrics из конструктора одним нажатием. Все операции локальные — файлы не отправляются на сервер.</p>
+    <button type="button" class="soft-button" id="suno-sync-builder">Перенести данные из Suno-конструктора</button>
+    <div style="margin-top:12px">
+      <h2>Предпрослушивание аудио</h2>
+      <label class="upload"><strong>Выбрать аудио для прослушивания</strong><input id="suno-preview-file" type="file" accept="audio/*" style="display:block;width:100%;margin-top:8px"><span id="suno-preview-name">Файл не выбран</span></label>
+      <audio id="suno-preview-player" controls preload="metadata" style="width:100%;margin-top:10px"></audio>
+      <p class="mode-note">Можно прослушать локальный файл, поставить паузу и вручную отметить таймкоды для синхронизации Lyrics.</p>
+    </div>
+    <div style="margin-top:14px">
+      <h2>LRC / SRT — таймкоды текста песни</h2>
+      <label class="mode-note" for="suno-caption-text">Строка Lyrics</label>
+      <input id="suno-caption-text" class="field" placeholder="Введи строку песни">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <label class="mode-note">Время (мм:сс.сс), необязательно<input id="suno-caption-time" class="field" placeholder="01:23.45" style="margin-top:5px"></label>
+        <div style="display:flex;align-items:end"><button type="button" id="suno-caption-current" class="soft-button" style="width:100%">Взять время аудио</button></div>
+      </div>
+      <div class="action-row"><button type="button" id="suno-caption-add">Добавить строку</button><button type="button" id="suno-caption-import">Импортировать таймкоды из Lyrics</button><button type="button" id="suno-caption-clear">Очистить</button></div>
+      <div id="suno-caption-list" style="margin-top:8px"></div>
+      <div class="action-row"><button type="button" id="suno-caption-download-lrc">Скачать LRC</button><button type="button" id="suno-caption-download-srt">Скачать SRT</button></div>
+      <p class="mode-note">Таймкоды выставляются вручную по воспроизведению. Это не автоматическое распознавание вокала.</p>
+    </div>
+    <div style="margin-top:14px">
+      <h2>Пакетная загрузка треков</h2>
+      <label class="upload"><strong>Выбрать несколько собственных аудиофайлов</strong><input id="suno-batch-files" type="file" accept="audio/*" multiple style="display:block;width:100%;margin-top:8px"><span id="suno-batch-status">Файлы не выбраны</span></label>
+      <div class="action-row"><button type="button" id="suno-batch-download">Скачать плейлист ZIP</button><button type="button" id="suno-playlist-csv">Экспорт списка CSV</button></div>
+      <p class="mode-note">Лимит браузерного архива: 30 файлов и 300 МБ суммарно. Можно собрать локальный архив своих треков без загрузки на сервер.</p>
+    </div>
+  </div>
 
 <div id="video-panel">
   <div class="panel workspace">
@@ -327,6 +360,7 @@ body.mode-audio #audio-panel{display:block}
 
 <div id="toast"></div>
 <script src="suno-tools.js"></script>
+<script src="suno-pro-tools.js"></script>
 <script src="app.js"></script>
 <script src="auth-banner.js"></script>
 </body>
