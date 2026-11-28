@@ -84,7 +84,7 @@
       const centralHeader = new Uint8Array([
         0x50,0x4b,0x01,0x02,20,0,20,0,0,0,0,0,0,0,
         ...u32(crc), ...u32(data.length), ...u32(data.length),
-        ...u16(name.length),0,0,0,0,0,0,0,0,0,0,
+        ...u16(name.length),0,0,0,0,0,0,0,0,0,0,0,0,
         ...u32(offset)
       ]);
       central.push(centralHeader, name);
